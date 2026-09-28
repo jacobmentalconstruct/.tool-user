@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Local Memory Lab · Shared Session</title>
+  <style>
+    :root { color-scheme: dark; font-family: Segoe UI, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #141820; color: #eef2f6; }
+    header { display: flex; align-items: center; gap: 18px; padding: 16px 22px; border-bottom: 1px solid #303846; background: #1c222c; }
+    h1 { margin: 0; font-size: 20px; letter-spacing: .02em; }
+    .pill { padding: 5px 9px; border-radius: 999px; background: #2d3b4e; color: #9fc5ff; font-size: 12px; }
+    .spacer { flex: 1; }
+    main { display: grid; grid-template-columns: minmax(0, 1fr) 260px; height: calc(100vh - 65px); }
+    .conversation { display: flex; flex-direction: column; min-height: 0; }
+    #timeline { flex: 1; overflow: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .message { max-width: 780px; padding: 12px 15px; border: 1px solid #374352; border-radius: 12px; background: #232b36; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.45; }
+    .message .speaker { font-weight: 700; font-size: 12px; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 6px; color: #91c4ff; }
+    .message[data-speaker="Assistant"] { border-color: #355344; background: #202f2a; }
+    .message[data-speaker="Assistant"] .speaker { color: #a7e2b9; }
+    .message[data-speaker="Tool"] .speaker { color: #e8ce8c; }
+    .message[data-speaker="Error"] { border-color: #874c55; }
+    .message[data-speaker="Error"] .speaker { color: #ff9fa9; }
+    .message[data-speaker="Memory"], .message[data-speaker="System"], .message[data-speaker="Approval"] { background: #1d2732; color: #b7c3cf; }
+    form { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid #303846; background: #1c222c; }
+    textarea, input, select { background: #2b3441; border: 1px solid #435166; border-radius: 8px; color: #eef2f6; font: inherit; }
+    textarea { resize: vertical; min-height: 62px; max-height: 180px; padding: 10px; flex: 1; }
+    button { border: 0; border-radius: 8px; padding: 10px 14px; background: #3c6798; color: white; font: inherit; cursor: pointer; }
+    button:hover { background: #5282b8; }
+    button:disabled { opacity: .55; cursor: default; }
+    aside { min-height: 0; border-left: 1px solid #303846; background: #1b222c; padding: 20px 16px; overflow: auto; }
+    aside h2 { margin: 0 0 8px; font-size: 16px; }
+    .muted { color: #aab5c3; font-size: 13px; line-height: 1.4; }
+    select { width: 100%; padding: 9px; margin: 8px 0 22px; }
+    .note-form { display: flex; gap: 6px; margin: 10px 0; }
+    .note-form input { width: 100%; min-width: 0; padding: 8px; }
+    .note-form button { padding: 8px 10px; }
+    .project-form { display: flex; gap: 6px; margin: 10px 0 6px; }
+    .project-form input { width: 100%; min-width: 0; padding: 8px; }
+    .project-form button { padding: 8px 10px; white-space: nowrap; }
+    #selectedProject { overflow-wrap: anywhere; }
+    .note { display: flex; gap: 8px; align-items: flex-start; border: 1px solid #384454; padding: 9px; border-radius: 8px; margin-top: 8px; overflow-wrap: anywhere; }
+    .note span { flex: 1; font-size: 13px; }
+    .note button { padding: 2px 7px; background: #4c3a43; }
+    #error { color: #ffafb5; font-size: 13px; min-height: 20px; padding: 0 20px; }
+    .overlay { position: fixed; inset: 0; background: #000b; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .overlay.show { display: flex; }
+    .dialog { width: min(900px, 100%); max-height: 90vh; overflow: auto; background: #232c38; border: 1px solid #60718a; border-radius: 14px; padding: 22px; box-shadow: 0 22px 70px #000a; }
+    .dialog h2 { margin: 0 0 5px; }
+    .previews { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; }
+    .previews h3 { font-size: 13px; color: #a8cfff; }
+    pre { margin: 0; padding: 13px; border-radius: 8px; background: #151b23; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 300px; overflow: auto; }
+    #diffPreview { display: none; margin: 18px 0; }
+    #diffContent { max-height: 55vh; white-space: pre; overflow: auto; }
+    .actions { display: flex; justify-content: flex-end; gap: 10px; }
+    .cancel { background: #4b5564; }
+    @media (max-width: 760px) { main { grid-template-columns: 1fr; height: auto; } .conversation { min-height: 70vh; } aside { border-left: 0; border-top: 1px solid #303846; } .previews { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header><h1>Local Memory Lab</h1><span class="pill">SHARED SESSION</span><span class="spacer"></span><span id="status" class="pill">Connecting…</span></header>
+  <main>
+    <section class="conversation">
+      <div id="timeline" aria-live="polite"></div>
+      <div id="error"></div>
+      <form id="promptForm"><textarea id="prompt" placeholder="Send a message to the shared Ollama session…" aria-label="Message"></textarea><button type="submit">Send</button></form>
+    </section>
+    <aside>
+      <h2>Model</h2><div class="muted">One model and one conversation for both of us.</div>
+      <select id="model" aria-label="Model"></select>
+      <h2>Project folder</h2><div class="muted">Choose an existing folder for the agent to inspect and edit. Patches to existing files pause for your review and approval.</div>
+      <div class="project-form"><input id="projectPath" placeholder="Paste a folder path" aria-label="Project folder path"><button id="useProject" type="button">Use</button></div>
+      <div id="selectedProject" class="muted">No project selected.</div>
+      <p class="muted">You can use this app's folder as a small test project.</p>
+      <h2>Long term notes</h2><div class="muted">These stay in memory until this server stops.</div>
+      <div class="note-form"><input id="note" placeholder="A fact to remember" aria-label="New note"><button id="remember" type="button">Add</button></div>
+      <div id="notes"></div>
+      <p class="muted">The original file tools use the app's <code>files</code> folder. Existing project files are changed through reviewed patches with backups.</p>
+    </aside>
+  </main>
+  <div id="approval" class="overlay" role="dialog" aria-modal="true" aria-label="File change approval">
+    <div class="dialog"><h2 id="approvalTitle">Approve change?</h2><div id="approvalName" class="muted"></div>
+      <div id="overwritePreviews" class="previews"><div><h3>Existing text</h3><pre id="oldContent"></pre></div><div><h3>Proposed text</h3><pre id="newContent"></pre></div></div>
+      <div id="diffPreview"><div class="muted">In the diff, − lines are removed and + lines are added.</div><pre id="diffContent"></pre></div>
+      <div class="actions"><button id="cancel" class="cancel">Cancel</button><button id="approveChange">Apply patch</button></div>
+    </div>
+  </div>
+  <script>
+    const token = new URLSearchParams(location.search).get('token') || '';
+    const auth = { 'Authorization': 'Bearer ' + token };
+    const timeline = document.querySelector('#timeline');
+    let lastEventId = 0;
+    let approvalId = null;
+    let loading = false;
+    let projectPathInitialized = false;
+    async function api(path, body) {
+      const response = await fetch(path, { method: body === undefined ? 'GET' : 'POST',
+        headers: { ...auth, ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+        body: body === undefined ? undefined : JSON.stringify(body), cache: 'no-store' });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+    function showError(error) { document.querySelector('#error').textContent = error ? String(error) : ''; }
+    function renderEvents(events) {
+      for (const event of events) {
+        if (event.id <= lastEventId) continue;
+        const card = document.createElement('div'); card.className = 'message'; card.dataset.speaker = event.speaker;
+        const label = document.createElement('div'); label.className = 'speaker'; label.textContent = event.speaker;
+        const body = document.createElement('div'); body.textContent = event.text;
+        card.append(label, body); timeline.append(card); lastEventId = event.id;
+      }
+      if (events.length && timeline.scrollHeight - timeline.scrollTop - timeline.clientHeight < 350) timeline.scrollTop = timeline.scrollHeight;
+    }
+    function renderNotes(notes) {
+      const box = document.querySelector('#notes'); box.replaceChildren();
+      notes.forEach((note, index) => { const row = document.createElement('div'); row.className = 'note';
+        const text = document.createElement('span'); text.textContent = note;
+        const remove = document.createElement('button'); remove.textContent = '×'; remove.title = 'Forget note';
+        remove.onclick = async () => { try { await api('/api/notes/remove', { index }); showError(''); await refresh(); } catch (e) { showError(e.message); } };
+        row.append(text, remove); box.append(row); });
+    }
+    function renderApproval(approval) {
+      const overlay = document.querySelector('#approval');
+      if (!approval) { overlay.classList.remove('show'); approvalId = null; return; }
+      if (approval.id !== approvalId) {
+        approvalId = approval.id;
+        document.querySelector('#approvalTitle').textContent = approval.title;
+        document.querySelector('#approvalName').textContent = approval.name;
+        document.querySelector('#oldContent').textContent = approval.oldContent;
+        document.querySelector('#newContent').textContent = approval.newContent;
+        document.querySelector('#diffContent').textContent = approval.diff || '';
+        document.querySelector('#overwritePreviews').style.display = approval.kind === 'patch' ? 'none' : 'grid';
+        document.querySelector('#diffPreview').style.display = approval.kind === 'patch' ? 'block' : 'none';
+        document.querySelector('#approveChange').textContent = approval.kind === 'patch' ? 'Apply patch' : 'Overwrite';
+      }
+      overlay.classList.add('show');
+    }
+    async function refresh() {
+      if (loading) return; loading = true;
+      try {
+        const state = await api('/api/state');
+        renderEvents(state.events);
+        renderNotes(state.notes);
+        renderApproval(state.pendingApproval);
+        document.querySelector('#selectedProject').textContent = state.projectRoot ? 'Selected: ' + state.projectRoot : 'No project selected.';
+        if (!projectPathInitialized) {
+          document.querySelector('#projectPath').value = state.projectRoot || state.appFolder || '';
+          projectPathInitialized = true;
+        }
+        document.querySelector('#status').textContent = state.pendingApproval ? 'Approval needed' : state.busy ? 'Thinking…' : state.queueLength ? 'Queued' : 'Ready';
+        const picker = document.querySelector('#model');
+        if (picker.options.length !== state.models.length || !state.models.every((m, i) => picker.options[i]?.value === m)) {
+          picker.replaceChildren(); state.models.forEach(m => picker.add(new Option(m, m)));
+        }
+        picker.value = state.model;
+        if (state.modelError) showError(state.modelError);
+      } catch (e) { showError(e.message); document.querySelector('#status').textContent = 'Disconnected'; }
+      finally { loading = false; }
+    }
+    document.querySelector('#promptForm').onsubmit = async event => {
+      event.preventDefault(); const box = document.querySelector('#prompt'); const text = box.value.trim(); if (!text) return;
+      try { await api('/api/messages', { text }); box.value = ''; showError(''); await refresh(); } catch (e) { showError(e.message); }
+    };
+    document.querySelector('#prompt').onkeydown = event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); document.querySelector('#promptForm').requestSubmit(); } };
+    document.querySelector('#remember').onclick = async () => { const box = document.querySelector('#note');
+      try { await api('/api/notes', { text: box.value }); box.value = ''; showError(''); await refresh(); } catch (e) { showError(e.message); } };
+    document.querySelector('#model').onchange = async event => { try { await api('/api/model', { name: event.target.value }); showError(''); } catch (e) { showError(e.message); } };
+    document.querySelector('#useProject').onclick = async () => {
+      try { await api('/api/project', { path: document.querySelector('#projectPath').value }); showError(''); await refresh(); }
+      catch (e) { showError(e.message); }
+    };
+    async function resolveApproval(approved) { try { await api('/api/approval', { id: approvalId, approved }); showError(''); await refresh(); } catch (e) { showError(e.message); } }
+    document.querySelector('#cancel').onclick = () => resolveApproval(false);
+    document.querySelector('#approveChange').onclick = () => resolveApproval(true);
+    refresh(); setInterval(refresh, 750);
+  </script>
+</body>
+</html>

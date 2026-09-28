@@ -1,0 +1,50 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments and local configuration
+.venv/
+venv/
+env/
+ENV/
+.env
+.env.*
+!.env.example
+
+# Local runtime state: session tokens, queues, transcripts, logs, and backups
+live_control/*
+!live_control/.gitkeep
+
+# Generated sandbox files; the app recreates this folder when needed
+files/*
+!files/.gitkeep
+
+# The copied reference project is local design material, not application source
+.parts-bin/
+
+# Build and packaging output
+build/
+dist/
+*.egg-info/
+
+# Logs, databases, temporary files, and backups
+*.log
+*.sqlite
+*.sqlite3
+*.db
+*.db3
+*.tmp
+*.temp
+*.bak
+
+# Editor and operating-system files
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+Desktop.ini
