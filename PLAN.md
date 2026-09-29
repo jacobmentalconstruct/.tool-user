@@ -104,13 +104,17 @@ All recorded 2026-09-29.
   - Participants are identified only by abstract labels (D10).
   - Commits made by an agent end with the trailer `Actor: AGENT` instead of any name.
   - Any agent should feel equally at home here, including this project's own team when it works on itself.
-  - Naming the runtime (Ollama) and model tags in configuration is fine: those are dependencies, not participants.
+  - Naming the runtime (Ollama) and model tags in configuration is fine: those are dependencies, not participants. Legal notices (`LICENSE.md`) keep the copyright holder's name as the law requires.
 - **D10 Participants and rights (2026-09-29):** there are four labels. Rights attach to the **label**, not to whoever holds it, so a USER could later be an agent. That would need its own decision, and is deferred.
   - **USER** (`user`) holds approval authority. Today this is the project owner, using the browser token.
   - **AGENT** (`agent`) is any other participant, through the CLI token.
   - **ROLE** (`role:<planner|builder|debugger|reviewer>`) is one of the local team's steps.
   - **SYSTEM** (`system`) is the hub's own lifecycle code.
   - In these documents, "the user" means the USER.
+- **D11 Setup and development are separate phases (2026-09-29):**
+  - **T0, setup:** done by the USER with one planning AGENT. Its parking is that phase's stop condition.
+  - **From T1 on:** the development team (any AGENTs, and later the project's own ROLEs) orients from the docs alone, declares each tranche, implements it after the USER approves, and parks it.
+  - The USER and any advising AGENT review, discuss strategy and give input through chat and the hub. They don't implement unless they declare a tranche themselves.
   - The rights table is in `docs/CONTRACTS.md` §0. The code enforces it from T2 on, when the event log introduces actors. Until then, the hub's two tokens map to USER and AGENT.
 
 ## 3. Target end state and stop conditions
@@ -187,7 +191,7 @@ Each tranche follows `docs/WORKFLOW.md`: declare, get approval, implement, conso
 | # | Tranche | Produces | Meets |
 |---|---|---|---|
 | T0 | **Setup (no product code):** documents per D7, and a `.gitignore` update. Measure candidate models with manual `/api/generate` calls (load time, tokens/s, JSON-schema `format`, `think`) and record the numbers here. Commit the baseline. | A complete and accurate starting record | S10 (start) |
-| T1 | **Standalone and smaller:** rewrite the parts-bin pieces we use (exclusions, safe paths, staged writes, search/replace patching, diff, backups) as our own smaller modules and remove every `.parts-bin` import. Delete the legacy Tk app, the sandbox `files/` tool family, the client's compatibility path and the launcher's tkinter use. Tests use temporary folders. Add `requirements.txt` and `tests/test_architecture.py` (no imports from outside the repo, no import cycles, core never imports `interfaces`). | A hub that runs again, and a smaller codebase | S1, S9 (T1 part) |
+| T1 | **Standalone and smaller** (draft in §7): rewrite the parts-bin pieces we use (exclusions, safe paths, staged writes, search/replace patching, diff, backups) as our own smaller modules and remove every `.parts-bin` import. Delete the legacy Tk app, the sandbox `files/` tool family, the client's compatibility path and the launcher's tkinter use. Tests use temporary folders. Add `requirements.txt` and `tests/test_architecture.py` (no imports from outside the repo, no import cycles, core never imports `interfaces`). | A hub that runs again, and a smaller codebase | S1, S9 (T1 part) |
 | T2 | **Event log:** a SQLite append-only log. `SharedSession` is split so each domain has one owner and reads from the log. Named actors, cursor API, restart recovery. | One shared state for everyone | S2 |
 | T3 | **Lifecycles and runner:** job and approval state machines, non-blocking approvals, cancel, **Chat** and **New goal** entrances, and the allowlisted command runner. UI shows stages. | Visible jobs, and test runs | S3, S4 |
 | T4 | **Knowledge layer:** chunking, FTS5 plus embedding index, `ast` code graph, summaries without a model, context assembler, re-indexing after a change. A fake Ollama server for tests. | Context packs | S5 |
@@ -223,7 +227,11 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T1, standalone and smaller. **Status:** DECLARED, waiting for the user's go-ahead (`docs/WORKFLOW.md` step 5).
+**ID:** NONE. T0 is parked (§9), and no tranche is active.
+
+**Next:** the development team orients (`AGENTS.md`, "First session"), then declares T1 here, presents it to the USER, and waits for approval (`docs/WORKFLOW.md`, "Working as a team"). The draft below was written during T0 as a starting point. **The declaring AGENT owns T1:** it may adopt the draft, trim it, or revise it, but any change to §3 or §4 needs a USER decision (D6).
+
+### Draft for T1: standalone and smaller (not declared)
 
 **Expected outcome:** the hub starts and works from this repo alone, as it did before `.parts-bin/` moved:
 - selecting a project;
@@ -277,7 +285,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). The user asked to "proceed to ensure the setup … is complete" after reviewing §2–§5. §3 and §4 are now frozen (D6).
-**Implementation permission:** NO until the user gives the go-ahead for T1 (§7).
+**Implementation permission:** NO. No tranche is declared. The next action belongs to the team: orient, declare T1 in §7, and get the USER's approval, which is recorded here with its date.
 
 ## 9. Parked Tranches
 
@@ -303,4 +311,5 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
   - Branch policy added to `docs/WORKFLOW.md`. T0 lives on `t0-setup`.
   - T1 scope gained the `.lab/` exclusion and the neutral speaker label.
   - D9 extended to people and commit messages. D10 added: USER, AGENT, ROLE and SYSTEM labels, with a rights table in `docs/CONTRACTS.md` §0. "Human" is replaced by USER throughout, and the two T0 commits were reworded to carry `Actor: AGENT`.
-- **Next step:** T1 (§7), once the user says go.
+- **Handoff (D11):** parking T0 ends the setup phase. From here the development team declares and implements tranches, and the USER approves, reviews and steers.
+- **Next step:** the team orients and declares T1, starting from the draft in §7.

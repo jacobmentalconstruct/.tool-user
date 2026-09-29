@@ -42,6 +42,27 @@ A tranche is parked only when:
 - Documentation reflects the resulting state.
 - The next step is short, concrete, provisional, and discoverable from docs.
 
+## Working as a Team
+
+- **One active tranche at a time.** It is declared in `PLAN.md` §7 by one AGENT, which then implements it. Other participants read and advise; they don't write to the repo during that tranche.
+- **Approval is explicit.** The USER approves a declaration in words (chat or the hub). The implementing AGENT then records it in `PLAN.md` §8 as `Implementation permission: YES for T<n> (USER, <date>)`, and resets it to `NO` when parking.
+- **Declaring a tranche.** Write this in `PLAN.md` §7, keeping every part short:
+  - ID and name;
+  - expected outcome;
+  - scope, as an ordered task list;
+  - non-goals;
+  - acceptance criteria, each one checkable by a command;
+  - known risks.
+- **Parking a tranche.** Add an entry to `PLAN.md` §9 with:
+  - outcome met, or the limitation named;
+  - evidence: each command and its result;
+  - limitations;
+  - deferrals, which go into `PLAN.md` §4;
+  - next step.
+
+  Then commit on the tranche branch, and wait for the USER to accept before merging into `main`.
+- **Stuck or unsure:** stop, record the question in `PLAN.md` §7 under the declaration, and ask the USER. Don't widen scope to get unstuck.
+
 ## The Project Record in This Repo
 
 There is no separate journal. The record is kept in three places, and nothing else:

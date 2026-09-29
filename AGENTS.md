@@ -16,6 +16,12 @@ Local Memory Lab is a local agent team that runs on Ollama models. A shared hub 
 
 **Review with the USER:** compare the newest §9 entry with `git diff <previous T-commit>..HEAD --stat`, then run the tests. Anything claimed in §9 but not shown in the diff or tests is a finding.
 
+## First session (for an AGENT joining the team)
+
+1. Orient with the steps above, then read `docs/WORKFLOW.md` in full. It's short.
+2. Check the known state yourself: `python -B -m unittest discover -s tests`. **Expected right now:** 1 error, an import failure (`PLAN.md` §1, finding 8). Anything else is a finding: report it.
+3. If no tranche is active (`PLAN.md` §7), declare the next one from its draft, following "Working as a team" in `docs/WORKFLOW.md`. Present it to the USER and wait for approval before changing any code.
+
 ## Standing documents (read the relevant section in full when a decision touches it)
 
 | Document | Holds |
@@ -53,11 +59,13 @@ docs/                       standing framework and contracts
 files/, live_control/       runtime folders (gitignored contents)
 ```
 
+If a `_projectmapper/` folder exists locally, it is a stale, gitignored snapshot made before T0. It is not a source of truth.
+
 ## Commands
 
 - **Tests:** `python -B -m unittest discover -s tests -v`
-- **Hub:** `python lab.py hub-server`, then open the browser link written to `live_control/shared.json`. Or double-click `Open Shared Hub.lnk`.
+- **Hub:** `python lab.py hub-server`, then open the browser link written to `live_control/shared.json`. On the owner's machine you can instead double-click `Open Shared Hub.lnk`, whose target paths are machine-specific.
 - **Agent client:** `python lab.py client status`, `python lab.py client watch`, `python lab.py client send "…" --wait`
 - **Models:** Ollama at `127.0.0.1:11434`. Role assignments are in `PLAN.md` D4.
 
-> **Known state (T0):** the hub and tests currently fail on import, because the old `.parts-bin` code moved out of the repo. T1 fixes this. See `PLAN.md` §1, finding 8.
+> **Known state (T0 parked):** the hub and tests currently fail on import, because the old `.parts-bin` code moved out of the repo. The T1 draft fixes this. See `PLAN.md` §1, finding 8.
