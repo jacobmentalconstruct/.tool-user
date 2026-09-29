@@ -49,14 +49,12 @@
     .overlay.show { display: flex; }
     .dialog { width: min(900px, 100%); max-height: 90vh; overflow: auto; background: #232c38; border: 1px solid #60718a; border-radius: 14px; padding: 22px; box-shadow: 0 22px 70px #000a; }
     .dialog h2 { margin: 0 0 5px; }
-    .previews { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; }
-    .previews h3 { font-size: 13px; color: #a8cfff; }
-    pre { margin: 0; padding: 13px; border-radius: 8px; background: #151b23; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 300px; overflow: auto; }
     #diffPreview { display: none; margin: 18px 0; }
     #diffContent { max-height: 55vh; white-space: pre; overflow: auto; }
+    #diffContent { margin: 8px 0 0; padding: 13px; border-radius: 8px; background: #151b23; }
     .actions { display: flex; justify-content: flex-end; gap: 10px; }
     .cancel { background: #4b5564; }
-    @media (max-width: 760px) { main { grid-template-columns: 1fr; height: auto; } .conversation { min-height: 70vh; } aside { border-left: 0; border-top: 1px solid #303846; } .previews { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) { main { grid-template-columns: 1fr; height: auto; } .conversation { min-height: 70vh; } aside { border-left: 0; border-top: 1px solid #303846; } }
   </style>
 </head>
 <body>
@@ -73,16 +71,14 @@
       <h2>Project folder</h2><div class="muted">Choose an existing folder for the agent to inspect and edit. Patches to existing files pause for your review and approval.</div>
       <div class="project-form"><input id="projectPath" placeholder="Paste a folder path" aria-label="Project folder path"><button id="useProject" type="button">Use</button></div>
       <div id="selectedProject" class="muted">No project selected.</div>
-      <p class="muted">You can use this app's folder as a small test project.</p>
       <h2>Long term notes</h2><div class="muted">These stay in memory until this server stops.</div>
       <div class="note-form"><input id="note" placeholder="A fact to remember" aria-label="New note"><button id="remember" type="button">Add</button></div>
       <div id="notes"></div>
-      <p class="muted">The original file tools use the app's <code>files</code> folder. Existing project files are changed through reviewed patches with backups.</p>
+      <p class="muted">New files can be created in the selected project. Changes to existing files require your review and approval.</p>
     </aside>
   </main>
   <div id="approval" class="overlay" role="dialog" aria-modal="true" aria-label="File change approval">
-    <div class="dialog"><h2 id="approvalTitle">Approve change?</h2><div id="approvalName" class="muted"></div>
-      <div id="overwritePreviews" class="previews"><div><h3>Existing text</h3><pre id="oldContent"></pre></div><div><h3>Proposed text</h3><pre id="newContent"></pre></div></div>
+    <div class="dialog"><h2 id="approvalTitle">Approve patch?</h2><div id="approvalName" class="muted"></div>
       <div id="diffPreview"><div class="muted">In the diff, − lines are removed and + lines are added.</div><pre id="diffContent"></pre></div>
       <div class="actions"><button id="cancel" class="cancel">Cancel</button><button id="approveChange">Apply patch</button></div>
     </div>
@@ -129,12 +125,9 @@
         approvalId = approval.id;
         document.querySelector('#approvalTitle').textContent = approval.title;
         document.querySelector('#approvalName').textContent = approval.name;
-        document.querySelector('#oldContent').textContent = approval.oldContent;
-        document.querySelector('#newContent').textContent = approval.newContent;
         document.querySelector('#diffContent').textContent = approval.diff || '';
-        document.querySelector('#overwritePreviews').style.display = approval.kind === 'patch' ? 'none' : 'grid';
-        document.querySelector('#diffPreview').style.display = approval.kind === 'patch' ? 'block' : 'none';
-        document.querySelector('#approveChange').textContent = approval.kind === 'patch' ? 'Apply patch' : 'Overwrite';
+        document.querySelector('#diffPreview').style.display = 'block';
+        document.querySelector('#approveChange').textContent = 'Apply patch';
       }
       overlay.classList.add('show');
     }
@@ -147,7 +140,7 @@
         renderApproval(state.pendingApproval);
         document.querySelector('#selectedProject').textContent = state.projectRoot ? 'Selected: ' + state.projectRoot : 'No project selected.';
         if (!projectPathInitialized) {
-          document.querySelector('#projectPath').value = state.projectRoot || state.appFolder || '';
+          document.querySelector('#projectPath').value = state.projectRoot || '';
           projectPathInitialized = true;
         }
         document.querySelector('#status').textContent = state.pendingApproval ? 'Approval needed' : state.busy ? 'Thinking…' : state.queueLength ? 'Queued' : 'Ready';

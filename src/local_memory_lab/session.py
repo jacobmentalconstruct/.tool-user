@@ -9,10 +9,9 @@ from pathlib import Path
 from uuid import uuid4
 
 from .agent.engine import DEFAULT_MODEL, MAX_RECENT_TURNS, installed_chat_models, run_turn
-from .agent.file_tools import FileTools
 from .agent.project_tools import ProjectTools
 from .agent.tool_router import SharedTools
-from .locations import OUTPUT, ROOT
+from .locations import ROOT
 
 
 @dataclass
@@ -22,8 +21,6 @@ class Approval:
     kind: str
     title: str
     name: str
-    old_content: str = ""
-    new_content: str = ""
     diff: str = ""
     decided: threading.Event = field(default_factory=threading.Event)
     approved: bool = False
@@ -39,7 +36,6 @@ class SharedSession:
         self.notes: list[str] = []
         self.busy = False
         self.pending: Approval | None = None
-        self.file_tools = FileTools(OUTPUT)
         self.project_root: Path | None = None
         self.model = DEFAULT_MODEL
         self.models: list[str] = []
@@ -66,7 +62,7 @@ class SharedSession:
             self.prompts.put_nowait((request_id, prompt.strip(), actor))
         except queue.Full as exc:
             raise ValueError("The prompt queue is full; wait for a reply.") from exc
-        self._event("You" if actor == "human" else "Codex", prompt.strip(), requestId=request_id)
+        self._event("USER" if actor == "USER" else "AGENT", prompt.strip(), requestId=request_id)
         return request_id
 
     def snapshot(self, actor: str) -> dict:
@@ -76,17 +72,14 @@ class SharedSession:
                 pending = {"id": self.pending.id, "requestId": self.pending.request_id,
                            "name": self.pending.name, "kind": self.pending.kind,
                            "title": self.pending.title}
-                if actor == "human":
-                    pending.update({"oldContent": self.pending.old_content,
-                                    "newContent": self.pending.new_content,
-                                    "diff": self.pending.diff})
+                if actor == "USER":
+                    pending.update({"diff": self.pending.diff})
             return {
                 "events": list(self.events), "busy": self.busy,
                 "queueLength": self.prompts.qsize(), "pendingApproval": pending,
                 "model": self.model, "models": list(self.models),
                 "modelError": self.model_error, "notes": list(self.notes),
                 "projectRoot": str(self.project_root) if self.project_root else None,
-                "appFolder": str(ROOT),
             }
 
     def set_project_root(self, raw_path: object):
@@ -128,11 +121,6 @@ class SharedSession:
             pending.approved = approved is True
             pending.decided.set()
 
-    def _confirm_overwrite(self, request_id: str, name: str, old_content: str, new_content: str) -> bool:
-        pending = Approval(str(uuid4()), request_id, "overwrite", "Overwrite file?", name,
-                           old_content=old_content, new_content=new_content)
-        return self._wait_for_approval(pending)
-
     def _confirm_patch(self, request_id: str, proposal: dict) -> bool:
         detail = proposal["name"] + "\n" + "\n".join(proposal["paths"])
         pending = Approval(str(uuid4()), request_id, "patch", proposal["title"], detail,
@@ -164,10 +152,9 @@ class SharedSession:
                 project_root = self.project_root
             try:
                 answer, turn = run_turn(prompt, model, turns, notes,
-                                        SharedTools(self.file_tools, project_root,
+                                        SharedTools(project_root,
                                                     lambda proposal: self._confirm_patch(request_id, proposal),
                                                     request_id),
-                                        lambda name, old, new: self._confirm_overwrite(request_id, name, old, new),
                                         lambda result: self._event("Tool", result["message"],
                                                                    toolStatus=result["status"], requestId=request_id))
                 with self.lock:

@@ -266,8 +266,8 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 **Progress:**
 - [x] 1. Add the owned workspace paths, patching, and backup components.
 - [x] 2. Point project and patch tools at `workspace/`; remove reference-path imports.
-- [ ] 3. Remove the sandbox `files/` tools and overwrite approval flow.
-- [ ] 4. Delete the legacy desktop app and commands.
+- [x] 3. Remove the sandbox `files/` tools and overwrite approval flow.
+- [x] 4. Delete the legacy desktop app and commands.
 - [ ] 5. Remove request-ID compatibility and use USER/AGENT speaker labels.
 - [ ] 6. Replace tkinter startup errors with console and log reporting.
 - [ ] 7. Start with no project selected.
@@ -275,7 +275,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [ ] 9. Add `requirements.txt`.
 - [ ] 10. Update README, AGENTS, and PLAN current-state documentation.
 
-**Now:** remove the obsolete sandbox file tools and their overwrite approval flow (task 3).
+**Now:** record the completed sandbox-tools removal and artifact cleanup (task 3).
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.

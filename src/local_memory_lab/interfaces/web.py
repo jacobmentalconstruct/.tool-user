@@ -17,7 +17,7 @@ from ..session import SharedSession
 PAGE = Path(__file__).with_name("shared_ui.html")
 
 
-def make_handler(session: SharedSession, human_token: str, agent_token: str):
+def make_handler(session: SharedSession, user_token: str, agent_token: str):
     class Handler(BaseHTTPRequestHandler):
         server_version = "LocalMemoryLab/1.0"
 
@@ -27,10 +27,10 @@ def make_handler(session: SharedSession, human_token: str, agent_token: str):
         def _actor(self) -> str | None:
             header = self.headers.get("Authorization", "")
             token = header[7:] if header.startswith("Bearer ") else ""
-            if hmac.compare_digest(token, human_token):
-                return "human"
+            if hmac.compare_digest(token, user_token):
+                return "USER"
             if hmac.compare_digest(token, agent_token):
-                return "agent"
+                return "AGENT"
             return None
 
         def _json(self, status: int, data: dict):
@@ -50,7 +50,7 @@ def make_handler(session: SharedSession, human_token: str, agent_token: str):
             parsed = urlsplit(self.path)
             if parsed.path == "/":
                 token = parse_qs(parsed.query).get("token", [""])[0]
-                if not hmac.compare_digest(token, human_token):
+                if not hmac.compare_digest(token, user_token):
                     self._reject(HTTPStatus.FORBIDDEN, "Open the private browser link for this session.")
                     return
                 body = PAGE.read_bytes()
@@ -102,15 +102,15 @@ def make_handler(session: SharedSession, human_token: str, agent_token: str):
                 elif self.path == "/api/model":
                     session.select_model(payload.get("name"))
                 elif self.path == "/api/project":
-                    if actor != "human":
-                        self._reject(HTTPStatus.FORBIDDEN, "Only the human browser can select a project folder.")
+                    if actor != "USER":
+                        self._reject(HTTPStatus.FORBIDDEN, "Only the USER browser can select a project folder.")
                         return
                     session.set_project_root(payload.get("path"))
                 elif self.path == "/api/approval":
-                    if actor != "human":
-                        self._reject(HTTPStatus.FORBIDDEN, "Only the human browser can resolve approvals.")
+                    if actor != "USER":
+                        self._reject(HTTPStatus.FORBIDDEN, "Only the USER browser can resolve approvals.")
                         return
-                    decision = payload.get("approved", payload.get("overwrite"))
+                    decision = payload.get("approved")
                     if not isinstance(decision, bool):
                         raise ValueError("approved must be true or false.")
                     session.approve(payload.get("id"), decision)
@@ -126,15 +126,15 @@ def make_handler(session: SharedSession, human_token: str, agent_token: str):
 
 
 def main():
-    human_token = secrets.token_urlsafe(24)
+    user_token = secrets.token_urlsafe(24)
     agent_token = secrets.token_urlsafe(24)
     session = SharedSession()
-    server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(session, human_token, agent_token))
+    server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(session, user_token, agent_token))
     host = f"http://127.0.0.1:{server.server_port}"
     CONTROL.mkdir(exist_ok=True)
     control_path = CONTROL / "shared.json"
     control_path.write_text(json.dumps({
-        "browser_url": f"{host}/?token={human_token}",
+        "browser_url": f"{host}/?token={user_token}",
         "api_url": host,
         "agent_token": agent_token,
     }, indent=2), encoding="utf-8")
