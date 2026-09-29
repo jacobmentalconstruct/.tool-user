@@ -272,10 +272,10 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [x] 6. Replace tkinter startup errors with console and log reporting.
 - [x] 7. Start with no project selected.
 - [x] 8. Add temporary-folder, workspace-safety, architecture, and HTTP smoke coverage.
-- [ ] 9. Add `requirements.txt`.
+- [x] 9. Add `requirements.txt`.
 - [ ] 10. Update README, AGENTS, and PLAN current-state documentation.
 
-**Now:** commit the temporary-folder and architecture test coverage (task 8).
+**Now:** record the runtime dependency list (task 9).
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.
