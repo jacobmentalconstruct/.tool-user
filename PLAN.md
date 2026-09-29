@@ -54,6 +54,8 @@ One commit (`ff457af`). Its 3 unit tests passed until `.parts-bin/` moved out; t
 
 **Likely reason the qwen2 models are slow** (inferred from the numbers; not checked by changing the setting): the machine sets `OLLAMA_NUM_PARALLEL=8` and `OLLAMA_MAX_LOADED_MODELS=3`. For full-attention models (the qwen2 family), Ollama reserves conversation memory (KV cache) for 8 parallel requests, which pushes a 9 GB model to about 26 GB and half onto the CPU. The qwen3.5 models' hybrid attention keeps that memory small, so they aren't affected. This is a machine-wide setting the user may rely on elsewhere, so the plan works around it (D4) instead of changing it.
 
+**T1 update (2026-09-29, implementation in progress):** the hub's project and patch tools now use the in-repo workspace package; the source count is 1,091 Python lines. The test suite passes (11 tests), and the HTTP smoke check plus a manual hub/browser startup check pass. Final evidence and any limitations will be recorded when T1 parks in §9.
+
 ## 2. Decisions
 
 All recorded 2026-09-29.
@@ -273,9 +275,9 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [x] 7. Start with no project selected.
 - [x] 8. Add temporary-folder, workspace-safety, architecture, and HTTP smoke coverage.
 - [x] 9. Add `requirements.txt`.
-- [ ] 10. Update README, AGENTS, and PLAN current-state documentation.
+- [x] 10. Update README, AGENTS, and PLAN current-state documentation.
 
-**Now:** record the runtime dependency list (task 9).
+**Now:** review the complete diff and rerun all T1 acceptance checks before parking.
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.

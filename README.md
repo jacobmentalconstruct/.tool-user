@@ -6,7 +6,7 @@ The point is to move the expensive inference onto free local models, so that an 
 
 ## Status
 
-**Being rebuilt, and not usable right now.** The first experiment (a shared chat with reviewed file patches) worked. Its patch code lived in a reference folder that has since moved out of the repo, so the hub currently fails to start. The next tranche (T1) replaces that code with the project's own, smaller version.
+**T1 is in progress.** The original hub failed after its reference code moved out of the repo. T1 replaces that dependency with the project's own workspace tools and restores the hub.
 
 The prototype is finished when the agent can make progress on its own development in a sandboxed copy of this repo. The route there, and where we are on it, is in [PLAN.md](PLAN.md).
 
@@ -16,7 +16,7 @@ The prototype is finished when the agent can make progress on its own developmen
 - Ollama running locally, with the models listed in `PLAN.md` (decision D4)
 - Developed on Windows 10 with a 16 GB GPU
 
-## Running it (once T1 lands)
+## Running it
 
 ```
 python lab.py hub-server

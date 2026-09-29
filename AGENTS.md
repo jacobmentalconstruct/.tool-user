@@ -19,8 +19,9 @@ Local Memory Lab is a local agent team that runs on Ollama models. A shared hub 
 ## First session (for an AGENT joining the team)
 
 1. Orient with the steps above, then read `docs/WORKFLOW.md` in full. It's short.
-2. Check the known state yourself: `python -B -m unittest discover -s tests`. **Expected right now:** 1 error, an import failure (`PLAN.md` §1, finding 8). Anything else is a finding: report it.
+2. Check the known state yourself: `python -B -m unittest discover -s tests`. At the T0 baseline this had one import error (`PLAN.md` §1, finding 8); use the current tranche record for the expected state.
 3. If no tranche is active (`PLAN.md` §7), declare the next one from its draft, following "Working as a team" in `docs/WORKFLOW.md`. Present it to the USER and wait for approval before changing any code.
+4. Immediately after approval, record `Implementation permission: YES for T<n> (USER, <date>)` in §8 before touching code. During implementation keep the one-line-per-scope-task `Progress:` checklist and short `Now:` line in §7 current; commit each completed task on its tranche branch as `T<n> wip: <task>` with the `Actor: AGENT` trailer. Reserve `T<n>: <outcome>` for the parking commit.
 
 ## Standing documents (read the relevant section in full when a decision touches it)
 
@@ -47,16 +48,16 @@ Local Memory Lab is a local agent team that runs on Ollama models. A shared hub 
 ## Layout
 
 ```
-lab.py                      thin entry point: hub-open | hub-server | client (plus desktop/live-desktop until T1)
+lab.py                      thin entry point: hub-open | hub-server | client
 src/local_memory_lab/
   session.py                shared session state (split into domain owners in T2)
   locations.py              repo-relative paths
-  agent/                    Ollama loop and bounded tools (tools rewritten in T1; loop replaced in T6)
+  workspace/                 safe project paths, patches, and backups
+  agent/                    Ollama loop and bounded project tools (loop replaced in T6)
   interfaces/               browser server + page, launcher, CLI client (adapters only)
-  legacy/                   old Tk experiment; deleted in T1
 tests/                      unittest suite
 docs/                       standing framework and contracts
-files/, live_control/       runtime folders (gitignored contents)
+live_control/               runtime folder (gitignored contents)
 ```
 
 If a `_projectmapper/` folder exists locally, it is a stale, gitignored snapshot made before T0. It is not a source of truth.
@@ -68,4 +69,4 @@ If a `_projectmapper/` folder exists locally, it is a stale, gitignored snapshot
 - **Agent client:** `python lab.py client status`, `python lab.py client watch`, `python lab.py client send "…" --wait`
 - **Models:** Ollama at `127.0.0.1:11434`. Role assignments are in `PLAN.md` D4.
 
-> **Known state (T0 parked):** the hub and tests currently fail on import, because the old `.parts-bin` code moved out of the repo. The T1 draft fixes this. See `PLAN.md` §1, finding 8.
+> **T1 in progress:** implementation permission was granted on 2026-09-29. The T0 import failure is the starting baseline; see `PLAN.md` §7–§9.

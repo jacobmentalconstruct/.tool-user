@@ -46,6 +46,9 @@ A tranche is parked only when:
 
 - **One active tranche at a time.** It is declared in `PLAN.md` §7 by one AGENT, which then implements it. Other participants read and advise; they don't write to the repo during that tranche.
 - **Approval is explicit.** The USER approves a declaration in words (chat or the hub). The implementing AGENT then records it in `PLAN.md` §8 as `Implementation permission: YES for T<n> (USER, <date>)`, and resets it to `NO` when parking.
+- **Record permission immediately.** As soon as the USER approves a tranche, update `PLAN.md` §8 with its permission before changing any code.
+- **Track live progress.** Keep a `Progress:` checklist in `PLAN.md` §7 with one `- [ ]` / `- [x]` line for each scope task. Tick a task as soon as it is done, and keep a short `Now:` line current.
+- **Commit each task.** On the tranche branch, make a commit as each scope task is completed, titled `T<n> wip: <task>` and ending with the trailer `Actor: AGENT`. Keep the final parking commit titled `T<n>: <outcome>`.
 - **Declaring a tranche.** Write this in `PLAN.md` §7, keeping every part short:
   - ID and name;
   - expected outcome;

@@ -1,1 +1,1 @@
-"""Browser, desktop, and command-line adapters."""
+"""Browser and command-line adapters."""
