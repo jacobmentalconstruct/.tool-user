@@ -24,6 +24,7 @@ class EventStoreTests(unittest.TestCase):
 
         self.assertLess(first["id"], second["id"])
         self.assertEqual([second], self.store.read_after(first["id"]))
+        self.assertEqual(first, self.store.get(first["id"]))
         self.assertEqual([], self.store.read_after(second["id"]))
 
     def test_event_rows_cannot_be_updated_or_deleted(self):

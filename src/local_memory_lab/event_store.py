@@ -99,6 +99,12 @@ class EventStore:
             result.append(event)
         return result
 
+    def get(self, event_id: int) -> dict | None:
+        if not isinstance(event_id, int) or isinstance(event_id, bool) or event_id < 1:
+            raise ValueError("Event ID must be a positive integer.")
+        events = self.read_after(event_id - 1, limit=1)
+        return events[0] if events and events[0]["id"] == event_id else None
+
     @property
     def last_id(self) -> int:
         with self._connection() as db:

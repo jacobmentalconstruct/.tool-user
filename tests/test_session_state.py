@@ -58,6 +58,8 @@ class SessionRestoreTests(unittest.TestCase):
             session.set_project_root(str(project), "USER")
             session.select_model("model-a", "USER")
             session.submit("agent may chat", "AGENT")
+            queued_event = session.store.get(session.prompts.get_nowait())
+            self.assertEqual("agent may chat", queued_event["data"]["display"]["text"])
             session.pending = Approval("approval-1", "request-1", "patch", "Patch", "file")
 
             with self.assertRaisesRegex(ValueError, "Only the USER"):

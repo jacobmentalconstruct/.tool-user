@@ -32,7 +32,7 @@ class SharedSession:
     def __init__(self, store_path: Path | str | None = None, *,
                  load_models: bool = True, start_worker: bool = True):
         self.lock = threading.RLock()
-        self.prompts: queue.Queue[tuple[str, str, str]] = queue.Queue(maxsize=32)
+        self.prompts: queue.Queue[int] = queue.Queue(maxsize=32)
         self.store = EventStore(store_path or CONTROL / "events.sqlite")
         self.state = SessionState.restore(self.store)
         self.busy = False
@@ -101,15 +101,14 @@ class SharedSession:
             raise ValueError("Prompt must contain 1 to 8,000 characters.")
         request_id = str(uuid4())
         actor_label = self._actor_label(actor)
-        try:
-            with self.lock:
-                self.prompts.put_nowait((request_id, prompt.strip(), actor))
-                self._record(actor_label, "chat.prompt", {
-                    "display": {"speaker": actor_label.upper(), "text": prompt.strip()},
-                    "requestId": request_id,
-                })
-        except queue.Full as exc:
-            raise ValueError("The prompt queue is full; wait for a reply.") from exc
+        with self.lock:
+            if self.prompts.full():
+                raise ValueError("The prompt queue is full; wait for a reply.")
+            event = self._record(actor_label, "chat.prompt", {
+                "display": {"speaker": actor_label.upper(), "text": prompt.strip()},
+                "requestId": request_id,
+            })
+            self.prompts.put_nowait(event["id"])
         return request_id
 
     def snapshot(self, actor: str) -> dict:
@@ -199,9 +198,16 @@ class SharedSession:
 
     def _work(self):
         while True:
-            request_id, prompt, _actor = self.prompts.get()
+            prompt_event_id = self.prompts.get()
             with self.lock:
                 self.busy = True
+                prompt_event = self.store.get(prompt_event_id)
+                if prompt_event is None or prompt_event["kind"] != "chat.prompt":
+                    self.busy = False
+                    self.prompts.task_done()
+                    continue
+                request_id = prompt_event["data"]["requestId"]
+                prompt = prompt_event["data"]["display"]["text"]
                 model = self.model
                 notes = list(self.notes)
                 turns = list(self.turns)
