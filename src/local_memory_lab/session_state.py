@@ -10,15 +10,11 @@ from .event_store import EventStore
 
 @dataclass
 class ConversationState:
-    events: list[dict] = field(default_factory=list)
     turns: list[list[dict]] = field(default_factory=list)
     pending_prompts: dict[str, int] = field(default_factory=dict)
 
     def apply(self, event: dict) -> None:
         data = event["data"]
-        display = data.get("display")
-        if display:
-            self.events.append({"id": event["id"], **display})
         request_id = data.get("requestId")
         if event["kind"] == "chat.prompt" and isinstance(request_id, str):
             self.pending_prompts[request_id] = event["id"]

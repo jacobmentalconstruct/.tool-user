@@ -91,8 +91,11 @@ class SessionRestoreTests(unittest.TestCase):
             self.assertEqual("model-a", restored.model)
             self.assertEqual(["keep this"], restored.notes)
             self.assertEqual(1, len(restored.turns))
-            self.assertIn("hello", [event["text"] for event in restored.events])
-            self.assertIn("hi", [event["text"] for event in restored.events])
+            displayed = [event["data"]["display"]["text"] for event in restored.events_after(0)
+                         if "display" in event["data"]]
+            self.assertIn("hello", displayed)
+            self.assertIn("hi", displayed)
+            self.assertFalse(hasattr(restored.state.conversation, "events"))
             self.assertEqual({}, restored.state.conversation.pending_prompts)
 
     def test_restart_marks_an_unfinished_prompt_without_replaying_it(self):
@@ -105,10 +108,10 @@ class SessionRestoreTests(unittest.TestCase):
 
             self.assertEqual(0, restored.prompts.qsize())
             self.assertEqual({}, restored.state.conversation.pending_prompts)
-            event = restored.events[-1]
-            self.assertEqual("Error", event["speaker"])
-            self.assertIn("restarted", event["text"])
-            self.assertEqual(request_id, restored.store.read_after(0)[-1]["data"]["requestId"])
+            event = restored.events_after(0)[-1]
+            self.assertEqual("Error", event["data"]["display"]["speaker"])
+            self.assertIn("restarted", event["data"]["display"]["text"])
+            self.assertEqual(request_id, event["data"]["requestId"])
 
     def test_rights_follow_actor_labels(self):
         with tempfile.TemporaryDirectory() as temp:

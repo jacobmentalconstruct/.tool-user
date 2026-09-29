@@ -53,10 +53,6 @@ class SharedSession:
             threading.Thread(target=self._work, daemon=True, name="shared-ollama-session").start()
 
     @property
-    def events(self) -> list[dict]:
-        return self.state.conversation.events
-
-    @property
     def turns(self) -> list[list[dict]]:
         return self.state.conversation.turns
 
