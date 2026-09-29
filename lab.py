@@ -12,8 +12,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 def main(argv: list[str] | None = None):
     args = sys.argv[1:] if argv is None else argv
-    if not args or args[0] not in {"hub-open", "hub-server", "desktop", "live-desktop", "client"}:
-        raise SystemExit("Usage: python lab.py {hub-open|hub-server|desktop|live-desktop|client} [options]")
+    if not args or args[0] not in {"hub-open", "hub-server", "client"}:
+        raise SystemExit("Usage: python lab.py {hub-open|hub-server|client} [options]")
     command, *rest = args
     if command == "hub-open":
         from local_memory_lab.interfaces.launcher import main as launch
@@ -21,12 +21,6 @@ def main(argv: list[str] | None = None):
     elif command == "hub-server":
         from local_memory_lab.interfaces.web import main as serve
         serve()
-    elif command == "desktop":
-        from local_memory_lab.legacy.desktop import main as desktop
-        desktop()
-    elif command == "live-desktop":
-        from local_memory_lab.legacy.live_desktop import main as live
-        live(rest)
     else:
         from local_memory_lab.interfaces.client import main as client
         try:

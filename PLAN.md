@@ -275,7 +275,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [ ] 9. Add `requirements.txt`.
 - [ ] 10. Update README, AGENTS, and PLAN current-state documentation.
 
-**Now:** record the completed sandbox-tools removal and artifact cleanup (task 3).
+**Now:** record removal of the legacy desktop app and commands (task 4).
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.
