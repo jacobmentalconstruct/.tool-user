@@ -227,9 +227,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T1 — standalone and smaller. USER-authorized fix-ups are underway; no next tranche is declared.
+**ID:** NONE. T1 fix-ups are complete and parked pending USER acceptance; no next tranche is declared.
 
-**Current:** T1's initial implementation was parked for USER acceptance. The USER authorized the fix-up list on 2026-09-29; the branch is reopened for those scoped corrections. Any change to §3 or §4 still needs a USER decision (D6).
+**Current:** T1's initial implementation and the USER-authorized fix-ups are complete. The corrected parking record awaits USER acceptance; any change to §3 or §4 still needs a USER decision (D6).
 
 ### T1 declaration: standalone and smaller (approved)
 
@@ -283,7 +283,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [x] 5. Remove unused imports and unused BackupStore members.
 - [x] 6. Record the four notes-only observations without changing behavior.
 
-**Now:** run the fix-up tests, inspect the diff, and refresh T1's parking evidence.
+**Now:** T1 fix-ups and verification are complete; await USER acceptance before merging.
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.
@@ -304,12 +304,12 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 **Known risks:**
 - Rewriting the backup and rollback code is where subtle bugs hide. The existing three patch tests stay and must pass without change to what they assert.
 
-**Declaration state:** T1 approved on 2026-09-29; fix-ups authorized by USER on 2026-09-29 and underway on `t1-standalone`.
+**Declaration state:** T1 and its fix-ups were approved by USER on 2026-09-29. The corrected implementation is parked on `t1-standalone`, pending USER acceptance.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** YES for T1 (USER, 2026-09-29; fix-ups). Reset to NO when the corrected T1 parking record is committed.
+**Implementation permission:** NO. T1 is parked pending USER acceptance; the next tranche has not been declared.
 
 ## 9. Parked Tranches
 
@@ -338,14 +338,14 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - **Handoff (D11):** parking T0 ends the setup phase. From here the development team declares and implements tranches, and the USER approves, reviews and steers.
 - **Next step:** the team orients and declares T1, starting from the draft in §7.
 
-**T1, standalone and smaller: PARKED 2026-09-29, pending USER acceptance.** Built on `t1-standalone`; not merged.
-- **Outcome met:** the hub runs from this repo without reference-code imports. Project listing, reading, creation, reviewed patch application, cancellation, backups, and rollback are implemented in the owned workspace package. The legacy app, sandbox file-tool family, and pre-request-ID client path are removed. The selected project starts empty. Runtime source is 1,098 lines, down from 3,002 in the T0 baseline.
-- **T1 update:** the project and patch tools use the in-repo workspace package; the source count is 1,098 lines. The 13-test suite passes, and the HTTP smoke check plus manual hub/browser startup check pass.
+**T1, standalone and smaller: PARKED 2026-09-29, pending USER acceptance after requested fix-ups.** Built on `t1-standalone`; not merged.
+- **Outcome met:** the hub runs from this repo without reference-code imports. Project listing, reading, creation, reviewed patch application, cancellation, backups, and rollback are implemented in the owned workspace package. Built-in exclusions cover common generated folders, lockfiles, and bytecode. The legacy app, sandbox file-tool family, and pre-request-ID client path are removed. The selected project starts empty. Runtime source is 1,104 lines, down from 3,002 in the T0 baseline.
+- **T1 update:** the project and patch tools use the in-repo workspace package; requested exclusions, plan, status, and cleanup fixes are complete. The final source count is 1,104 lines and the 14-test suite passes; the HTTP smoke check and manual hub/browser startup check pass.
 - **Evidence:**
-  - `python -B -m unittest discover -s tests -v` — 13 tests passed.
+  - `python -B -m unittest discover -s tests -v` — 14 tests passed.
   - `python lab.py hub-server` — server started. The browser/API probe returned HTTP 200 for both the browser page and state API; the selected project was `None` and `appFolder` was absent.
   - `tests/test_http_smoke.py` — selected a temporary project through HTTP; cancellation left its file unchanged; approval applied the patch and produced a backup.
-  - `python -c "import pathlib; print(sum(len(p.read_text(encoding='utf-8').splitlines()) for p in pathlib.Path('src').rglob('*.py')))"` — 1,098 lines (S9 T1 limit: 2,250).
+  - `python -c "import pathlib; print(sum(len(p.read_text(encoding='utf-8').splitlines()) for p in pathlib.Path('src').rglob('*.py')))"` — 1,104 lines (S9 T1 limit: 2,250).
   - `rg -ni 'parts-bin|PARTS_BIN' src tests` — no matches.
   - `rg -ni 'openai|codex|chatgpt|anthropic|claude|google|gemini|microsoft|copilot' src` — no matches.
   - `git diff --check` — clean. Largest Python module: 171 lines.
