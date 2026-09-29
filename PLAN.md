@@ -279,11 +279,11 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [x] 1. Restore built-in workspace exclusions and add regression coverage.
 - [x] 2. Remove the duplicate T1 record in §9, keeping the 13-test entry.
 - [x] 3. Move the T1 status update out of §1 into the T1 §9 record.
-- [ ] 4. Correct the stale AGENTS.md T1 status note.
+- [x] 4. Correct the stale AGENTS.md T1 status note.
 - [ ] 5. Remove unused imports and unused BackupStore members.
 - [ ] 6. Record the four notes-only observations without changing behavior.
 
-**Now:** replace AGENTS.md's stale T1 status note with the current fix-up status (fix-up 4).
+**Now:** remove unused imports and unnecessary BackupStore constructor state (fix-up 5).
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.
