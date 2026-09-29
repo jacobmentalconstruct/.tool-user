@@ -25,6 +25,7 @@ class SessionStub:
     def __init__(self):
         self.project_root = None
         self.pending = None
+        self.log_events = []
 
     def set_project_root(self, path, actor):
         self.project_root = ProjectTools.choose_root(path)
@@ -35,8 +36,12 @@ class SessionStub:
             approval = {"id": self.pending["id"], "kind": "patch", "title": "Apply project patch?",
                         "name": self.pending["name"], "diff": self.pending["diff"]}
         return {"projectRoot": str(self.project_root) if self.project_root else None,
-                "pendingApproval": approval, "events": [], "busy": False, "queueLength": 0,
+                "pendingApproval": approval, "lastEventId": max((e["id"] for e in self.log_events), default=0),
+                "busy": False, "queueLength": 0,
                 "model": "test", "models": [], "modelError": "", "notes": []}
+
+    def events_after(self, cursor):
+        return [event for event in self.log_events if event["id"] > cursor]
 
     def approve(self, approval_id, approved, actor):
         if not self.pending or self.pending["id"] != approval_id:
@@ -114,6 +119,13 @@ class HttpSmokeTests(unittest.TestCase):
         with self.assertRaises(HTTPError) as error:
             self.request("/api/model", {"name": "model-a"}, token=self.agent_token)
         self.assertEqual(403, error.exception.code)
+
+    def test_event_endpoint_reads_after_cursor(self):
+        first = {"id": 1, "actor": "user", "kind": "chat.prompt", "data": {}}
+        second = {"id": 2, "actor": "system", "kind": "chat.reply", "data": {}}
+        self.session.log_events = [first, second]
+
+        self.assertEqual([second], self.request("/api/events?after=1")["events"])
 
 
 if __name__ == "__main__":

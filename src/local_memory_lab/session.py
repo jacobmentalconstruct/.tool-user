@@ -122,12 +122,15 @@ class SharedSession:
                 if actor == "USER":
                     pending.update({"diff": self.pending.diff})
             return {
-                "events": list(self.events), "busy": self.busy,
+                "lastEventId": self.store.last_id, "busy": self.busy,
                 "queueLength": self.prompts.qsize(), "pendingApproval": pending,
                 "model": self.model, "models": list(self.models),
                 "modelError": self.model_error, "notes": self.notes,
                 "projectRoot": str(self.project_root) if self.project_root else None,
             }
+
+    def events_after(self, event_id: int) -> list[dict]:
+        return self.store.read_after(event_id)
 
     def set_project_root(self, raw_path: object, actor: str = "USER"):
         actor_label = self._require_user(actor)

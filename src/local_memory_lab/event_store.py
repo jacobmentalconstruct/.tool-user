@@ -98,3 +98,9 @@ class EventStore:
             event["data"] = json.loads(row["data"])
             result.append(event)
         return result
+
+    @property
+    def last_id(self) -> int:
+        with self._connection() as db:
+            row = db.execute("SELECT COALESCE(MAX(id), 0) FROM events").fetchone()
+        return row[0]

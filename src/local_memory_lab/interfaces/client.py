@@ -45,9 +45,12 @@ def show_events(events: list[dict], after_id: int = 0, request_id: str | None = 
     for event in events:
         if event["id"] <= after_id:
             continue
-        if request_id is not None and event.get("requestId") not in (None, request_id):
+        data = event.get("data", {})
+        if request_id is not None and data.get("requestId") != request_id:
             continue
-        print(f"[{event['speaker']}] {event['text']}", flush=True)
+        display = data.get("display")
+        if display:
+            print(f"[{display['speaker']}] {display['text']}", flush=True)
 
 
 def main(argv=None):
@@ -69,13 +72,13 @@ def main(argv=None):
         print(f"Model: {state['model']} | Busy: {state['busy']} | Queued: {state['queueLength']}")
         if state["pendingApproval"]:
             print("Waiting for USER approval:", state["pendingApproval"]["name"])
-        print(f"Conversation events: {len(state['events'])} | Notes: {len(state['notes'])}")
+        print(f"Event cursor: {state['lastEventId']} | Notes: {len(state['notes'])}")
     elif args.command == "remember":
         api(config, "/api/notes", {"text": args.text})
         print("Note added to the shared session.")
     elif args.command == "send":
         before = api(config, "/api/state")
-        cursor = max((event["id"] for event in before["events"]), default=0)
+        cursor = before["lastEventId"]
         response = api(config, "/api/messages", {"text": args.text})
         request_id = response.get("requestId")
         if not isinstance(request_id, str) or not request_id:
@@ -84,25 +87,25 @@ def main(argv=None):
         if args.wait:
             deadline = time.monotonic() + args.timeout
             while time.monotonic() < deadline:
-                state = api(config, "/api/state")
-                new = [event for event in state["events"] if event["id"] > cursor]
+                response = api(config, f"/api/events?after={cursor}")
+                new = response["events"]
                 show_events(new, request_id=request_id)
                 if new:
-                    cursor = max(event["id"] for event in new)
-                if any(event["speaker"] in ("Assistant", "Error") and
-                       event.get("requestId") == request_id for event in new):
+                    cursor = max(cursor, max(event["id"] for event in new))
+                if any(event["kind"] in ("chat.reply", "error") and
+                       event["data"].get("requestId") == request_id for event in new):
                     return
                 time.sleep(0.5)
             raise RuntimeError("Timed out waiting for a reply. The session may still be working or awaiting approval.")
     elif args.command == "watch":
         state = api(config, "/api/state")
-        cursor = max((event["id"] for event in state["events"]), default=0)
+        cursor = state["lastEventId"]
         print("Watching new events. Press Ctrl+C to stop.")
         while True:
-            state = api(config, "/api/state")
-            show_events(state["events"], after_id=cursor)
-            if state["events"]:
-                cursor = max(cursor, state["events"][-1]["id"])
+            response = api(config, f"/api/events?after={cursor}")
+            show_events(response["events"], after_id=cursor)
+            if response["events"]:
+                cursor = max(cursor, max(event["id"] for event in response["events"]))
             time.sleep(0.5)
 
 

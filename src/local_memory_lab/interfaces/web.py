@@ -69,6 +69,13 @@ def make_handler(session: SharedSession, user_token: str, agent_token: str):
                 return
             if parsed.path == "/api/state":
                 self._json(HTTPStatus.OK, session.snapshot(actor))
+            elif parsed.path == "/api/events":
+                try:
+                    raw_cursor = parse_qs(parsed.query).get("after", ["0"])[0]
+                    cursor = int(raw_cursor)
+                    self._json(HTTPStatus.OK, {"events": session.events_after(cursor)})
+                except (ValueError, TypeError) as exc:
+                    self._reject(HTTPStatus.BAD_REQUEST, str(exc))
             else:
                 self._reject(HTTPStatus.NOT_FOUND, "Not found.")
 

@@ -243,9 +243,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 1. Add append-only SQLite event storage and cursor reads.
 - [x] 2. Split session domain ownership and rebuild required state from events across restart.
 - [x] 3. Enforce contract actor labels and rights.
-- [ ] 4. Integrate browser/CLI paths and add event, restart, rights, and integration coverage.
+- [x] 4. Integrate browser/CLI paths and add event, restart, rights, and integration coverage.
 
-**Now:** Task 3 is complete: token actions are recorded as `user` / `agent`, and AGENT is denied project/model selection and approval resolution; connecting cursor reads to HTTP and CLI.
+**Now:** All four T2 scope tasks are implemented; reviewing integration and S2 evidence before parking.
 
 **Non-goals:** T3 job/approval lifecycles and command runner; T4 knowledge/indexing; new user-facing entrances or UI redesign; changing §3 or §4; new dependencies beyond the recorded standard library plus numpy.
 
