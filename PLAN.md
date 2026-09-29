@@ -227,11 +227,11 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** NONE. T0 is parked (§9), and no tranche is active.
+**ID:** T1 — standalone and smaller. T0 is parked (§9).
 
-**Next:** the development team orients (`AGENTS.md`, "First session"), then declares T1 here, presents it to the USER, and waits for approval (`docs/WORKFLOW.md`, "Working as a team"). The draft below was written during T0 as a starting point. **The declaring AGENT owns T1:** it may adopt the draft, trim it, or revise it, but any change to §3 or §4 needs a USER decision (D6).
+**Current:** T1 is declared and approved. The implementing AGENT owns this tranche; any change to §3 or §4 needs a USER decision (D6).
 
-### Draft for T1: standalone and smaller (not declared)
+### T1 declaration: standalone and smaller (approved)
 
 **Expected outcome:** the hub starts and works from this repo alone, as it did before `.parts-bin/` moved:
 - selecting a project;
@@ -263,6 +263,20 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 9. **Add `requirements.txt`** (numpy, per D0; T1 itself doesn't use it).
 10. **Update docs:** `README.md` status, the `AGENTS.md` layout and known-state note, and `PLAN.md` §1.
 
+**Progress:**
+- [x] 1. Add the owned workspace paths, patching, and backup components.
+- [x] 2. Point project and patch tools at `workspace/`; remove reference-path imports.
+- [ ] 3. Remove the sandbox `files/` tools and overwrite approval flow.
+- [ ] 4. Delete the legacy desktop app and commands.
+- [ ] 5. Remove request-ID compatibility and use USER/AGENT speaker labels.
+- [ ] 6. Replace tkinter startup errors with console and log reporting.
+- [ ] 7. Start with no project selected.
+- [ ] 8. Add temporary-folder, workspace-safety, architecture, and HTTP smoke coverage.
+- [ ] 9. Add `requirements.txt`.
+- [ ] 10. Update README, AGENTS, and PLAN current-state documentation.
+
+**Now:** remove the obsolete sandbox file tools and their overwrite approval flow (task 3).
+
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.
 - The model loop (`engine.run_turn`) changes only by losing its overwrite-specific logic.
@@ -282,10 +296,12 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 **Known risks:**
 - Rewriting the backup and rollback code is where subtle bugs hide. The existing three patch tests stay and must pass without change to what they assert.
 
+**Declaration state:** approved by USER on 2026-09-29. Implementation is in progress on `t1-standalone`.
+
 ## 8. Current Decision
 
-**Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). The user asked to "proceed to ensure the setup … is complete" after reviewing §2–§5. §3 and §4 are now frozen (D6).
-**Implementation permission:** NO. No tranche is declared. The next action belongs to the team: orient, declare T1 in §7, and get the USER's approval, which is recorded here with its date.
+**Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
+**Implementation permission:** YES for T1 (USER, 2026-09-29). Reset to NO when T1 is parked.
 
 ## 9. Parked Tranches
 
