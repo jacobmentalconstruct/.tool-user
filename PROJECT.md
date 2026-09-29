@@ -4,15 +4,15 @@
 
 **Project name:** Local Memory Lab (working name; repo `.tool-user`)
 
-**Short description:** A local agent team that runs on Ollama models on your own machine and does real project work (plan, implement, debug, review) while a human, and optionally a supervising agent, watch the same live session and approve its changes.
+**Short description:** A local agent team that runs on Ollama models on your own machine and does real project work (plan, implement, debug, review) while a human watches the same live session and approves its changes. Other agents may follow along and advise.
 
-**Purpose:** Move the expensive inference onto free local models. Paid agents and people supervise and approve; they don't do the work. The long-term aim is an agent setup anyone can run without a subscription.
+**Purpose:** Move the expensive inference onto free local models. People supervise and approve, optionally helped by other agents; they don't do the work. The long-term aim is an agent setup anyone can run without a subscription.
 
 ## 2. Intended User
 
 **Primary user:** The project owner, working on their own projects on one Windows machine (RTX 5060 Ti 16 GB, 32 GB RAM).
 
-**Secondary participant:** A supervising agent (Claude Code, Codex) that reads the session and posts prompts or reviews through the existing client. It is an observer and escalation point, not the worker.
+**Secondary participant:** Any external agent that reads the session and posts prompts or advice through the CLI client. It is an observer and escalation point, not the worker.
 
 **Later:** Members of the public running it on similar consumer hardware.
 

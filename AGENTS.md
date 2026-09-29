@@ -1,16 +1,16 @@
 # Agents: Start Here
 
-This file is the entry point for any agent or person working on this repo: Claude Code, Codex, or, later, this project's own local team working on a self-development copy.
+This file is the entry point for anyone working on this repo: a person, any coding agent, or, later, this project's own local team working on a self-development copy. Nothing here assumes a particular vendor or tool. If your agent auto-loads a different file name, point it here.
 
 ## What this is
 
-Local Memory Lab is a local agent team that runs on Ollama models. A shared hub (browser plus CLI) lets a human and a supervising agent watch it work and approve its changes. The prototype is **done** when the team makes real progress on its own development in a sandboxed copy of this repo (`PLAN.md` D8).
+Local Memory Lab is a local agent team that runs on Ollama models. A shared hub (browser plus CLI) lets a human watch it work and approve its changes, and lets any other agent follow and advise through the CLI. The prototype is **done** when the team makes real progress on its own development in a sandboxed copy of this repo (`PLAN.md` D8).
 
 ## Orient cheaply (in this order, and stop when you have enough)
 
 1. `PLAN.md` **§8 Current Decision**: plan status and what is permitted right now.
 2. `PLAN.md` **§7 Current Tranche**: the active tranche, its scope, non-goals and acceptance criteria.
-3. `git log --oneline -15` and `git status --short`. Tranche commits are named `T<n>: …`.
+3. `git log --oneline -15`, `git branch` and `git status --short`. Tranche commits are named `T<n>: …` and built on a `t<n>-<slug>` branch. `main` holds the last accepted state (`docs/WORKFLOW.md`).
 4. `PLAN.md` **§9 Parked Tranches**, the newest entry: what was proven, with what evidence, and what is next.
 5. Only if the work touches them: `PLAN.md` §2 (decisions), §3 (stop conditions), §4 (not building), §6 (reference map), and `docs/CONTRACTS.md`.
 
@@ -30,11 +30,12 @@ Local Memory Lab is a local agent team that runs on Ollama models. A shared hub 
 ## Rules that are never negotiable
 
 - **Orient before proposing. Propose before implementing.** Implement only a tranche the user has approved (`PLAN.md` §8). Plan *with* the user.
-- **Isolation (D1).** The user's other projects (`C:\Jacob\_AppDesign\_SANDBOX\.parts-bin\`, DataMODEL, and others) are references only. Read them and rewrite what we need into this repo, smaller. Never import, call, run, attach or modify them.
+- **Isolation (D1).** The user's other projects (the `.parts-bin` folder next to this repo, DataMODEL, and others; see `PLAN.md` §6) are references only. Read them and rewrite what we need into this repo, smaller. Never import, call, run, attach or modify them.
 - **Scope guard (D6).** The stop conditions (`PLAN.md` §3) and the not-building list (§4) are frozen. A new idea goes into §4 "Deferred" and nowhere else.
 - **Smaller wherever it's free.** Prefer deleting to adding. No module over about 400 lines. No dead code, and no second way to do the same thing.
 - **Dependencies:** Python 3.10+ standard library plus numpy. Nothing else without a recorded decision.
 - **Writes to a project always pass a human approval.** The hub never edits its own running code. Self-development happens only in the selfdev worktree (D8).
+- **Vendor-neutral (D9).** Never name a particular agent product or vendor in docs, code, labels or prompts.
 - **Proof over vibes.** A claim of done names the command that shows it.
 
 ## Layout

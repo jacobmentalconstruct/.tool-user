@@ -18,7 +18,7 @@ This is the append-only log and the single source of truth (S2). Every other kin
 ```
 
 - **`id`:** a whole number that only ever increases. Clients read new events with `GET /api/events?after=<id>`.
-- **`actor`:** one of `human`, `agent:<name>` (e.g. `agent:claude`), `role:<planner|builder|debugger|reviewer>`, or `system`.
+- **`actor`:** one of `human`, `agent:<name>` (a name the client chooses, e.g. `agent:supervisor`), `role:<planner|builder|debugger|reviewer>`, or `system`.
 - **`kind`, v0 set:**
   - `chat.prompt`, `chat.reply`
   - `note.added`, `note.removed`

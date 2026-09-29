@@ -50,5 +50,6 @@ There is no separate journal. The record is kept in three places, and nothing el
 |---|---|
 | 2 Declare state; 12 Park; 13 Reorient | `PLAN.md` §7 (Current Tranche) and §8 (Current Decision). Parking adds an entry to `PLAN.md` §9 (Parked Tranches): outcome, evidence (commands run and their results), limitations, deferrals, next step. |
 | Decisions, deferrals, scope changes | `PLAN.md` §2 (Decisions, numbered and dated) and §4 (Not building / Deferred). |
+| Branches | Each tranche is built on its own branch, `t<n>-<slug>` (e.g. `t1-standalone`), and merged into `main` only after the user accepts the park. `main` always holds the last accepted state. Self-development goals use `selfdev/<goal>` branches in their own worktree (`PLAN.md` D8). |
 | Proof over vibes | The command and its output summary go in the parked entry. The commit that parks a tranche is named `T<n>: <outcome>`, so `git log --oneline` reads as the tranche history. |
 | User-approved writes | The user approves the tranche (step 6). Inside the product, every change an agent makes to a project goes through the hub's own diff-and-approve step. |

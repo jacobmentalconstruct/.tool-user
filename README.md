@@ -1,6 +1,6 @@
 # Local Memory Lab
 
-A local agent team that runs on your own machine through [Ollama](https://ollama.com). You give it a goal for a project. Local models plan the work, write the changes, run the project's tests, fix failures and review the result. You watch every step in a browser and approve what gets applied. A supervising agent such as Claude Code or Codex can follow the same session from the command line.
+A local agent team that runs on your own machine through [Ollama](https://ollama.com). You give it a goal for a project. Local models plan the work, write the changes, run the project's tests, fix failures and review the result. You watch every step in a browser and approve what gets applied. Any other agent can follow the same session from the command line.
 
 The point is to move the expensive inference onto free local models, so that an AI agent doesn't need a paid subscription.
 

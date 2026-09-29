@@ -30,7 +30,7 @@ One commit (`ff457af`). Its 3 unit tests passed until `.parts-bin/` moved out; t
 1. **A fresh clone does not run.** `project_tools.py` and `patch_tools.py` import `core.*` and `tools.*` from `.parts-bin/`, which is gitignored and has no committed files. `core/__init__.py` also pulls in `diagnostics`, `state` and `tree`, which the app never uses.
 2. **The worker is a free-running tool loop.** `engine.run_turn` gives the model every tool for 6 rounds with no streaming and a 180 s timeout. Small models are weakest in exactly this setup. The engine also hard-codes patch and overwrite denial rules, logic that belongs to the tools.
 3. **`SharedSession` owns too much.** It holds the queue, conversation, notes, project choice, model choice, approvals and event list in one class. Contrary to `ARCHITECTURE.md`, there is no separate owner per domain.
-4. **All state is in memory.** Events are capped at 500 and there is no restart recovery. Approvals block the only worker thread for up to 300 s. Agent messages are hard-coded as "Codex". The browser polls the full state every 750 ms.
+4. **All state is in memory.** Events are capped at 500 and there is no restart recovery. Approvals block the only worker thread for up to 300 s. Every agent message carries one hard-coded vendor name as its speaker label. The browser polls the full state every 750 ms.
 5. **Duplication and dead code:**
    - Two file-tool families: sandbox `files/` and project.
    - The client's compatibility path for hubs that predate request IDs; current hubs always return one.
@@ -84,7 +84,7 @@ All recorded 2026-09-29.
   - Changing §3 or §4 needs the user's explicit decision, recorded here.
   - Each tranche is small (about one working session), ends with the tests passing and the hub working, and is parked before the next one is declared.
 - **D7 Document layout:**
-  - `AGENTS.md` (the start-here file, for any agent) and `CLAUDE.md` (a pointer to it) at the root.
+  - `AGENTS.md` (the vendor-neutral start-here file, for any person or agent) at the root. No vendor-specific instruction files, and no vendor or product names for agents anywhere in the docs or code (D9).
   - The standing framework adapted for this project in `docs/`: `ARCHITECTURE.md`, `DESIGN-PRINCIPLES.md`, `WORKFLOW.md`.
   - The shapes shared across tranches in `docs/CONTRACTS.md`.
   - `PROJECT.md` and `PLAN.md` at the root.
@@ -96,8 +96,10 @@ All recorded 2026-09-29.
     - Goals go in through **New goal**.
     - Only local models do the inference.
     - The human approves or rejects in the hub, and may re-run a goal, but must not hand-edit the agent's changes.
-    - A supervising agent may only advise through chat.
+    - Any other agent may only advise through chat.
   - **Progress, not decline:** a goal passes when its branch does what the goal asked, the full test suite and `tests/test_architecture.py` still pass, and the branch is merged into `main` through a normal review, with `selfdev` credited in the commit message.
+
+- **D9 Vendor-neutral (2026-09-29):** the docs, code, labels and prompts never name a particular agent product or vendor. Participants are `human`, `agent:<name>` (a name the agent chooses), `role:<…>` and `system`. Any agent should feel equally at home here, including this project's own team when it works on itself. Naming the runtime (Ollama) and model tags in configuration is fine: those are dependencies, not participants.
 
 ## 3. Target end state and stop conditions
 
@@ -144,7 +146,7 @@ All recorded 2026-09-29.
 
 ## 4. Not building (frozen when the plan is approved; D6)
 
-- An MCP server or direct tool shell for Claude, Codex or other paid agents. They supervise through the CLI client.
+- An MCP server or direct tool shell for external agents. They follow and advise through the CLI client.
 - Cloud or paid model providers, remote access, multiple users, accounts, or auth beyond the local tokens.
 - Model fine-tuning or training.
 - An LLM approver with authority. The gate is deterministic checks plus a human.
@@ -185,7 +187,7 @@ T4 and T5 can overlap: the search-quality part of the bench needs only T4. T6 ne
 
 ## 6. Reference map
 
-Surveyed 2026-09-29. These are sources to read and rewrite from, not dependencies (D1). Everything is under `C:\Jacob\_AppDesign\_SANDBOX\` unless it says otherwise. Total size is about 91k lines, so we take only the pieces we need and keep them smaller than the originals.
+Surveyed 2026-09-29. These are sources to read and rewrite from, not dependencies (D1). Paths are relative to the folder that contains this repo (on the owner's machine, `C:\Jacob\_AppDesign\_SANDBOX\`). Total size is about 91k lines, so we take only the pieces we need and keep them smaller than the originals.
 
 | Our need | Tranche | Best reference | Take | Leave |
 |---|---|---|---|---|
@@ -223,6 +225,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
    - `paths.py`: safe relative paths, link and reparse-point refusal, built-in and `.gitignore` exclusions, excluded secret and control names, name validation, size limits.
    - `patching.py`: unique search/replace validation, the unified diff, and a staged multi-file apply with rollback.
    - `backups.py`: a backup store under `live_control/backups/`, compatible with nothing older (no migration needed).
+   - Agents can't reach `.lab/` (the human-owned allowlist folder, `docs/CONTRACTS.md` §4): it joins the excluded names.
 2. **Point the tool surfaces at `workspace/`:** `agent/project_tools.py` and `agent/patch_tools.py`. Remove `PARTS_BIN` from `locations.py` and every `sys.path` insert.
 3. **Delete the sandbox `files/` tool family:**
    - `agent/file_tools.py` (`write_file`, `read_file`, `list_files`);
@@ -230,7 +233,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
    - the overwrite approval path in `session.py`, `engine.py`, `tool_router.py`, `web.py` (the `overwrite` alias) and `shared_ui.html` (the overwrite previews);
    - the `files/` folder and its `.gitignore` lines.
 4. **Delete `legacy/`,** and remove the `desktop` and `live-desktop` commands from `lab.py`.
-5. **Remove the client's compatibility path** for hubs that predate request IDs (`interfaces/client.py`).
+5. **Remove the client's compatibility path** for hubs that predate request IDs (`interfaces/client.py`). Replace the hard-coded vendor speaker label in `session.py` with a neutral `Agent` (D9; T2 brings named actors).
 6. **`launcher.py`:** report a start-up failure by printing it and writing to `live_control/server.log`, instead of importing tkinter.
 7. **The project field starts empty,** not on the app's own folder. The hub must not be pointed at its own running code by default (D8).
 8. **Tests:**
@@ -254,6 +257,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - Manual check: `python lab.py hub-server` starts, and the browser page loads.
 - Runtime Python is **2,250 lines or fewer**, measured with `python -c "import pathlib;print(sum(len(p.read_text(encoding='utf-8').splitlines()) for p in pathlib.Path('src').rglob('*.py')))"`.
 - `grep -rn "parts-bin\|PARTS_BIN" src tests` finds nothing.
+- A case-insensitive search of `src/` for agent vendor or product names finds nothing (D9).
 
 **Known risks:**
 - Rewriting the backup and rollback code is where subtle bugs hide. The existing three patch tests stay and must pass without change to what they assert.
@@ -267,7 +271,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 
 **T0, setup: PARKED 2026-09-29.**
 - **Outcome met:** onboarding and standing documents are in place and match the observed state:
-  - `AGENTS.md`, `CLAUDE.md`, `README.md`;
+  - `AGENTS.md`, `README.md`;
   - `docs/ARCHITECTURE.md` (moved from the root; `.tools` line replaced), `docs/DESIGN-PRINCIPLES.md` (copied, plus a one-line note on this project's seams), `docs/WORKFLOW.md` (the `.tools` section replaced by this repo's record-keeping), `docs/CONTRACTS.md` (v0);
   - `PROJECT.md` and `PLAN.md`.
 - **Also done:**
@@ -282,4 +286,8 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
   - The cause of the qwen2 slowness is inferred, not verified.
   - I ran the test suites of `_ProjectMAPPER` and `_TaskWORKER` in place once, with `-B`. That was before D1 was tightened to forbid running reference projects; both failed on import, and I made no changes to either.
 - **Deferrals:** none beyond §4.
+- **Amended 2026-09-29, after review:**
+  - Vendor-neutral pass (D9): agent product names removed from all docs, and the vendor-specific instruction file removed. `AGENTS.md` is the only start-here file.
+  - Branch policy added to `docs/WORKFLOW.md`. T0 lives on `t0-setup`.
+  - T1 scope gained the `.lab/` exclusion and the neutral speaker label.
 - **Next step:** T1 (§7), once the user says go.
