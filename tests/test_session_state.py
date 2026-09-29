@@ -14,12 +14,23 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from local_memory_lab.agent.engine import DEFAULT_MODEL  # noqa: E402
+from local_memory_lab.agent.engine import DEFAULT_MODEL, MAX_RECENT_TURNS  # noqa: E402
 from local_memory_lab.session import Approval, SharedSession  # noqa: E402
 from local_memory_lab.interfaces.web import make_handler  # noqa: E402
+from local_memory_lab.session_state import ConversationState  # noqa: E402
 
 
 class SessionRestoreTests(unittest.TestCase):
+    def test_conversation_projection_uses_recent_turn_limit(self):
+        state = ConversationState()
+        for event_id in range(MAX_RECENT_TURNS + 2):
+            state.apply({"id": event_id + 1, "kind": "chat.reply", "data": {
+                "turn": [{"role": "user", "content": str(event_id)}],
+            }})
+
+        self.assertEqual(MAX_RECENT_TURNS, len(state.turns))
+        self.assertEqual("2", state.turns[0][0]["content"])
+
     def test_fresh_session_prefers_default_model_when_installed(self):
         with tempfile.TemporaryDirectory() as temp:
             session = SharedSession(Path(temp) / "events.sqlite", load_models=False, start_worker=False)

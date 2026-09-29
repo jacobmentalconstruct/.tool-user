@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .agent.engine import MAX_RECENT_TURNS
 from .event_store import EventStore
 
 
@@ -20,7 +21,7 @@ class ConversationState:
             self.pending_prompts[request_id] = event["id"]
         if event["kind"] == "chat.reply" and isinstance(data.get("turn"), list):
             self.turns.append(data["turn"])
-            self.turns = self.turns[-8:]
+            self.turns = self.turns[-MAX_RECENT_TURNS:]
         if event["kind"] in {"chat.reply", "error"} and isinstance(request_id, str):
             self.pending_prompts.pop(request_id, None)
 
