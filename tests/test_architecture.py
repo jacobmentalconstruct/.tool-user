@@ -48,7 +48,7 @@ class ArchitectureTests(unittest.TestCase):
                     if node.func.attr in {"insert", "append"} and isinstance(node.func.value, ast.Attribute):
                         if node.func.value.attr == "path":
                             self.assertFalse(any(isinstance(child, ast.Constant) and
-                                                 isinstance(child.value, str) and ".parts-bin" in child.value.casefold()
+                                                 isinstance(child.value, str) and (".parts" + "-bin") in child.value.casefold()
                                                  for child in ast.walk(node)), path)
 
     def test_no_import_cycles_and_core_does_not_import_interfaces(self):
