@@ -279,13 +279,13 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 
 **Fix-up Progress:**
 - [x] 1. Restore built-in workspace exclusions and add regression coverage.
-- [ ] 2. Remove the duplicate T1 record in §9, keeping the 13-test entry.
+- [x] 2. Remove the duplicate T1 record in §9, keeping the 13-test entry.
 - [ ] 3. Move the T1 status update out of §1 into the T1 §9 record.
 - [ ] 4. Correct the stale AGENTS.md T1 status note.
 - [ ] 5. Remove unused imports and unused BackupStore members.
 - [ ] 6. Record the four notes-only observations without changing behavior.
 
-**Now:** remove the duplicate T1 §9 record while retaining the 13-test entry (fix-up 2).
+**Now:** move the T1 status update from the §1 snapshot into the retained §9 record (fix-up 3).
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.
@@ -351,20 +351,6 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
   - `rg -ni 'openai|codex|chatgpt|anthropic|claude|google|gemini|microsoft|copilot' src` — no matches.
   - `git diff --check` — clean. Largest Python module: 171 lines.
   - Diff review from T0 commit `0fd3798` — changed files align with the T1 scope recorded here.
-- **Limitations:** model inference was not part of the T1 smoke run; T1 verifies the hub and approval plumbing without Ollama.
-- **Deferrals:** none beyond §4.
-- **Next step:** USER reviews the T1 diff and accepts or requests changes to the parking. Only after acceptance may it be merged into `main`; then reorient and declare T2.
-
-**T1, standalone and smaller: PARKED 2026-09-29, pending USER acceptance.** Built on `t1-standalone`; not merged.
-- **Outcome met:** the hub runs from this repo without the reference-code imports; project listing, reading, creation, reviewed patch application, cancellation, backups, and rollback are implemented in the owned workspace package. The legacy app, sandbox file-tool family, and pre-request-ID client path are removed. The selected project starts empty.
-- **Evidence:**
-  - `python -B -m unittest discover -s tests -v` — 12 tests passed.
-  - `python lab.py hub-server` — server started. The scripted browser/API probe returned HTTP 200 for both the browser page and state API; the selected project was `None` and `appFolder` was absent.
-  - `tests/test_http_smoke.py` — selected a temporary project through HTTP; cancellation left its file unchanged; approval applied the patch and produced a backup.
-  - `python -c "import pathlib; print(sum(len(p.read_text(encoding='utf-8').splitlines()) for p in pathlib.Path('src').rglob('*.py')))"` — 1,098 lines (S9 T1 limit: 2,250).
-  - `rg -ni 'parts-bin|PARTS_BIN' src tests` — no matches.
-  - `rg -ni 'openai|codex|chatgpt|anthropic|claude|google|gemini|microsoft|copilot' src` — no matches.
-  - `git diff --check` — clean. Largest Python module: 171 lines.
 - **Limitations:** model inference was not part of the T1 smoke run; T1 verifies the hub and approval plumbing without Ollama.
 - **Deferrals:** none beyond §4.
 - **Next step:** USER reviews the T1 diff and accepts or requests changes to the parking. Only after acceptance may it be merged into `main`; then reorient and declare T2.
