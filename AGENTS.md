@@ -1,10 +1,10 @@
 # Agents: Start Here
 
-This file is the entry point for anyone working on this repo: a person, any coding agent, or, later, this project's own local team working on a self-development copy. Nothing here assumes a particular vendor or tool. If your agent auto-loads a different file name, point it here.
+This file is the entry point for anyone working on this repo: the USER, any AGENT, or, later, this project's own local team working on a self-development copy. Participants are known only by the labels USER, AGENT, ROLE and SYSTEM (`PLAN.md` D10); rights attach to the label (`docs/CONTRACTS.md` §0). Nothing here assumes a particular vendor or tool. If your agent auto-loads a different file name, point it here.
 
 ## What this is
 
-Local Memory Lab is a local agent team that runs on Ollama models. A shared hub (browser plus CLI) lets a human watch it work and approve its changes, and lets any other agent follow and advise through the CLI. The prototype is **done** when the team makes real progress on its own development in a sandboxed copy of this repo (`PLAN.md` D8).
+Local Memory Lab is a local agent team that runs on Ollama models. A shared hub (browser plus CLI) lets the USER watch it work and approve its changes, and lets any AGENT follow and advise through the CLI. The prototype is **done** when the team makes real progress on its own development in a sandboxed copy of this repo (`PLAN.md` D8).
 
 ## Orient cheaply (in this order, and stop when you have enough)
 
@@ -14,7 +14,7 @@ Local Memory Lab is a local agent team that runs on Ollama models. A shared hub 
 4. `PLAN.md` **§9 Parked Tranches**, the newest entry: what was proven, with what evidence, and what is next.
 5. Only if the work touches them: `PLAN.md` §2 (decisions), §3 (stop conditions), §4 (not building), §6 (reference map), and `docs/CONTRACTS.md`.
 
-**Review with the user:** compare the newest §9 entry with `git diff <previous T-commit>..HEAD --stat`, then run the tests. Anything claimed in §9 but not shown in the diff or tests is a finding.
+**Review with the USER:** compare the newest §9 entry with `git diff <previous T-commit>..HEAD --stat`, then run the tests. Anything claimed in §9 but not shown in the diff or tests is a finding.
 
 ## Standing documents (read the relevant section in full when a decision touches it)
 
@@ -29,13 +29,13 @@ Local Memory Lab is a local agent team that runs on Ollama models. A shared hub 
 
 ## Rules that are never negotiable
 
-- **Orient before proposing. Propose before implementing.** Implement only a tranche the user has approved (`PLAN.md` §8). Plan *with* the user.
-- **Isolation (D1).** The user's other projects (the `.parts-bin` folder next to this repo, DataMODEL, and others; see `PLAN.md` §6) are references only. Read them and rewrite what we need into this repo, smaller. Never import, call, run, attach or modify them.
+- **Orient before proposing. Propose before implementing.** Implement only a tranche the USER has approved (`PLAN.md` §8). Plan *with* the USER.
+- **Isolation (D1).** The USER's other projects (the `.parts-bin` folder next to this repo, DataMODEL, and others; see `PLAN.md` §6) are references only. Read them and rewrite what we need into this repo, smaller. Never import, call, run, attach or modify them.
 - **Scope guard (D6).** The stop conditions (`PLAN.md` §3) and the not-building list (§4) are frozen. A new idea goes into §4 "Deferred" and nowhere else.
 - **Smaller wherever it's free.** Prefer deleting to adding. No module over about 400 lines. No dead code, and no second way to do the same thing.
 - **Dependencies:** Python 3.10+ standard library plus numpy. Nothing else without a recorded decision.
-- **Writes to a project always pass a human approval.** The hub never edits its own running code. Self-development happens only in the selfdev worktree (D8).
-- **Vendor-neutral (D9).** Never name a particular agent product or vendor in docs, code, labels or prompts.
+- **Writes to a project always pass the USER's approval.** The hub never edits its own running code. Self-development happens only in the selfdev worktree (D8).
+- **Vendor-neutral and anonymous (D9).** Never name an agent product, vendor or person in docs, code, labels, prompts or commits. Agent commits end with `Actor: AGENT`.
 - **Proof over vibes.** A claim of done names the command that shows it.
 
 ## Layout

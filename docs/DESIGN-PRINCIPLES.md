@@ -1,6 +1,6 @@
 # Design Principles
 
-> Adopted from the user's standing framework. Where it names seams such as MCP or RPC as examples, this project's seams are the browser page and the CLI client (`PLAN.md` §4).
+> Adopted from the user's standing framework. Where it names seams such as MCP or RPC as examples, this project's seams are the browser page and the CLI client (`PLAN.md` §4). Where it says "human" and "agent", this project's labels are USER and AGENT (`PLAN.md` D10).
 
 These principles describe the character of the system we are building. They are not a prescribed implementation and should not force unnecessary machinery into simple features. They guide architectural choices when several reasonable implementations exist. Ownership structure itself is defined in `ARCHITECTURE.md`.
 

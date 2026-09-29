@@ -1,6 +1,6 @@
 # Workflow
 
-This is the working pattern for all project work: tranches, repair passes, cleanups, and packaging. It exists so a fresh human or agent can pick up the project without having to infer the rhythm from chat history.
+This is the working pattern for all project work: tranches, repair passes, cleanups, and packaging. It exists so a fresh USER or AGENT can pick up the project without having to infer the rhythm from chat history.
 
 ## The Cycle
 
@@ -27,7 +27,7 @@ This is the working pattern for all project work: tranches, repair passes, clean
 - Future tranches are provisional until reached; evidence from completed work may change the planned path.
 - Changes of direction, tranche status, verification evidence, public or user-facing instructions, known limitations, deferrals, and stop criteria are recorded in the project record, not only in chat.
 - Prefer proof over vibes. If a claim matters, capture a command, artifact, or limitation.
-- Keep the README human. It should help someone understand what this is without sounding like a generated product brochure.
+- Keep the README plain. It should help someone understand what this is without sounding like a generated product brochure.
 
 ## Parking Bar
 

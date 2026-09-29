@@ -10,7 +10,7 @@ One commit (`ff457af`). Its 3 unit tests passed until `.parts-bin/` moved out; t
 
 **What works:**
 
-- **Shared hub:** one process on 127.0.0.1. The browser (human token) and the CLI client (agent token) see one queue, one conversation and one Ollama session.
+- **Shared hub:** one process on 127.0.0.1. The browser (the approving token) and the CLI client (agent token) see one queue, one conversation and one Ollama session.
 - **Tools:** sandbox file tools in `files/`, and project tools (`list_project`, `read_project_file`, `create_project_file`) with exclusion and link checks.
 - **Patches:** reviewed single-file and multi-file patches with a diff shown for approval, backups, and rollback.
 - **Memory:** notes and an 8-turn window, both lost on restart.
@@ -84,7 +84,7 @@ All recorded 2026-09-29.
   - Changing §3 or §4 needs the user's explicit decision, recorded here.
   - Each tranche is small (about one working session), ends with the tests passing and the hub working, and is parked before the next one is declared.
 - **D7 Document layout:**
-  - `AGENTS.md` (the vendor-neutral start-here file, for any person or agent) at the root. No vendor-specific instruction files, and no vendor or product names for agents anywhere in the docs or code (D9).
+  - `AGENTS.md` (the vendor-neutral start-here file, for any USER or AGENT) at the root. No vendor-specific instruction files (D9).
   - The standing framework adapted for this project in `docs/`: `ARCHITECTURE.md`, `DESIGN-PRINCIPLES.md`, `WORKFLOW.md`.
   - The shapes shared across tranches in `docs/CONTRACTS.md`.
   - `PROJECT.md` and `PLAN.md` at the root.
@@ -95,11 +95,23 @@ All recorded 2026-09-29.
   - **Rules:**
     - Goals go in through **New goal**.
     - Only local models do the inference.
-    - The human approves or rejects in the hub, and may re-run a goal, but must not hand-edit the agent's changes.
+    - The USER approves or rejects in the hub, and may re-run a goal, but must not hand-edit the agent's changes.
     - Any other agent may only advise through chat.
   - **Progress, not decline:** a goal passes when its branch does what the goal asked, the full test suite and `tests/test_architecture.py` still pass, and the branch is merged into `main` through a normal review, with `selfdev` credited in the commit message.
 
-- **D9 Vendor-neutral (2026-09-29):** the docs, code, labels and prompts never name a particular agent product or vendor. Participants are `human`, `agent:<name>` (a name the agent chooses), `role:<…>` and `system`. Any agent should feel equally at home here, including this project's own team when it works on itself. Naming the runtime (Ollama) and model tags in configuration is fine: those are dependencies, not participants.
+- **D9 Vendor-neutral and anonymous (2026-09-29):**
+  - Docs, code, labels, prompts and commit messages never name a particular agent product, vendor or person.
+  - Participants are identified only by abstract labels (D10).
+  - Commits made by an agent end with the trailer `Actor: AGENT` instead of any name.
+  - Any agent should feel equally at home here, including this project's own team when it works on itself.
+  - Naming the runtime (Ollama) and model tags in configuration is fine: those are dependencies, not participants.
+- **D10 Participants and rights (2026-09-29):** there are four labels. Rights attach to the **label**, not to whoever holds it, so a USER could later be an agent. That would need its own decision, and is deferred.
+  - **USER** (`user`) holds approval authority. Today this is the project owner, using the browser token.
+  - **AGENT** (`agent`) is any other participant, through the CLI token.
+  - **ROLE** (`role:<planner|builder|debugger|reviewer>`) is one of the local team's steps.
+  - **SYSTEM** (`system`) is the hub's own lifecycle code.
+  - In these documents, "the user" means the USER.
+  - The rights table is in `docs/CONTRACTS.md` §0. The code enforces it from T2 on, when the event log introduces actors. Until then, the hub's two tokens map to USER and AGENT.
 
 ## 3. Target end state and stop conditions
 
@@ -112,7 +124,7 @@ All recorded 2026-09-29.
 - **S2 One event log:**
   - One append-only SQLite log is the single source of truth. The browser, CLI and workers read from it rather than keeping their own copies.
   - After a restart, history, notes, the chosen project and job state are all back.
-  - Actors are named (`human`, `agent:<name>`, `role:<name>`, `system`).
+  - Every event carries its actor label (D10) and the rights table is enforced (`docs/CONTRACTS.md` §0).
   - Clients read new events by cursor, not by re-fetching the whole state.
 - **S3 Visible lifecycles:**
   - Jobs and approvals are explicit state machines (`docs/CONTRACTS.md`).
@@ -131,7 +143,7 @@ All recorded 2026-09-29.
   - Indexing runs only while no role step is running.
 - **S6 Team:**
   - Planner, builder, debugger and reviewer run as separate steps with a fixed JSON output format (`docs/CONTRACTS.md`), each role's model set in one config file.
-  - A deterministic gate checks that the allowlisted tests pass, the reviewer passed, and edits stay inside the task's files. A human approval follows the gate.
+  - A deterministic gate checks that the allowlisted tests pass, the reviewer passed, and edits stay inside the task's files. The USER's approval follows the gate.
   - The old free-running tool loop (`engine.run_turn`) is deleted.
 - **S7 Bench:**
   - At least 15 real-code tasks (D3).
@@ -142,15 +154,15 @@ All recorded 2026-09-29.
 - **S9 Smaller and cleaner:**
   - T1 cuts runtime Python (`src/**/*.py` plus the parts-bin code it loaded: 1,512 + 1,490 = **3,002 lines**) to **2,250 lines or fewer**, with no loss of behaviour.
   - At the end: no module over about 400 lines, no legacy or dead code, no duplicate capability, no import cycles, and no core module imports an interface module.
-- **S10 Docs current:** `README.md` (human, short), `AGENTS.md`, `docs/`, `PROJECT.md` and `PLAN.md` match the code, with no stale statements.
+- **S10 Docs current:** `README.md` (plain, short), `AGENTS.md`, `docs/`, `PROJECT.md` and `PLAN.md` match the code, with no stale statements.
 
 ## 4. Not building (frozen when the plan is approved; D6)
 
 - An MCP server or direct tool shell for external agents. They follow and advise through the CLI client.
 - Cloud or paid model providers, remote access, multiple users, accounts, or auth beyond the local tokens.
 - Model fine-tuning or training.
-- An LLM approver with authority. The gate is deterministic checks plus a human.
-- Changes applied without human approval.
+- An LLM approver with authority. The gate is deterministic checks plus the USER.
+- Changes applied without the USER's approval.
 - The hub changing its own running code. Self-development happens only in the selfdev worktree (D8).
 - Frameworks and servers: LangChain and similar, vector-database or graph-database servers, spaCy, tree-sitter.
 - A trained or deterministic embedder of our own, line-level dedup storage, or a manifold, projection or fusion framework.
@@ -180,7 +192,7 @@ Each tranche follows `docs/WORKFLOW.md`: declare, get approval, implement, conso
 | T3 | **Lifecycles and runner:** job and approval state machines, non-blocking approvals, cancel, **Chat** and **New goal** entrances, and the allowlisted command runner. UI shows stages. | Visible jobs, and test runs | S3, S4 |
 | T4 | **Knowledge layer:** chunking, FTS5 plus embedding index, `ast` code graph, summaries without a model, context assembler, re-indexing after a change. A fake Ollama server for tests. | Context packs | S5 |
 | T5 | **Bench:** snapshot this repo and hole-punch tasks from it (D3, with the fallback if needed), a harness, and a single builder step. Measure search quality and builder success per model, with and without context. Set the final `roles.json`. | Committed numbers, and a role config | S7 |
-| T6 | **Team:** planner, debugger and reviewer added around the builder on the job machine. The gate plus human approval. Role config. `run_turn` deleted. | Goal in, approved changes out | S6 |
+| T6 | **Team:** planner, debugger and reviewer added around the builder on the job machine. The gate plus the USER's approval. Role config. `run_turn` deleted. | Goal in, approved changes out | S6 |
 | T7 | **Self-development and park:** set up the selfdev worktree and its allowlist, run the three pre-registered goals (D8), merge the ones that pass, run the full bench, size and import-graph checks, docs, push. **End.** | Evidence for every stop condition | S8, S9, S10 |
 
 T4 and T5 can overlap: the search-quality part of the bench needs only T4. T6 needs T3 and T5. The three D8 goals are registered at the end of T6.
@@ -225,7 +237,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
    - `paths.py`: safe relative paths, link and reparse-point refusal, built-in and `.gitignore` exclusions, excluded secret and control names, name validation, size limits.
    - `patching.py`: unique search/replace validation, the unified diff, and a staged multi-file apply with rollback.
    - `backups.py`: a backup store under `live_control/backups/`, compatible with nothing older (no migration needed).
-   - Agents can't reach `.lab/` (the human-owned allowlist folder, `docs/CONTRACTS.md` §4): it joins the excluded names.
+   - Agents can't reach `.lab/` (the USER-owned allowlist folder, `docs/CONTRACTS.md` §4): it joins the excluded names.
 2. **Point the tool surfaces at `workspace/`:** `agent/project_tools.py` and `agent/patch_tools.py`. Remove `PARTS_BIN` from `locations.py` and every `sys.path` insert.
 3. **Delete the sandbox `files/` tool family:**
    - `agent/file_tools.py` (`write_file`, `read_file`, `list_files`);
@@ -233,7 +245,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
    - the overwrite approval path in `session.py`, `engine.py`, `tool_router.py`, `web.py` (the `overwrite` alias) and `shared_ui.html` (the overwrite previews);
    - the `files/` folder and its `.gitignore` lines.
 4. **Delete `legacy/`,** and remove the `desktop` and `live-desktop` commands from `lab.py`.
-5. **Remove the client's compatibility path** for hubs that predate request IDs (`interfaces/client.py`). Replace the hard-coded vendor speaker label in `session.py` with a neutral `Agent` (D9; T2 brings named actors).
+5. **Remove the client's compatibility path** for hubs that predate request IDs (`interfaces/client.py`). Replace the hard-coded vendor speaker label in `session.py` with `AGENT` (and the human one with `USER`) (D9, D10).
 6. **`launcher.py`:** report a start-up failure by printing it and writing to `live_control/server.log`, instead of importing tkinter.
 7. **The project field starts empty,** not on the app's own folder. The hub must not be pointed at its own running code by default (D8).
 8. **Tests:**
@@ -290,4 +302,5 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
   - Vendor-neutral pass (D9): agent product names removed from all docs, and the vendor-specific instruction file removed. `AGENTS.md` is the only start-here file.
   - Branch policy added to `docs/WORKFLOW.md`. T0 lives on `t0-setup`.
   - T1 scope gained the `.lab/` exclusion and the neutral speaker label.
+  - D9 extended to people and commit messages. D10 added: USER, AGENT, ROLE and SYSTEM labels, with a rights table in `docs/CONTRACTS.md` §0. "Human" is replaced by USER throughout, and the two T0 commits were reworded to carry `Actor: AGENT`.
 - **Next step:** T1 (§7), once the user says go.

@@ -4,15 +4,15 @@
 
 **Project name:** Local Memory Lab (working name; repo `.tool-user`)
 
-**Short description:** A local agent team that runs on Ollama models on your own machine and does real project work (plan, implement, debug, review) while a human watches the same live session and approves its changes. Other agents may follow along and advise.
+**Short description:** A local agent team that runs on Ollama models on your own machine and does real project work (plan, implement, debug, review) while the USER watches the same live session and approves its changes. AGENTs may follow along and advise.
 
 **Purpose:** Move the expensive inference onto free local models. People supervise and approve, optionally helped by other agents; they don't do the work. The long-term aim is an agent setup anyone can run without a subscription.
 
 ## 2. Intended User
 
-**Primary user:** The project owner, working on their own projects on one Windows machine (RTX 5060 Ti 16 GB, 32 GB RAM).
+**Primary user (USER):** The project owner, holding approval authority (`PLAN.md` D10), working on their own projects on one Windows machine (RTX 5060 Ti 16 GB, 32 GB RAM).
 
-**Secondary participant:** Any external agent that reads the session and posts prompts or advice through the CLI client. It is an observer and escalation point, not the worker.
+**Secondary participant (AGENT):** Any external agent that reads the session and posts prompts or advice through the CLI client. It is an observer and escalation point, not the worker.
 
 **Later:** Members of the public running it on similar consumer hardware.
 
@@ -26,7 +26,7 @@ One local hub process with a browser view and a CLI/agent client. Both are views
 
 - **Foreground roles:** planner, builder, debugger, reviewer.
 - **Background workers:** keep an index of the project so every step gets the right context.
-- **Approval:** deterministic checks plus a human decide what is applied.
+- **Approval:** deterministic checks plus the USER decide what is applied.
 
 Every stage, tool call, approval and result appears in one shared event log.
 
@@ -35,7 +35,7 @@ Every stage, tool call, approval and result appears in one shared event log.
 - Select a project and hold one shared conversation in the browser and CLI, with the same state in both.
 - Use separate **Chat** and **New goal** entrances. A goal becomes a reviewable plan of small tasks.
 - For each task, local models write changes, run the project's allowlisted checks, fix failures, and review the diff.
-- The human approves the plan and each change. Nothing is applied without approval.
+- The USER approves the plan and each change. Nothing is applied without approval.
 - Background workers keep a keyword and embedding index, a code graph and model-free summaries up to date, and assemble a bounded context for every step.
 - History, notes, plans and job state survive a restart.
 - A bench measures which local model handles which role, and how well.
@@ -63,7 +63,7 @@ Listed in `PLAN.md` §4 under "Deferred".
   - Foreground roles use installed Qwen models up to 14B, plus `qwen3.5:35b` (MoE). Current assignments are in `PLAN.md` D4.
   - Embedders, summarizers and models under 0.5B may be any family (currently `nomic-embed-text`, `mxbai-embed-large`, `all-minilm`, `phi3:mini-128k`).
 - **Hardware:** everything must run on a 16 GB GPU with 32 GB of RAM. Background work must not starve foreground work.
-- **Writes:** every change to a project's files passes a human approval. Backups are kept outside the project.
+- **Writes:** every change to a project's files passes the USER's approval. Backups are kept outside the project.
 - **Simplicity:** the codebase gets smaller or stays flat wherever that costs no function, clarity or constraint.
 
 ## 8. User Experience Expectations
@@ -74,7 +74,7 @@ Listed in `PLAN.md` §4 under "Deferred".
 
 ## 9. Completion Condition
 
-The prototype is complete when **the agent can make progress on its own development**. Working on a sandboxed copy of this repo, never its own running code, the local team turns at least one pre-registered goal from its own backlog into a tested change that the human approves and merges, without breaking anything. Local models do all of the inference, and both the human and a supervising agent can watch every step. Exact stop conditions are in `PLAN.md` §3 (S8) and decision D8.
+The prototype is complete when **the agent can make progress on its own development**. Working on a sandboxed copy of this repo, never its own running code, the local team turns at least one pre-registered goal from its own backlog into a tested change that the USER approves and merges, without breaking anything. Local models do all of the inference, and both the USER and any AGENT can watch every step. Exact stop conditions are in `PLAN.md` §3 (S8) and decision D8.
 
 ## 10. Known Unknowns
 

@@ -8,6 +8,25 @@ These are the data shapes that more than one tranche depends on. They are drafts
 - After that, changing it needs a recorded decision in `PLAN.md` §2.
 - Keep every shape as small as it can be. Add a field only when a tranche needs it.
 
+## 0. Participants and rights (T2 enforces)
+
+Labels come from `PLAN.md` D10. Rights attach to the label, not to who holds it.
+
+| Right | USER | AGENT | ROLE | SYSTEM |
+|---|---|---|---|---|
+| Read session state and events | yes | yes | only its context pack | yes |
+| Chat; add or remove notes | yes | yes | no | no |
+| Submit a **New goal** | yes | yes | no | no |
+| Select the project; choose the chat model | yes | no | no | no |
+| Resolve approvals (plan, patch, command) | yes | no | no | no |
+| Cancel a job | yes | no | no | no |
+| Create or edit `.lab/allowlist.json` | yes, by hand, outside the hub | no | no | no |
+| Propose edits or named commands | no | no | yes, always through an approval | no |
+| Change job and task states | no | no | no | yes, as the lifecycle owner |
+
+- **Tokens:** the browser token is USER, and the CLI token is AGENT.
+- **Current code differences, fixed in T2:** the AGENT token can still choose the chat model, and the actor labels still read `human` and `agent`.
+
 ## 1. Event (T2)
 
 This is the append-only log and the single source of truth (S2). Every other kind of state is rebuilt by reading the events in order.
@@ -18,7 +37,7 @@ This is the append-only log and the single source of truth (S2). Every other kin
 ```
 
 - **`id`:** a whole number that only ever increases. Clients read new events with `GET /api/events?after=<id>`.
-- **`actor`:** one of `human`, `agent:<name>` (a name the client chooses, e.g. `agent:supervisor`), `role:<planner|builder|debugger|reviewer>`, or `system`.
+- **`actor`:** one of `user`, `agent`, `role:<planner|builder|debugger|reviewer>`, or `system` (§0).
 - **`kind`, v0 set:**
   - `chat.prompt`, `chat.reply`
   - `note.added`, `note.removed`
@@ -50,13 +69,13 @@ task: pending → building → testing ⇄ debugging (max 2 rounds) → reviewin
  "state": "pending|approved|rejected|expired|superseded"}
 ```
 
-- Only the `human` actor resolves an approval.
+- Only the `user` actor resolves an approval.
 - Waiting never blocks the hub: other events keep flowing, and chat keeps working.
 - An expired approval changes nothing.
 
 ## 4. Command allowlist (T3)
 
-The file lives in the target project at `.lab/allowlist.json`. Only the human creates or edits it.
+The file lives in the target project at `.lab/allowlist.json`. Only the USER creates or edits it (§0).
 
 ```json
 {"commands": {"tests": ["python", "-B", "-m", "unittest", "discover", "-s", "tests"]},
