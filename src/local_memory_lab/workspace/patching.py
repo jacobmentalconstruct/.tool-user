@@ -15,10 +15,6 @@ MAX_ENTRIES = 20
 MAX_DIFF = 40_000
 
 
-def _newline_bytes(data: bytes) -> bytes:
-    return b"\r\n" if b"\r\n" in data else b"\n"
-
-
 def replace_unique(data: bytes, search: str, replacement: str) -> bytes:
     try:
         text = data.decode("utf-8")
@@ -42,7 +38,7 @@ def unified_diff(relative: str, before: bytes, after: bytes) -> str:
                                        tofile="b/" + relative))
 
 
-def staged_apply(root: Path, changes: dict[str, tuple[Path, bytes, bytes]],
+def staged_apply(changes: dict[str, tuple[Path, bytes, bytes]],
                  backup: BackupStore, request_id: str) -> tuple[list[str], str]:
     if not changes:
         raise ValueError("patch contains no changes")

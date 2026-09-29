@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import hashlib
-import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from uuid import uuid4
-
 
 WORKSPACE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WORKSPACE / "src"))
@@ -20,9 +18,10 @@ from local_memory_lab.agent.project_tools import ProjectTools  # noqa: E402
 
 class PatchToolsTests(unittest.TestCase):
     def setUp(self):
-        name = ".patch-test-" + uuid4().hex
-        self.project = WORKSPACE / "files" / name
-        self.control = WORKSPACE / "live_control" / name
+        self.temporary = tempfile.TemporaryDirectory()
+        self.base = Path(self.temporary.name)
+        self.project = self.base / "project"
+        self.control = self.base / "control"
         self.project.mkdir()
         self.control.mkdir()
         self.control_patch = patch("local_memory_lab.agent.patch_tools.CONTROL", self.control)
@@ -30,13 +29,7 @@ class PatchToolsTests(unittest.TestCase):
 
     def tearDown(self):
         self.control_patch.stop()
-        for target, parent in ((self.project, WORKSPACE / "files"),
-                               (self.control, WORKSPACE / "live_control")):
-            resolved_parent = parent.resolve()
-            resolved_target = target.resolve()
-            if not resolved_target.is_relative_to(resolved_parent) or resolved_target == resolved_parent:
-                raise AssertionError("Refusing to remove a test folder outside its parent")
-            shutil.rmtree(target)
+        self.temporary.cleanup()
 
     def tool(self, approval):
         return PatchTools(ProjectTools(self.project), approval, "test-request")

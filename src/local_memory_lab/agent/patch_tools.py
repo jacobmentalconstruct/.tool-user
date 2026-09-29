@@ -50,7 +50,7 @@ class PatchTools:
             self.project.path(relative)
         scope = hashlib.sha256(str(self.project.root).casefold().encode("utf-8")).hexdigest()[:16]
         store = BackupStore(CONTROL / "backups" / scope, "project", self.project.root)
-        applied, backup_id = staged_apply(self.project.root, changes, store, self.request_id)
+        applied, backup_id = staged_apply(changes, store, self.request_id)
         return {"status": "patched", "message": f"Patched {len(applied)} project file(s); backup {backup_id}",
                 "paths": applied, "backup": backup_id}
 
