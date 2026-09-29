@@ -249,9 +249,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 1. Prefer the configured default chat model when it is installed; fall back to the first installed model otherwise.
 - [x] 2. Stop retaining the full event history in the session projection.
 - [x] 3. Use `MAX_RECENT_TURNS` in conversation projection trimming.
-- [ ] 4. Document the optional `data.display` presentation field in the event contract.
+- [x] 4. Document the optional `data.display` presentation field in the event contract.
 
-**Now:** Review fix 3 is complete: conversation projection uses `MAX_RECENT_TURNS` and a focused test checks the retained window. Documenting the presentation field in the event contract.
+**Now:** All four USER review findings are corrected; running the complete suite and reviewing the revised T2 diff before re-parking.
 
 **Non-goals:** T3 job/approval lifecycles and command runner; T4 knowledge/indexing; new user-facing entrances or UI redesign; changing §3 or §4; new dependencies beyond the recorded standard library plus numpy.
 

@@ -38,6 +38,7 @@ This is the append-only log and the single source of truth (S2). Every other kin
 
 - **`id`:** a whole number that only ever increases. Clients read new events with `GET /api/events?after=<id>`.
 - **`actor`:** one of `user`, `agent`, `role:<planner|builder|debugger|reviewer>`, or `system` (§0).
+- **`data.display` (optional):** interface presentation metadata stored inside `data`, with string fields `speaker` and `text`. Domain data remains alongside it in `data`; clients may render this hint as a message, but it does not change the event's actor or kind.
 - **`kind`, v0 set:**
   - `chat.prompt`, `chat.reply`
   - `note.added`, `note.removed`
