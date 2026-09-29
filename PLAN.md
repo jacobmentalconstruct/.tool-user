@@ -268,14 +268,14 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [x] 2. Point project and patch tools at `workspace/`; remove reference-path imports.
 - [x] 3. Remove the sandbox `files/` tools and overwrite approval flow.
 - [x] 4. Delete the legacy desktop app and commands.
-- [ ] 5. Remove request-ID compatibility and use USER/AGENT speaker labels.
+- [x] 5. Remove request-ID compatibility and use USER/AGENT speaker labels.
 - [ ] 6. Replace tkinter startup errors with console and log reporting.
 - [ ] 7. Start with no project selected.
 - [ ] 8. Add temporary-folder, workspace-safety, architecture, and HTTP smoke coverage.
 - [ ] 9. Add `requirements.txt`.
 - [ ] 10. Update README, AGENTS, and PLAN current-state documentation.
 
-**Now:** record removal of the legacy desktop app and commands (task 4).
+**Now:** record removal of the client's request-ID compatibility path and USER/AGENT labels (task 5).
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.

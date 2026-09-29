@@ -68,7 +68,7 @@ def main(argv=None):
         state = api(config, "/api/state")
         print(f"Model: {state['model']} | Busy: {state['busy']} | Queued: {state['queueLength']}")
         if state["pendingApproval"]:
-            print("Waiting for human approval:", state["pendingApproval"]["name"])
+            print("Waiting for USER approval:", state["pendingApproval"]["name"])
         print(f"Conversation events: {len(state['events'])} | Notes: {len(state['notes'])}")
     elif args.command == "remember":
         api(config, "/api/notes", {"text": args.text})
@@ -78,22 +78,10 @@ def main(argv=None):
         cursor = max((event["id"] for event in before["events"]), default=0)
         response = api(config, "/api/messages", {"text": args.text})
         request_id = response.get("requestId")
+        if not isinstance(request_id, str) or not request_id:
+            raise RuntimeError("Hub did not return a request ID.")
         print("Prompt queued.", flush=True)
         if args.wait:
-            legacy_position = None
-            if request_id is None:
-                # A hub started before request IDs were added still has one
-                # serialized queue. Count the outstanding prompts up to ours.
-                observed = api(config, "/api/state")["events"]
-                own = [event for event in observed if event["id"] > cursor and
-                       event["speaker"] == "Codex" and event["text"] == args.text]
-                if not own:
-                    raise RuntimeError("Could not locate the queued prompt in the shared session.")
-                own_id = own[-1]["id"]
-                last_reply = max((event["id"] for event in observed if event["id"] < own_id and
-                                  event["speaker"] in ("Assistant", "Error")), default=0)
-                legacy_position = (last_reply, sum(event["speaker"] in ("You", "Codex") and
-                                                   last_reply < event["id"] <= own_id for event in observed))
             deadline = time.monotonic() + args.timeout
             while time.monotonic() < deadline:
                 state = api(config, "/api/state")
@@ -101,15 +89,9 @@ def main(argv=None):
                 show_events(new, request_id=request_id)
                 if new:
                     cursor = max(event["id"] for event in new)
-                if request_id is not None and any(event["speaker"] in ("Assistant", "Error") and
-                                                  event.get("requestId") == request_id for event in new):
+                if any(event["speaker"] in ("Assistant", "Error") and
+                       event.get("requestId") == request_id for event in new):
                     return
-                if legacy_position is not None:
-                    last_reply, position = legacy_position
-                    completed = sum(event["speaker"] in ("Assistant", "Error") and
-                                    event["id"] > last_reply for event in state["events"])
-                    if completed >= position:
-                        return
                 time.sleep(0.5)
             raise RuntimeError("Timed out waiting for a reply. The session may still be working or awaiting approval.")
     elif args.command == "watch":
