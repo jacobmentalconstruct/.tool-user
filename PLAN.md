@@ -227,9 +227,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** NONE. T2 is parked pending USER acceptance; no next tranche is declared.
+**ID:** T2 — Event log (USER review fixes).
 
-**Current:** T1 was accepted by USER and merged to `main` at `7d5f5d8`. T2 implementation and verification are complete on `t2-event-log`, and it is parked for USER acceptance. §3 stop conditions and §4 non-goals remain frozen (D6).
+**Current:** T1 was accepted by USER and merged to `main` at `7d5f5d8`. T2 was parked for USER acceptance on `t2-event-log`; USER review returned four in-scope findings, now being corrected on that branch. §3 stop conditions and §4 non-goals remain frozen (D6).
 
 **Expected outcome:** SQLite is the append-only source of truth for shared session events. Session state is rebuilt from the log, actors and rights follow `docs/CONTRACTS.md` §§0–1, clients can read by cursor, and restart restores the event-backed state (S2).
 
@@ -245,7 +245,13 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 3. Enforce contract actor labels and rights.
 - [x] 4. Integrate browser/CLI paths and add event, restart, rights, and integration coverage.
 
-**Now:** T2 is parked on `t2-event-log`; awaiting USER acceptance before merging to `main`.
+**USER review fix-up Progress:**
+- [x] 1. Prefer the configured default chat model when it is installed; fall back to the first installed model otherwise.
+- [ ] 2. Stop retaining the full event history in the session projection.
+- [ ] 3. Use `MAX_RECENT_TURNS` in conversation projection trimming.
+- [ ] 4. Document the optional `data.display` presentation field in the event contract.
+
+**Now:** Review fix 1 is complete: fresh sessions prefer `DEFAULT_MODEL` when available and otherwise fall back to the first installed model.
 
 **Non-goals:** T3 job/approval lifecycles and command runner; T4 knowledge/indexing; new user-facing entrances or UI redesign; changing §3 or §4; new dependencies beyond the recorded standard library plus numpy.
 
@@ -264,7 +270,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T2 is parked pending USER acceptance; no next tranche is declared.
+**Implementation permission:** YES for T2 review fixes (USER, 2026-09-29).
 
 ## 9. Parked Tranches
 
@@ -320,3 +326,4 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Limitations:** model inference was not part of the T2 tests. A prompt interrupted by restart is visibly marked as an error and is not resumed automatically to avoid repeating project side effects. Pending approval UI state is transient; approval/job lifecycles and durable job-state projection belong to T3. No `job.state` events exist yet because T2 adds no job lifecycle.
 - **Deferrals:** T3 lifecycles and runner, as planned; otherwise none beyond §4.
 - **Next step:** USER reviews the T2 diff and accepts or requests changes. Only after acceptance may it be merged into `main`; then reorient and declare T3.
+- **Review follow-up (2026-09-29):** USER returned four findings before acceptance; fixes are in progress on the same tranche branch. T2 remains unmerged.

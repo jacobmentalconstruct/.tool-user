@@ -14,11 +14,21 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from local_memory_lab.agent.engine import DEFAULT_MODEL  # noqa: E402
 from local_memory_lab.session import Approval, SharedSession  # noqa: E402
 from local_memory_lab.interfaces.web import make_handler  # noqa: E402
 
 
 class SessionRestoreTests(unittest.TestCase):
+    def test_fresh_session_prefers_default_model_when_installed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            session = SharedSession(Path(temp) / "events.sqlite", load_models=False, start_worker=False)
+            session.models = ["phi3:mini-128k", DEFAULT_MODEL]
+            self.assertEqual(DEFAULT_MODEL, session.model)
+
+            session.models = ["phi3:mini-128k"]
+            self.assertEqual("phi3:mini-128k", session.model)
+
     def test_http_state_and_event_cursor_read_from_the_log(self):
         with tempfile.TemporaryDirectory() as temp:
             session = SharedSession(Path(temp) / "events.sqlite", load_models=False, start_worker=False)

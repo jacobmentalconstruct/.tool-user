@@ -70,7 +70,11 @@ class SharedSession:
 
     @property
     def model(self) -> str:
-        return self.state.workspace.model or (self.models[0] if self.models else DEFAULT_MODEL)
+        if self.state.workspace.model:
+            return self.state.workspace.model
+        if DEFAULT_MODEL in self.models:
+            return DEFAULT_MODEL
+        return self.models[0] if self.models else DEFAULT_MODEL
 
     def _record(self, actor: str, kind: str, data: dict) -> dict:
         with self.lock:
