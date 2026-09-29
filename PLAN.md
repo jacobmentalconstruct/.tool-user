@@ -240,12 +240,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 4. Connect the existing browser and CLI read/write paths to the event-backed session and cursor API; add focused persistence, rights, and integration coverage.
 
 **Progress:**
-- [ ] 1. Add append-only SQLite event storage and cursor reads.
+- [x] 1. Add append-only SQLite event storage and cursor reads.
 - [ ] 2. Split session domain ownership and rebuild required state from events across restart.
 - [ ] 3. Enforce contract actor labels and rights.
 - [ ] 4. Integrate browser/CLI paths and add event, restart, rights, and integration coverage.
 
-**Now:** T2 is declared and permission is recorded; inspecting existing session and interface seams before implementing task 1.
+**Now:** Task 1 is complete: `event_store.py` persists immutable contract-shaped rows and reads by cursor; implementing session restoration and domain ownership.
 
 **Non-goals:** T3 job/approval lifecycles and command runner; T4 knowledge/indexing; new user-facing entrances or UI redesign; changing §3 or §4; new dependencies beyond the recorded standard library plus numpy.
 
