@@ -227,9 +227,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T2 — Event log.
+**ID:** NONE. T2 is parked pending USER acceptance; no next tranche is declared.
 
-**Current:** T1 was accepted by USER and merged to `main` at `7d5f5d8`. T2 is active on `t2-event-log`; USER approved declaring and entering it on 2026-09-29. §3 stop conditions and §4 non-goals remain frozen (D6).
+**Current:** T1 was accepted by USER and merged to `main` at `7d5f5d8`. T2 implementation and verification are complete on `t2-event-log`, and it is parked for USER acceptance. §3 stop conditions and §4 non-goals remain frozen (D6).
 
 **Expected outcome:** SQLite is the append-only source of truth for shared session events. Session state is rebuilt from the log, actors and rights follow `docs/CONTRACTS.md` §§0–1, clients can read by cursor, and restart restores the event-backed state (S2).
 
@@ -245,7 +245,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 3. Enforce contract actor labels and rights.
 - [x] 4. Integrate browser/CLI paths and add event, restart, rights, and integration coverage.
 
-**Now:** The worker reads prompts by event ID; restart marks interrupted turns instead of replaying them. Verifying the final S2 boundary and updating current status references before parking.
+**Now:** T2 is parked on `t2-event-log`; awaiting USER acceptance before merging to `main`.
 
 **Non-goals:** T3 job/approval lifecycles and command runner; T4 knowledge/indexing; new user-facing entrances or UI redesign; changing §3 or §4; new dependencies beyond the recorded standard library plus numpy.
 
@@ -264,7 +264,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** YES for T2 (USER, 2026-09-29).
+**Implementation permission:** NO. T2 is parked pending USER acceptance; no next tranche is declared.
 
 ## 9. Parked Tranches
 
@@ -309,3 +309,14 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Notes only (unchanged by these fix-ups):** gitignore matching remains case-sensitive; a crash can leave staged temp files; startup errors may be invisible under `pythonw`; tool definitions still omit some parameter descriptions.
 - **Deferrals:** none beyond §4.
 - **Next step:** T1 accepted; reorient and proceed with the USER-approved T2 declaration in §7.
+
+**T2, event log: PARKED 2026-09-29, pending USER acceptance.** Built on `t2-event-log`; not merged.
+- **Outcome met:** SQLite at `live_control/events.sqlite` is the append-only event source. Conversation, notes and workspace selections are rebuilt from events on startup. USER/AGENT actions carry contract actor labels, restricted actions are checked by the HTTP adapter and session, and workers read prompts by event ID. Browser and CLI fetch new events with an `after` cursor. Unfinished prompts are marked interrupted on restart and are not replayed.
+- **Evidence:**
+  - `python -B -m unittest discover -s tests -v` — 23 tests passed, including event immutability and ordering, event cursor reads, event-backed HTTP state, actor rights, restart restoration, interrupted prompt handling, and T1 regressions.
+  - `git diff --check main..HEAD` — clean.
+  - `tests/test_session_state.py` — selected project, model, notes, conversation history and recent model context restored from SQLite; HTTP state omits a copied event list and `/api/events?after=1` returns only newer events.
+  - `tests/test_http_smoke.py` — AGENT is denied project/model selection and approval resolution; USER patch approval still works.
+- **Limitations:** model inference was not part of the T2 tests. A prompt interrupted by restart is visibly marked as an error and is not resumed automatically to avoid repeating project side effects. Pending approval UI state is transient; approval/job lifecycles and durable job-state projection belong to T3. No `job.state` events exist yet because T2 adds no job lifecycle.
+- **Deferrals:** T3 lifecycles and runner, as planned; otherwise none beyond §4.
+- **Next step:** USER reviews the T2 diff and accepts or requests changes. Only after acceptance may it be merged into `main`; then reorient and declare T3.
