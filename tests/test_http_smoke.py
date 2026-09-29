@@ -26,7 +26,7 @@ class SessionStub:
         self.project_root = None
         self.pending = None
 
-    def set_project_root(self, path):
+    def set_project_root(self, path, actor):
         self.project_root = ProjectTools.choose_root(path)
 
     def snapshot(self, actor):
@@ -38,7 +38,7 @@ class SessionStub:
                 "pendingApproval": approval, "events": [], "busy": False, "queueLength": 0,
                 "model": "test", "models": [], "modelError": "", "notes": []}
 
-    def approve(self, approval_id, approved):
+    def approve(self, approval_id, approved, actor):
         if not self.pending or self.pending["id"] != approval_id:
             raise ValueError("This approval is no longer pending.")
         self.pending["approved"] = approved
@@ -107,6 +107,13 @@ class HttpSmokeTests(unittest.TestCase):
         self.assertEqual(applied["status"], "patched")
         self.assertEqual(self.target.read_text(encoding="utf-8"), "after\n")
         self.assertTrue(next((self.control / "backups").rglob("manifest.json")).is_file())
+
+    def test_agent_cannot_select_model(self):
+        from urllib.error import HTTPError
+
+        with self.assertRaises(HTTPError) as error:
+            self.request("/api/model", {"name": "model-a"}, token=self.agent_token)
+        self.assertEqual(403, error.exception.code)
 
 
 if __name__ == "__main__":

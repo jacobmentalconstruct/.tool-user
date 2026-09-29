@@ -96,16 +96,19 @@ def make_handler(session: SharedSession, user_token: str, agent_token: str):
                 if self.path == "/api/messages":
                     result["requestId"] = session.submit(payload.get("text"), actor)
                 elif self.path == "/api/notes":
-                    session.add_note(payload.get("text"))
+                    session.add_note(payload.get("text"), actor)
                 elif self.path == "/api/notes/remove":
-                    session.remove_note(payload.get("index"))
+                    session.remove_note(payload.get("index"), actor)
                 elif self.path == "/api/model":
-                    session.select_model(payload.get("name"))
+                    if actor != "USER":
+                        self._reject(HTTPStatus.FORBIDDEN, "Only the USER browser can select a chat model.")
+                        return
+                    session.select_model(payload.get("name"), actor)
                 elif self.path == "/api/project":
                     if actor != "USER":
                         self._reject(HTTPStatus.FORBIDDEN, "Only the USER browser can select a project folder.")
                         return
-                    session.set_project_root(payload.get("path"))
+                    session.set_project_root(payload.get("path"), actor)
                 elif self.path == "/api/approval":
                     if actor != "USER":
                         self._reject(HTTPStatus.FORBIDDEN, "Only the USER browser can resolve approvals.")
@@ -113,7 +116,7 @@ def make_handler(session: SharedSession, user_token: str, agent_token: str):
                     decision = payload.get("approved")
                     if not isinstance(decision, bool):
                         raise ValueError("approved must be true or false.")
-                    session.approve(payload.get("id"), decision)
+                    session.approve(payload.get("id"), decision, actor)
                 else:
                     self._reject(HTTPStatus.NOT_FOUND, "Not found.")
                     return

@@ -76,6 +76,20 @@ class SharedSession:
             self.state.apply(event)
             return event
 
+    @staticmethod
+    def _actor_label(actor: str) -> str:
+        label = actor.lower() if isinstance(actor, str) else ""
+        if label not in {"user", "agent"}:
+            raise ValueError("Choose the USER or AGENT actor label.")
+        return label
+
+    @classmethod
+    def _require_user(cls, actor: str) -> str:
+        label = cls._actor_label(actor)
+        if label != "user":
+            raise ValueError("Only the USER may perform this action.")
+        return label
+
     def _event(self, speaker: str, text: str, **extra):
         kind = {"Assistant": "chat.reply", "Tool": "tool.result",
                 "Approval": "approval.requested", "Error": "error"}.get(speaker, "error")
@@ -86,12 +100,12 @@ class SharedSession:
         if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 8000:
             raise ValueError("Prompt must contain 1 to 8,000 characters.")
         request_id = str(uuid4())
-        actor_label = "user" if actor == "USER" else "agent"
+        actor_label = self._actor_label(actor)
         try:
             with self.lock:
                 self.prompts.put_nowait((request_id, prompt.strip(), actor))
                 self._record(actor_label, "chat.prompt", {
-                    "display": {"speaker": actor.upper(), "text": prompt.strip()},
+                    "display": {"speaker": actor_label.upper(), "text": prompt.strip()},
                     "requestId": request_id,
                 })
         except queue.Full as exc:
@@ -115,43 +129,48 @@ class SharedSession:
                 "projectRoot": str(self.project_root) if self.project_root else None,
             }
 
-    def set_project_root(self, raw_path: object):
+    def set_project_root(self, raw_path: object, actor: str = "USER"):
+        actor_label = self._require_user(actor)
         root = ProjectTools.choose_root(raw_path)
         with self.lock:
             if self.busy or not self.prompts.empty():
                 raise ValueError("Wait for the current conversation to finish before changing projects.")
-            self._record("user", "project.selected", {"path": str(root)})
+            self._record(actor_label, "project.selected", {"path": str(root)})
 
-    def add_note(self, text: str):
+    def add_note(self, text: str, actor: str = "USER"):
+        actor_label = self._actor_label(actor)
         if not isinstance(text, str) or not text.strip() or len(text) > 2000:
             raise ValueError("Note must contain 1 to 2,000 characters.")
         with self.lock:
             if len(self.notes) >= 50:
                 raise ValueError("This session has reached its 50-note limit.")
             note_id = str(uuid4())
-            self._record("user", "note.added", {"id": note_id, "text": text.strip()})
+            self._record(actor_label, "note.added", {"id": note_id, "text": text.strip()})
 
-    def remove_note(self, index: int):
+    def remove_note(self, index: int, actor: str = "USER"):
+        actor_label = self._actor_label(actor)
         with self.lock:
             if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(self.notes):
                 raise ValueError("Choose an existing note.")
             note_id, note = self.state.notes.note_at(index)
-            self._record("user", "note.removed", {"id": note_id, "text": note})
+            self._record(actor_label, "note.removed", {"id": note_id, "text": note})
 
-    def select_model(self, name: str):
+    def select_model(self, name: str, actor: str = "USER"):
+        actor_label = self._require_user(actor)
         with self.lock:
             if name not in self.models:
                 raise ValueError("Choose an installed chat model.")
-            self._record("user", "model.selected", {"name": name})
+            self._record(actor_label, "model.selected", {"name": name})
 
-    def approve(self, approval_id: str, approved: bool):
+    def approve(self, approval_id: str, approved: bool, actor: str = "USER"):
+        actor_label = self._require_user(actor)
         with self.lock:
             pending = self.pending
             if pending is None or pending.id != approval_id or pending.decided.is_set():
                 raise ValueError("This approval is no longer pending.")
             pending.approved = approved is True
             pending.decided.set()
-        self._record("user", "approval.resolved", {
+        self._record(actor_label, "approval.resolved", {
             "id": approval_id, "approved": approved is True,
         })
 
