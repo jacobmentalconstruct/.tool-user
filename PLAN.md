@@ -280,10 +280,10 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [x] 2. Remove the duplicate T1 record in §9, keeping the 13-test entry.
 - [x] 3. Move the T1 status update out of §1 into the T1 §9 record.
 - [x] 4. Correct the stale AGENTS.md T1 status note.
-- [ ] 5. Remove unused imports and unused BackupStore members.
-- [ ] 6. Record the four notes-only observations without changing behavior.
+- [x] 5. Remove unused imports and unused BackupStore members.
+- [x] 6. Record the four notes-only observations without changing behavior.
 
-**Now:** remove unused imports and unnecessary BackupStore constructor state (fix-up 5).
+**Now:** run the fix-up tests, inspect the diff, and refresh T1's parking evidence.
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.
@@ -351,5 +351,6 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
   - `git diff --check` — clean. Largest Python module: 171 lines.
   - Diff review from T0 commit `0fd3798` — changed files align with the T1 scope recorded here.
 - **Limitations:** model inference was not part of the T1 smoke run; T1 verifies the hub and approval plumbing without Ollama.
+- **Notes only (unchanged by these fix-ups):** gitignore matching remains case-sensitive; a crash can leave staged temp files; startup errors may be invisible under `pythonw`; tool definitions still omit some parameter descriptions.
 - **Deferrals:** none beyond §4.
 - **Next step:** USER reviews the T1 diff and accepts or requests changes to the parking. Only after acceptance may it be merged into `main`; then reorient and declare T2.
