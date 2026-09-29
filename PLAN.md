@@ -289,7 +289,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 
 ## 9. Parked Tranches
 
-**T0, setup: PARKED 2026-09-29.**
+**T0, setup: PARKED 2026-09-29, and the parking was accepted by the USER the same day.** Merged into `main` and pushed.
 - **Outcome met:** onboarding and standing documents are in place and match the observed state:
   - `AGENTS.md`, `README.md`;
   - `docs/ARCHITECTURE.md` (moved from the root; `.tools` line replaced), `docs/DESIGN-PRINCIPLES.md` (copied, plus a one-line note on this project's seams), `docs/WORKFLOW.md` (the `.tools` section replaced by this repo's record-keeping), `docs/CONTRACTS.md` (v0);
