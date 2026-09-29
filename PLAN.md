@@ -270,12 +270,12 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [x] 4. Delete the legacy desktop app and commands.
 - [x] 5. Remove request-ID compatibility and use USER/AGENT speaker labels.
 - [x] 6. Replace tkinter startup errors with console and log reporting.
-- [ ] 7. Start with no project selected.
+- [x] 7. Start with no project selected.
 - [ ] 8. Add temporary-folder, workspace-safety, architecture, and HTTP smoke coverage.
 - [ ] 9. Add `requirements.txt`.
 - [ ] 10. Update README, AGENTS, and PLAN current-state documentation.
 
-**Now:** record the launcher startup-error reporting change (task 6).
+**Now:** verify and record that the hub starts with an empty project selection (task 7).
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.
