@@ -7,7 +7,6 @@ import subprocess
 import sys
 import time
 import webbrowser
-from tkinter import Tk, messagebox
 from urllib.request import Request, urlopen
 
 from ..locations import CONTROL, ROOT
@@ -44,10 +43,11 @@ def main():
     if config:
         webbrowser.open(config["browser_url"], new=2)
     else:
-        root = Tk()
-        root.withdraw()
-        messagebox.showerror("Local Memory Lab", f"Could not start the shared hub.\nSee {CONTROL / 'server.log'}")
-        root.destroy()
+        message = f"Could not start the shared hub. See {CONTROL / 'server.log'}"
+        print(message, file=sys.stderr)
+        CONTROL.mkdir(exist_ok=True)
+        with (CONTROL / "server.log").open("a", encoding="utf-8") as log:
+            log.write(message + "\n")
 
 
 if __name__ == "__main__":
