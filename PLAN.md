@@ -227,89 +227,44 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** NONE. T1 fix-ups are complete and parked pending USER acceptance; no next tranche is declared.
+**ID:** T2 — Event log.
 
-**Current:** T1's initial implementation and the USER-authorized fix-ups are complete. The corrected parking record awaits USER acceptance; any change to §3 or §4 still needs a USER decision (D6).
+**Current:** T1 was accepted by USER and merged to `main` at `7d5f5d8`. T2 is active on `t2-event-log`; USER approved declaring and entering it on 2026-09-29. §3 stop conditions and §4 non-goals remain frozen (D6).
 
-### T1 declaration: standalone and smaller (approved)
-
-**Expected outcome:** the hub starts and works from this repo alone, as it did before `.parts-bin/` moved:
-- selecting a project;
-- listing, reading and creating files;
-- reviewed single-file and multi-file patches, with backups and rollback.
-
-The code is at least 25% smaller, and nothing refers to anything outside the repo.
+**Expected outcome:** SQLite is the append-only source of truth for shared session events. Session state is rebuilt from the log, actors and rights follow `docs/CONTRACTS.md` §§0–1, clients can read by cursor, and restart restores the event-backed state (S2).
 
 **Scope (task list, in order):**
-1. **New component package `src/local_memory_lab/workspace/`,** which owns filesystem safety for one selected project. It holds our own rewrites of the parts-bin logic we used (reference map, §6):
-   - `paths.py`: safe relative paths, link and reparse-point refusal, built-in and `.gitignore` exclusions, excluded secret and control names, name validation, size limits.
-   - `patching.py`: unique search/replace validation, the unified diff, and a staged multi-file apply with rollback.
-   - `backups.py`: a backup store under `live_control/backups/`, compatible with nothing older (no migration needed).
-   - Agents can't reach `.lab/` (the USER-owned allowlist folder, `docs/CONTRACTS.md` §4): it joins the excluded names.
-2. **Point the tool surfaces at `workspace/`:** `agent/project_tools.py` and `agent/patch_tools.py`. Remove `PARTS_BIN` from `locations.py` and every `sys.path` insert.
-3. **Delete the sandbox `files/` tool family:**
-   - `agent/file_tools.py` (`write_file`, `read_file`, `list_files`);
-   - `locations.OUTPUT`;
-   - the overwrite approval path in `session.py`, `engine.py`, `tool_router.py`, `web.py` (the `overwrite` alias) and `shared_ui.html` (the overwrite previews);
-   - the `files/` folder and its `.gitignore` lines.
-4. **Delete `legacy/`,** and remove the `desktop` and `live-desktop` commands from `lab.py`.
-5. **Remove the client's compatibility path** for hubs that predate request IDs (`interfaces/client.py`). Replace the hard-coded vendor speaker label in `session.py` with `AGENT` (and the human one with `USER`) (D9, D10).
-6. **`launcher.py`:** report a start-up failure by printing it and writing to `live_control/server.log`, instead of importing tkinter.
-7. **The project field starts empty,** not on the app's own folder. The hub must not be pointed at its own running code by default (D8).
-8. **Tests:**
-   - `tests/test_patch_tools.py` uses `tempfile` folders only.
-   - Add `tests/test_workspace.py`: path escapes, links, exclusions, unique-match refusal, rollback.
-   - Add `tests/test_architecture.py`: no import from outside the repo, no import cycles, and no module outside `interfaces/` imports from `interfaces/`.
-9. **Add `requirements.txt`** (numpy, per D0; T1 itself doesn't use it).
-10. **Update docs:** `README.md` status, the `AGENTS.md` layout and known-state note, and `PLAN.md` §1.
+1. Add an append-only SQLite event store with increasing IDs and `after` cursor reads, matching the event contract.
+2. Split shared session ownership into domain components whose state is derived from the event log; persist and restore the session state required by S2.
+3. Apply named actor labels and enforce T2 rights, including preventing AGENT project/model selection and approval resolution.
+4. Connect the existing browser and CLI read/write paths to the event-backed session and cursor API; add focused persistence, rights, and integration coverage.
 
 **Progress:**
-- [x] 1. Add the owned workspace paths, patching, and backup components.
-- [x] 2. Point project and patch tools at `workspace/`; remove reference-path imports.
-- [x] 3. Remove the sandbox `files/` tools and overwrite approval flow.
-- [x] 4. Delete the legacy desktop app and commands.
-- [x] 5. Remove request-ID compatibility and use USER/AGENT speaker labels.
-- [x] 6. Replace tkinter startup errors with console and log reporting.
-- [x] 7. Start with no project selected.
-- [x] 8. Add temporary-folder, workspace-safety, architecture, and HTTP smoke coverage.
-- [x] 9. Add `requirements.txt`.
-- [x] 10. Update README, AGENTS, and PLAN current-state documentation.
+- [ ] 1. Add append-only SQLite event storage and cursor reads.
+- [ ] 2. Split session domain ownership and rebuild required state from events across restart.
+- [ ] 3. Enforce contract actor labels and rights.
+- [ ] 4. Integrate browser/CLI paths and add event, restart, rights, and integration coverage.
 
-**Fix-up Progress:**
-- [x] 1. Restore built-in workspace exclusions and add regression coverage.
-- [x] 2. Remove the duplicate T1 record in §9, keeping the 13-test entry.
-- [x] 3. Move the T1 status update out of §1 into the T1 §9 record.
-- [x] 4. Correct the stale AGENTS.md T1 status note.
-- [x] 5. Remove unused imports and unused BackupStore members.
-- [x] 6. Record the four notes-only observations without changing behavior.
+**Now:** T2 is declared and permission is recorded; inspecting existing session and interface seams before implementing task 1.
 
-**Now:** T1 fix-ups and verification are complete; await USER acceptance before merging.
-
-**Non-goals:**
-- No event log, persistence, lifecycles, new tools, UI redesign or numpy use.
-- The model loop (`engine.run_turn`) changes only by losing its overwrite-specific logic.
-- No renames (D5).
+**Non-goals:** T3 job/approval lifecycles and command runner; T4 knowledge/indexing; new user-facing entrances or UI redesign; changing §3 or §4; new dependencies beyond the recorded standard library plus numpy.
 
 **Acceptance criteria:**
-- `python -B -m unittest discover -s tests -v` passes, including the new architecture and workspace tests.
-- Scripted smoke run against a temporary project through the HTTP API, with the Ollama model left out:
-  - select the project;
-  - request a patch through `PatchTools`, check the diff approval appears, cancel it and confirm nothing changed;
-  - request it again, approve it, and confirm the file changed and a backup exists.
-- Manual check: `python lab.py hub-server` starts, and the browser page loads.
-- Runtime Python is **2,250 lines or fewer**, measured with `python -c "import pathlib;print(sum(len(p.read_text(encoding='utf-8').splitlines()) for p in pathlib.Path('src').rglob('*.py')))"`.
-- `grep -rn "parts-bin\|PARTS_BIN" src tests` finds nothing.
-- A case-insensitive search of `src/` for agent vendor or product names finds nothing (D9).
+- `python -B -m unittest discover -s tests -v` passes with event log, restart, rights, and existing regression coverage.
+- Tests prove event IDs increase, cursor reads return only events after the requested ID, and stored events cannot be updated or deleted through the store.
+- A restart test proves selected project, model, notes, event history, and existing job-state fields restore from the SQLite log as applicable to current T2 state.
+- Rights tests prove AGENT cannot select project/model or resolve approvals, while permitted USER and SYSTEM actions are attributed to the contract actor labels.
+- HTTP/API tests prove state reads are event-backed and event reads support `after` cursors.
+- `git diff --check` passes; no changes to §3 or §4.
 
-**Known risks:**
-- Rewriting the backup and rollback code is where subtle bugs hide. The existing three patch tests stay and must pass without change to what they assert.
+**Known risks:** existing in-memory `SharedSession` couples unrelated state; mapping all current mutations into durable events may reveal contract gaps. Event schema changes after T2 parks require a decision per `docs/CONTRACTS.md`.
 
-**Declaration state:** T1 and its fix-ups were approved by USER on 2026-09-29. The corrected implementation is parked on `t1-standalone`, pending USER acceptance.
+**Declaration state:** USER approved T2 declaration and entry on 2026-09-29.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T1 is parked pending USER acceptance; the next tranche has not been declared.
+**Implementation permission:** YES for T2 (USER, 2026-09-29).
 
 ## 9. Parked Tranches
 
@@ -338,7 +293,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - **Handoff (D11):** parking T0 ends the setup phase. From here the development team declares and implements tranches, and the USER approves, reviews and steers.
 - **Next step:** the team orients and declares T1, starting from the draft in §7.
 
-**T1, standalone and smaller: PARKED 2026-09-29, pending USER acceptance after requested fix-ups.** Built on `t1-standalone`; not merged.
+**T1, standalone and smaller: PARKED and ACCEPTED 2026-09-29.** Built on `t1-standalone`; merged to `main` as `7d5f5d8`.
 - **Outcome met:** the hub runs from this repo without reference-code imports. Project listing, reading, creation, reviewed patch application, cancellation, backups, and rollback are implemented in the owned workspace package. Built-in exclusions cover common generated folders, lockfiles, and bytecode. The legacy app, sandbox file-tool family, and pre-request-ID client path are removed. The selected project starts empty. Runtime source is 1,104 lines, down from 3,002 in the T0 baseline.
 - **T1 update:** the project and patch tools use the in-repo workspace package; requested exclusions, plan, status, and cleanup fixes are complete. The final source count is 1,104 lines and the 14-test suite passes; the HTTP smoke check and manual hub/browser startup check pass.
 - **Evidence:**
@@ -353,4 +308,4 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - **Limitations:** model inference was not part of the T1 smoke run; T1 verifies the hub and approval plumbing without Ollama.
 - **Notes only (unchanged by these fix-ups):** gitignore matching remains case-sensitive; a crash can leave staged temp files; startup errors may be invisible under `pythonw`; tool definitions still omit some parameter descriptions.
 - **Deferrals:** none beyond §4.
-- **Next step:** USER reviews the T1 diff and accepts or requests changes to the parking. Only after acceptance may it be merged into `main`; then reorient and declare T2.
+- **Next step:** T1 accepted; reorient and proceed with the USER-approved T2 declaration in §7.
