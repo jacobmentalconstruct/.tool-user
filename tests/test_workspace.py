@@ -100,7 +100,7 @@ class WorkspaceTests(unittest.TestCase):
         a.write_text("old-a", encoding="utf-8")
         b.write_text("old-b", encoding="utf-8")
         changes = {"a.txt": (a, b"old-a", b"new-a"), "b.txt": (b, b"old-b", b"new-b")}
-        store = BackupStore(Path(self.temporary.name) / "backups", "project", self.root)
+        store = BackupStore(Path(self.temporary.name) / "backups")
         import local_memory_lab.workspace.patching as patching
         real_replace = patching.os.replace
         failed = False

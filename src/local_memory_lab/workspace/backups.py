@@ -17,10 +17,8 @@ class Generation:
 
 
 class BackupStore:
-    def __init__(self, folder: Path, kind: str, root: Path):
+    def __init__(self, folder: Path):
         self.folder = Path(folder)
-        self.kind = kind
-        self.root = Path(root)
 
     def create(self, kind: str, source: str, request_id: str, files: list[tuple[str, bytes]]) -> Generation:
         generation_id = uuid4().hex

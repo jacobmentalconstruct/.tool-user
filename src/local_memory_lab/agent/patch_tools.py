@@ -9,7 +9,7 @@ from typing import Callable
 from ..locations import CONTROL
 from ..workspace.backups import BackupStore
 from ..workspace.patching import prepare, staged_apply
-from .project_tools import PROJECT_TOOLS, ProjectTools
+from .project_tools import ProjectTools
 
 PATCH_TOOLS = [
     {"type": "function", "function": {"name": "patch_project_file",
@@ -49,7 +49,7 @@ class PatchTools:
         for relative in paths:
             self.project.path(relative)
         scope = hashlib.sha256(str(self.project.root).casefold().encode("utf-8")).hexdigest()[:16]
-        store = BackupStore(CONTROL / "backups" / scope, "project", self.project.root)
+        store = BackupStore(CONTROL / "backups" / scope)
         applied, backup_id = staged_apply(changes, store, self.request_id)
         return {"status": "patched", "message": f"Patched {len(applied)} project file(s); backup {backup_id}",
                 "paths": applied, "backup": backup_id}

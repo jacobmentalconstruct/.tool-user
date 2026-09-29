@@ -36,7 +36,7 @@ class PatchToolsTests(unittest.TestCase):
 
     def backup_store(self):
         scope = hashlib.sha256(str(self.project).casefold().encode("utf-8")).hexdigest()[:16]
-        return BackupStore(self.control / "backups" / scope, "project", self.project)
+        return BackupStore(self.control / "backups" / scope)
 
     def test_single_file_approval_preserves_newlines_and_backs_up(self):
         target = self.project / "a.txt"

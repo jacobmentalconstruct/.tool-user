@@ -11,7 +11,6 @@ from uuid import uuid4
 from .agent.engine import DEFAULT_MODEL, MAX_RECENT_TURNS, installed_chat_models, run_turn
 from .agent.project_tools import ProjectTools
 from .agent.tool_router import SharedTools
-from .locations import ROOT
 
 
 @dataclass
