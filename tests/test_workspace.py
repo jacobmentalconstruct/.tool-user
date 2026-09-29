@@ -52,6 +52,15 @@ class WorkspaceTests(unittest.TestCase):
         self.workspace = Workspace(self.root)
         self.assertEqual([item["name"] for item in self.workspace.list_project()["entries"]], [".gitignore"])
 
+    def test_project_file_create_read_and_list(self):
+        created = self.workspace.create_project_file("new.txt", "created text")
+        self.assertEqual(created["status"], "created")
+        read = self.workspace.read_project_file("new.txt")
+        self.assertEqual(read["content"], "created text")
+        self.assertEqual([row["name"] for row in self.workspace.list_project()["entries"]], ["new.txt"])
+        with self.assertRaisesRegex(ValueError, "already exists"):
+            self.workspace.create_project_file("new.txt", "replacement")
+
     def test_honors_rooted_and_reincluded_gitignore_patterns(self):
         (self.root / ".gitignore").write_text(
             "/root-only.txt\n*.log\n!important.log\nfolder/\n", encoding="utf-8")
