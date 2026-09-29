@@ -8,9 +8,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from uuid import uuid4
 
-from .agent.engine import DEFAULT_MODEL, MAX_RECENT_TURNS, installed_chat_models, run_turn
+from .agent.engine import DEFAULT_MODEL, installed_chat_models, run_turn
 from .agent.project_tools import ProjectTools
 from .agent.tool_router import SharedTools
+from .event_store import EventStore
+from .locations import CONTROL
+from .session_state import SessionState
 
 
 @dataclass
@@ -26,42 +29,73 @@ class Approval:
 
 
 class SharedSession:
-    def __init__(self):
+    def __init__(self, store_path: Path | str | None = None, *,
+                 load_models: bool = True, start_worker: bool = True):
         self.lock = threading.RLock()
         self.prompts: queue.Queue[tuple[str, str, str]] = queue.Queue(maxsize=32)
-        self.events: list[dict] = []
-        self.next_event_id = 1
-        self.turns: list[list[dict]] = []
-        self.notes: list[str] = []
+        self.store = EventStore(store_path or CONTROL / "events.sqlite")
+        self.state = SessionState.restore(self.store)
         self.busy = False
         self.pending: Approval | None = None
-        self.project_root: Path | None = None
-        self.model = DEFAULT_MODEL
         self.models: list[str] = []
         self.model_error = ""
-        try:
-            self.models = installed_chat_models()
-            if self.models and self.model not in self.models:
-                self.model = self.models[0]
-        except Exception as exc:
-            self.model_error = str(exc)
-        threading.Thread(target=self._work, daemon=True, name="shared-ollama-session").start()
+        if load_models:
+            try:
+                self.models = installed_chat_models()
+            except Exception as exc:
+                self.model_error = str(exc)
+        if not self.state.workspace.model:
+            default = self.models[0] if self.models else DEFAULT_MODEL
+            self._record("system", "model.selected", {"name": default})
+        if start_worker:
+            threading.Thread(target=self._work, daemon=True, name="shared-ollama-session").start()
+
+    @property
+    def events(self) -> list[dict]:
+        return self.state.conversation.events
+
+    @property
+    def turns(self) -> list[list[dict]]:
+        return self.state.conversation.turns
+
+    @property
+    def notes(self) -> list[str]:
+        return self.state.notes.notes
+
+    @property
+    def project_root(self) -> Path | None:
+        return self.state.workspace.project_root
+
+    @property
+    def model(self) -> str:
+        return self.state.workspace.model
+
+    def _record(self, actor: str, kind: str, data: dict) -> dict:
+        with self.lock:
+            event = self.store.append(actor, kind, data)
+            self.state.apply(event)
+            return event
 
     def _event(self, speaker: str, text: str, **extra):
-        with self.lock:
-            self.events.append({"id": self.next_event_id, "speaker": speaker, "text": text, **extra})
-            self.next_event_id += 1
-            self.events = self.events[-500:]
+        kind = {"Assistant": "chat.reply", "Tool": "tool.result",
+                "Approval": "approval.requested", "Error": "error"}.get(speaker, "error")
+        data = {"display": {"speaker": speaker, "text": text}, **extra}
+        self._record("system", kind, data)
 
     def submit(self, prompt: str, actor: str):
         if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 8000:
             raise ValueError("Prompt must contain 1 to 8,000 characters.")
         request_id = str(uuid4())
+        actor_label = "user" if actor == "USER" else "agent"
         try:
-            self.prompts.put_nowait((request_id, prompt.strip(), actor))
+            with self.lock:
+                self.prompts.put_nowait((request_id, prompt.strip(), actor))
+                self._record(actor_label, "chat.prompt", {
+                    "display": {"speaker": actor.upper(), "text": prompt.strip()},
+                    "requestId": request_id,
+                })
         except queue.Full as exc:
             raise ValueError("The prompt queue is full; wait for a reply.") from exc
-        self._event("USER" if actor == "USER" else "AGENT", prompt.strip(), requestId=request_id)
         return request_id
 
     def snapshot(self, actor: str) -> dict:
@@ -77,7 +111,7 @@ class SharedSession:
                 "events": list(self.events), "busy": self.busy,
                 "queueLength": self.prompts.qsize(), "pendingApproval": pending,
                 "model": self.model, "models": list(self.models),
-                "modelError": self.model_error, "notes": list(self.notes),
+                "modelError": self.model_error, "notes": self.notes,
                 "projectRoot": str(self.project_root) if self.project_root else None,
             }
 
@@ -86,8 +120,7 @@ class SharedSession:
         with self.lock:
             if self.busy or not self.prompts.empty():
                 raise ValueError("Wait for the current conversation to finish before changing projects.")
-            self.project_root = root
-        self._event("System", f"Project folder selected: {root}")
+            self._record("user", "project.selected", {"path": str(root)})
 
     def add_note(self, text: str):
         if not isinstance(text, str) or not text.strip() or len(text) > 2000:
@@ -95,22 +128,21 @@ class SharedSession:
         with self.lock:
             if len(self.notes) >= 50:
                 raise ValueError("This session has reached its 50-note limit.")
-            self.notes.append(text.strip())
-        self._event("Memory", "Remembered: " + text.strip())
+            note_id = str(uuid4())
+            self._record("user", "note.added", {"id": note_id, "text": text.strip()})
 
     def remove_note(self, index: int):
         with self.lock:
             if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(self.notes):
                 raise ValueError("Choose an existing note.")
-            note = self.notes.pop(index)
-        self._event("Memory", "Forgot: " + note)
+            note_id, note = self.state.notes.note_at(index)
+            self._record("user", "note.removed", {"id": note_id, "text": note})
 
     def select_model(self, name: str):
         with self.lock:
             if name not in self.models:
                 raise ValueError("Choose an installed chat model.")
-            self.model = name
-        self._event("System", "Model set to " + name)
+            self._record("user", "model.selected", {"name": name})
 
     def approve(self, approval_id: str, approved: bool):
         with self.lock:
@@ -119,6 +151,9 @@ class SharedSession:
                 raise ValueError("This approval is no longer pending.")
             pending.approved = approved is True
             pending.decided.set()
+        self._record("user", "approval.resolved", {
+            "id": approval_id, "approved": approved is True,
+        })
 
     def _confirm_patch(self, request_id: str, proposal: dict) -> bool:
         detail = proposal["name"] + "\n" + "\n".join(proposal["paths"])
@@ -157,9 +192,10 @@ class SharedSession:
                                         lambda result: self._event("Tool", result["message"],
                                                                    toolStatus=result["status"], requestId=request_id))
                 with self.lock:
-                    self.turns.append(turn)
-                    self.turns = self.turns[-MAX_RECENT_TURNS:]
-                self._event("Assistant", answer, requestId=request_id)
+                    self._record("system", "chat.reply", {
+                        "display": {"speaker": "Assistant", "text": answer},
+                        "requestId": request_id, "turn": turn,
+                    })
             except Exception as exc:
                 self._event("Error", str(exc), requestId=request_id)
             finally:

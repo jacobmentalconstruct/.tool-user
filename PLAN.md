@@ -241,11 +241,11 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Progress:**
 - [x] 1. Add append-only SQLite event storage and cursor reads.
-- [ ] 2. Split session domain ownership and rebuild required state from events across restart.
+- [x] 2. Split session domain ownership and rebuild required state from events across restart.
 - [ ] 3. Enforce contract actor labels and rights.
 - [ ] 4. Integrate browser/CLI paths and add event, restart, rights, and integration coverage.
 
-**Now:** Task 1 is complete: `event_store.py` persists immutable contract-shaped rows and reads by cursor; implementing session restoration and domain ownership.
+**Now:** Task 2 is complete: conversation, notes, and workspace projections restore from the event log; applying actor labels and rights checks at each session operation.
 
 **Non-goals:** T3 job/approval lifecycles and command runner; T4 knowledge/indexing; new user-facing entrances or UI redesign; changing §3 or §4; new dependencies beyond the recorded standard library plus numpy.
 
