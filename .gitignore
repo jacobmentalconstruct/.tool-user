@@ -23,8 +23,8 @@ live_control/*
 files/*
 !files/.gitkeep
 
-# The copied reference project is local design material, not application source
-.parts-bin/
+# Project-mapper snapshots of this repo (local review aids, regenerated on demand)
+_projectmapper/
 
 # Build and packaging output
 build/

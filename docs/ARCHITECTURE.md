@@ -310,7 +310,7 @@ Do not place behavior according to convenience, file size, or whichever object a
 
 Place it according to **ownership**.
 
-Check the resulting call direction against the import graph (with `.tools`: `deps` for the graph and cycles, `deps module=<file>` for one module's dependents). An import cycle, or a core module importing an adapter, is an unresolved ownership question.
+Check the resulting call direction against the import graph. In this project, `tests/test_architecture.py` (added in T1) fails on an import cycle, on a core module importing an interface module, and on any import from outside the repo. An import cycle, or a core module importing an adapter, is an unresolved ownership question.
 
 ## Core Constraint
 
