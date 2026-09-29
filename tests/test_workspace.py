@@ -34,6 +34,15 @@ class WorkspaceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.workspace.path(hidden_reference_dir + "/anything")
 
+    def test_rejects_builtin_directories_lockfiles_and_bytecode(self):
+        directories = ("node_modules", ".venv", "venv", "__pycache__", "dist", "build",
+                       "bin", "obj", "target", ".vscode", ".idea")
+        lockfiles = ("package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock", "Cargo.lock")
+        paths = [f"{name}/child.txt" for name in directories] + list(lockfiles) + ["module.pyc"]
+        for relative in paths:
+            with self.subTest(relative=relative), self.assertRaises(ValueError):
+                self.workspace.path(relative)
+
     def test_rejects_links(self):
         outside = Path(self.temporary.name) / "outside.txt"
         outside.write_text("secret", encoding="utf-8")

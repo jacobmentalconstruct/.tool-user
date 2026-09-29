@@ -13,6 +13,14 @@ MAX_READ = 100_000
 MAX_NAME = 120
 MAX_ENTRIES = 200
 EXCLUDED_NAMES = {".git", ".hg", ".svn", "live_control", ".lab", "shared.json"}
+BUILTIN_EXCLUSIONS = {
+    "node_modules", ".venv", "venv", "__pycache__", "dist", "build", "bin", "obj", "target",
+    ".vscode", ".idea", "package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "pnpm-lock.yaml",
+    "bun.lock", "bun.lockb", "cargo.lock", "pipfile.lock", "poetry.lock", "uv.lock", "pdm.lock",
+    "conda-lock.yml", "conda-lock.yaml", "requirements.lock", "composer.lock", "gemfile.lock",
+    "go.sum", "mix.lock", "pubspec.lock", "podfile.lock", "package.resolved", "gradle.lockfile",
+    "packages.lock.json", "flake.lock", "renv.lock",
+}
 
 
 def validate_name(name: object) -> str:
@@ -74,7 +82,8 @@ def excluded(root: Path, path: Path, is_dir: bool,
     parts = relative.split("/")
     for part in parts:
         lower = part.casefold()
-        if (lower in EXCLUDED_NAMES or fnmatch.fnmatchcase(lower, ".*-bin") or
+        if (lower in EXCLUDED_NAMES or lower in BUILTIN_EXCLUSIONS or lower.endswith(".pyc") or
+                fnmatch.fnmatchcase(lower, ".*-bin") or
                 lower == ".env" or lower.startswith(".env.") or lower.endswith((".pem", ".key"))):
             return True
     ignored = False

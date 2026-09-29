@@ -229,9 +229,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** NONE. T1 is parked pending USER acceptance (§9); no next tranche is declared.
+**ID:** T1 — standalone and smaller. USER-authorized fix-ups are underway; no next tranche is declared.
 
-**Current:** T1 was declared and approved. Its implementation is complete and awaiting USER acceptance of the parking record; any change to §3 or §4 needs a USER decision (D6).
+**Current:** T1's initial implementation was parked for USER acceptance. The USER authorized the fix-up list on 2026-09-29; the branch is reopened for those scoped corrections. Any change to §3 or §4 still needs a USER decision (D6).
 
 ### T1 declaration: standalone and smaller (approved)
 
@@ -277,7 +277,15 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [x] 9. Add `requirements.txt`.
 - [x] 10. Update README, AGENTS, and PLAN current-state documentation.
 
-**Now:** T1 implementation and verification are complete; await USER acceptance before merging.
+**Fix-up Progress:**
+- [x] 1. Restore built-in workspace exclusions and add regression coverage.
+- [ ] 2. Remove the duplicate T1 record in §9, keeping the 13-test entry.
+- [ ] 3. Move the T1 status update out of §1 into the T1 §9 record.
+- [ ] 4. Correct the stale AGENTS.md T1 status note.
+- [ ] 5. Remove unused imports and unused BackupStore members.
+- [ ] 6. Record the four notes-only observations without changing behavior.
+
+**Now:** remove the duplicate T1 §9 record while retaining the 13-test entry (fix-up 2).
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.
@@ -298,12 +306,12 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 **Known risks:**
 - Rewriting the backup and rollback code is where subtle bugs hide. The existing three patch tests stay and must pass without change to what they assert.
 
-**Declaration state:** approved by USER on 2026-09-29. Implementation is parked on `t1-standalone`, pending USER acceptance.
+**Declaration state:** T1 approved on 2026-09-29; fix-ups authorized by USER on 2026-09-29 and underway on `t1-standalone`.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T1 is parked; the next tranche has not been declared.
+**Implementation permission:** YES for T1 (USER, 2026-09-29; fix-ups). Reset to NO when the corrected T1 parking record is committed.
 
 ## 9. Parked Tranches
 
