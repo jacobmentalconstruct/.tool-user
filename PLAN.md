@@ -277,7 +277,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [x] 9. Add `requirements.txt`.
 - [x] 10. Update README, AGENTS, and PLAN current-state documentation.
 
-**Now:** rerun the reference-path absence check after correcting its architecture-test assertion.
+**Now:** finish the final review of workspace path and ignore-rule behavior.
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.

@@ -52,6 +52,26 @@ class WorkspaceTests(unittest.TestCase):
         self.workspace = Workspace(self.root)
         self.assertEqual([item["name"] for item in self.workspace.list_project()["entries"]], [".gitignore"])
 
+    def test_honors_rooted_and_reincluded_gitignore_patterns(self):
+        (self.root / ".gitignore").write_text(
+            "/root-only.txt\n*.log\n!important.log\nfolder/\n", encoding="utf-8")
+        (self.root / "root-only.txt").write_text("x", encoding="utf-8")
+        (self.root / "nested").mkdir()
+        (self.root / "nested" / "root-only.txt").write_text("x", encoding="utf-8")
+        (self.root / "outside.log").write_text("x", encoding="utf-8")
+        (self.root / "important.log").write_text("x", encoding="utf-8")
+        (self.root / "folder").mkdir()
+        (self.root / "folder" / "inside.txt").write_text("x", encoding="utf-8")
+        self.workspace = Workspace(self.root)
+        with self.assertRaises(ValueError):
+            self.workspace.path("root-only.txt")
+        self.assertEqual(self.workspace.path("nested/root-only.txt").name, "root-only.txt")
+        with self.assertRaises(ValueError):
+            self.workspace.path("outside.log")
+        self.assertEqual(self.workspace.path("important.log").name, "important.log")
+        with self.assertRaises(ValueError):
+            self.workspace.path("folder/inside.txt")
+
     def test_requires_unique_search_match(self):
         (self.root / "sample.txt").write_text("same same", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "exactly once"):

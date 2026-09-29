@@ -32,7 +32,7 @@ def is_link(path: Path) -> bool:
     except FileNotFoundError:
         return False
     return stat.S_ISLNK(info.st_mode) or bool(
-        getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+        getattr(info, "st_file_attributes", 0) & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
     )
 
 
@@ -45,23 +45,31 @@ def choose_root(raw_path: object) -> Path:
     return root.resolve()
 
 
-def _gitignore_rules(root: Path) -> list[tuple[str, bool, bool]]:
+def _gitignore_rules(root: Path) -> list[tuple[str, bool, bool, bool]]:
     rules = []
+    ignore_file = root / ".gitignore"
+    if is_link(ignore_file):
+        return rules
     try:
-        lines = (root / ".gitignore").read_text(encoding="utf-8").splitlines()
+        lines = ignore_file.read_text(encoding="utf-8").splitlines()
     except (OSError, UnicodeError):
         return rules
     for raw in lines:
         rule = raw.strip()
-        if not rule or rule.startswith("#") or rule.startswith("!"):
+        if not rule or rule.startswith("#"):
             continue
+        negated = rule.startswith("!")
+        if negated:
+            rule = rule[1:]
+        anchored = rule.startswith("/")
         directory_only = rule.endswith("/")
         rule = rule.strip("/")
-        rules.append((rule, "/" in rule, directory_only))
+        rules.append((rule, negated, anchored or "/" in rule, directory_only))
     return rules
 
 
-def excluded(root: Path, path: Path, is_dir: bool, rules: list[tuple[str, bool, bool]] | None = None) -> bool:
+def excluded(root: Path, path: Path, is_dir: bool,
+             rules: list[tuple[str, bool, bool, bool]] | None = None) -> bool:
     relative = path.relative_to(root).as_posix()
     parts = relative.split("/")
     for part in parts:
@@ -69,13 +77,12 @@ def excluded(root: Path, path: Path, is_dir: bool, rules: list[tuple[str, bool, 
         if (lower in EXCLUDED_NAMES or fnmatch.fnmatchcase(lower, ".*-bin") or
                 lower == ".env" or lower.startswith(".env.") or lower.endswith((".pem", ".key"))):
             return True
-    for pattern, contains_slash, directory_only in rules if rules is not None else _gitignore_rules(root):
-        candidates = [relative] if contains_slash else parts
-        for candidate in candidates:
-            if fnmatch.fnmatchcase(candidate, pattern):
-                if not directory_only or is_dir or candidate != parts[-1]:
-                    return True
-    return False
+    ignored = False
+    for pattern, negated, anchored, directory_only in rules if rules is not None else _gitignore_rules(root):
+        candidate = relative if anchored else parts[-1]
+        if fnmatch.fnmatchcase(candidate, pattern) and (not directory_only or is_dir):
+            ignored = not negated
+    return ignored
 
 
 class Workspace:
