@@ -245,7 +245,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 3. Enforce contract actor labels and rights.
 - [x] 4. Integrate browser/CLI paths and add event, restart, rights, and integration coverage.
 
-**Now:** Integration review found the worker queue duplicated prompt contents; reducing it to event IDs so workers read prompts from SQLite before final parking review.
+**Now:** The worker reads prompts by event ID; restart marks interrupted turns instead of replaying them. Verifying the final S2 boundary and updating current status references before parking.
 
 **Non-goals:** T3 job/approval lifecycles and command runner; T4 knowledge/indexing; new user-facing entrances or UI redesign; changing §3 or §4; new dependencies beyond the recorded standard library plus numpy.
 

@@ -12,6 +12,11 @@ from pathlib import Path
 
 
 _ACTOR = re.compile(r"^(user|agent|system|role:(planner|builder|debugger|reviewer))$")
+_KINDS = {
+    "chat.prompt", "chat.reply", "note.added", "note.removed", "project.selected",
+    "model.selected", "job.state", "task.state", "approval.requested", "approval.resolved",
+    "tool.result", "command.result", "index.updated", "error",
+}
 
 
 class EventStore:
@@ -62,10 +67,13 @@ class EventStore:
                job: str | None = None, task: str | None = None) -> dict:
         if not isinstance(actor, str) or not _ACTOR.fullmatch(actor):
             raise ValueError("Choose a contract actor label.")
-        if not isinstance(kind, str) or not kind:
-            raise ValueError("Event kind must be a non-empty string.")
+        if not isinstance(kind, str) or kind not in _KINDS:
+            raise ValueError("Choose an event kind from the v0 contract.")
         if not isinstance(data, dict):
             raise ValueError("Event data must be an object.")
+        for name, value in (("job", job), ("task", task)):
+            if value is not None and (not isinstance(value, str) or not value):
+                raise ValueError(f"{name} must be a non-empty string when present.")
         encoded = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
         timestamp = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         with self._lock, self._connection() as db:

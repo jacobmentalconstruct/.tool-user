@@ -41,6 +41,10 @@ class EventStoreTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.store.append("human", "chat.prompt", {})
         with self.assertRaises(ValueError):
+            self.store.append("user", "unknown.kind", {})
+        with self.assertRaises(ValueError):
+            self.store.append("user", "job.state", {}, job=4)
+        with self.assertRaises(ValueError):
             self.store.read_after(-1)
 
 

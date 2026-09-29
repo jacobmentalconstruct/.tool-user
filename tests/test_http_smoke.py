@@ -113,12 +113,17 @@ class HttpSmokeTests(unittest.TestCase):
         self.assertEqual(self.target.read_text(encoding="utf-8"), "after\n")
         self.assertTrue(next((self.control / "backups").rglob("manifest.json")).is_file())
 
-    def test_agent_cannot_select_model(self):
+    def test_agent_cannot_select_model_project_or_approval(self):
         from urllib.error import HTTPError
 
-        with self.assertRaises(HTTPError) as error:
-            self.request("/api/model", {"name": "model-a"}, token=self.agent_token)
-        self.assertEqual(403, error.exception.code)
+        for path, body in (
+            ("/api/model", {"name": "model-a"}),
+            ("/api/project", {"path": str(self.project)}),
+            ("/api/approval", {"id": "approval-1", "approved": True}),
+        ):
+            with self.subTest(path=path), self.assertRaises(HTTPError) as error:
+                self.request(path, body, token=self.agent_token)
+            self.assertEqual(403, error.exception.code)
 
     def test_event_endpoint_reads_after_cursor(self):
         first = {"id": 1, "actor": "user", "kind": "chat.prompt", "data": {}}

@@ -44,9 +44,11 @@ class SharedSession:
                 self.models = installed_chat_models()
             except Exception as exc:
                 self.model_error = str(exc)
-        if not self.state.workspace.model:
-            default = self.models[0] if self.models else DEFAULT_MODEL
-            self._record("system", "model.selected", {"name": default})
+        for request_id in list(self.state.conversation.pending_prompts):
+            self._record("system", "error", {
+                "requestId": request_id,
+                "display": {"speaker": "Error", "text": "The session restarted before this reply completed."},
+            })
         if start_worker:
             threading.Thread(target=self._work, daemon=True, name="shared-ollama-session").start()
 
@@ -68,7 +70,7 @@ class SharedSession:
 
     @property
     def model(self) -> str:
-        return self.state.workspace.model
+        return self.state.workspace.model or (self.models[0] if self.models else DEFAULT_MODEL)
 
     def _record(self, actor: str, kind: str, data: dict) -> dict:
         with self.lock:
@@ -91,8 +93,7 @@ class SharedSession:
         return label
 
     def _event(self, speaker: str, text: str, **extra):
-        kind = {"Assistant": "chat.reply", "Tool": "tool.result",
-                "Approval": "approval.requested", "Error": "error"}.get(speaker, "error")
+        kind = {"Assistant": "chat.reply", "Tool": "tool.result", "Error": "error"}.get(speaker, "error")
         data = {"display": {"speaker": speaker, "text": text}, **extra}
         self._record("system", kind, data)
 
@@ -137,7 +138,10 @@ class SharedSession:
         with self.lock:
             if self.busy or not self.prompts.empty():
                 raise ValueError("Wait for the current conversation to finish before changing projects.")
-            self._record(actor_label, "project.selected", {"path": str(root)})
+            self._record(actor_label, "project.selected", {
+                "path": str(root),
+                "display": {"speaker": "System", "text": f"Project folder selected: {root}"},
+            })
 
     def add_note(self, text: str, actor: str = "USER"):
         actor_label = self._actor_label(actor)
@@ -147,7 +151,10 @@ class SharedSession:
             if len(self.notes) >= 50:
                 raise ValueError("This session has reached its 50-note limit.")
             note_id = str(uuid4())
-            self._record(actor_label, "note.added", {"id": note_id, "text": text.strip()})
+            self._record(actor_label, "note.added", {
+                "id": note_id, "text": text.strip(),
+                "display": {"speaker": "Memory", "text": "Remembered: " + text.strip()},
+            })
 
     def remove_note(self, index: int, actor: str = "USER"):
         actor_label = self._actor_label(actor)
@@ -155,26 +162,33 @@ class SharedSession:
             if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(self.notes):
                 raise ValueError("Choose an existing note.")
             note_id, note = self.state.notes.note_at(index)
-            self._record(actor_label, "note.removed", {"id": note_id, "text": note})
+            self._record(actor_label, "note.removed", {
+                "id": note_id, "text": note,
+                "display": {"speaker": "Memory", "text": "Forgot: " + note},
+            })
 
     def select_model(self, name: str, actor: str = "USER"):
         actor_label = self._require_user(actor)
         with self.lock:
             if name not in self.models:
                 raise ValueError("Choose an installed chat model.")
-            self._record(actor_label, "model.selected", {"name": name})
+            self._record(actor_label, "model.selected", {
+                "name": name, "display": {"speaker": "System", "text": "Model set to " + name},
+            })
 
     def approve(self, approval_id: str, approved: bool, actor: str = "USER"):
         actor_label = self._require_user(actor)
+        if not isinstance(approved, bool):
+            raise ValueError("Approval decision must be true or false.")
         with self.lock:
             pending = self.pending
             if pending is None or pending.id != approval_id or pending.decided.is_set():
                 raise ValueError("This approval is no longer pending.")
-            pending.approved = approved is True
+            pending.approved = approved
+            self._record(actor_label, "approval.resolved", {
+                "id": approval_id, "approved": approved,
+            })
             pending.decided.set()
-        self._record(actor_label, "approval.resolved", {
-            "id": approval_id, "approved": approved is True,
-        })
 
     def _confirm_patch(self, request_id: str, proposal: dict) -> bool:
         detail = proposal["name"] + "\n" + "\n".join(proposal["paths"])
@@ -185,34 +199,40 @@ class SharedSession:
     def _wait_for_approval(self, pending: Approval) -> bool:
         with self.lock:
             self.pending = pending
-        self._event("Approval", f"Review {pending.title.lower()} in the browser.",
-                    requestId=pending.request_id)
+            self._record("system", "approval.requested", {
+                "id": pending.id, "kind": pending.kind, "title": pending.title,
+                "name": pending.name, "requestId": pending.request_id,
+                "display": {"speaker": "Approval", "text": f"Review {pending.title.lower()} in the browser."},
+            })
         pending.decided.wait(timeout=300)
         with self.lock:
             if self.pending is pending:
                 self.pending = None
         if not pending.decided.is_set():
-            self._event("Approval", "Approval timed out; files were kept.", requestId=pending.request_id)
+            self._record("system", "approval.resolved", {
+                "id": pending.id, "approved": False, "timedOut": True,
+                "requestId": pending.request_id,
+                "display": {"speaker": "Approval", "text": "Approval timed out; files were kept."},
+            })
             return False
         return pending.approved
 
     def _work(self):
         while True:
             prompt_event_id = self.prompts.get()
-            with self.lock:
-                self.busy = True
+            request_id = None
+            try:
                 prompt_event = self.store.get(prompt_event_id)
                 if prompt_event is None or prompt_event["kind"] != "chat.prompt":
-                    self.busy = False
-                    self.prompts.task_done()
                     continue
                 request_id = prompt_event["data"]["requestId"]
                 prompt = prompt_event["data"]["display"]["text"]
-                model = self.model
-                notes = list(self.notes)
-                turns = list(self.turns)
-                project_root = self.project_root
-            try:
+                with self.lock:
+                    self.busy = True
+                    model = self.model
+                    notes = list(self.notes)
+                    turns = list(self.turns)
+                    project_root = self.project_root
                 answer, turn = run_turn(prompt, model, turns, notes,
                                         SharedTools(project_root,
                                                     lambda proposal: self._confirm_patch(request_id, proposal),

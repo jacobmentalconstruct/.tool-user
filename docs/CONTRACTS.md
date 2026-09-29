@@ -25,7 +25,7 @@ Labels come from `PLAN.md` D10. Rights attach to the label, not to who holds it.
 | Change job and task states | no | no | no | yes, as the lifecycle owner |
 
 - **Tokens:** the browser token is USER, and the CLI token is AGENT.
-- **Current code differences, fixed in T2:** the AGENT token can still choose the chat model, and the actor labels still read `human` and `agent`.
+- **T2 enforcement:** the browser token maps to `user` and the CLI token maps to `agent`; project/model selection and approval resolution are checked at the adapter and session boundaries.
 
 ## 1. Event (T2)
 
