@@ -6,7 +6,7 @@ The point is to move the expensive inference onto free local models, so that an 
 
 ## Status
 
-**T1 is in progress.** The original hub failed after its reference code moved out of the repo. T1 replaces that dependency with the project's own workspace tools and restores the hub.
+**T1 implementation is complete and awaiting USER acceptance.** The original hub failed after its reference code moved out of the repo. T1 replaced that dependency with the project's own workspace tools and restored the hub.
 
 The prototype is finished when the agent can make progress on its own development in a sandboxed copy of this repo. The route there, and where we are on it, is in [PLAN.md](PLAN.md).
 

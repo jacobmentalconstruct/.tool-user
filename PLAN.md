@@ -54,7 +54,7 @@ One commit (`ff457af`). Its 3 unit tests passed until `.parts-bin/` moved out; t
 
 **Likely reason the qwen2 models are slow** (inferred from the numbers; not checked by changing the setting): the machine sets `OLLAMA_NUM_PARALLEL=8` and `OLLAMA_MAX_LOADED_MODELS=3`. For full-attention models (the qwen2 family), Ollama reserves conversation memory (KV cache) for 8 parallel requests, which pushes a 9 GB model to about 26 GB and half onto the CPU. The qwen3.5 models' hybrid attention keeps that memory small, so they aren't affected. This is a machine-wide setting the user may rely on elsewhere, so the plan works around it (D4) instead of changing it.
 
-**T1 update (2026-09-29, implementation in progress):** the hub's project and patch tools now use the in-repo workspace package; the source count is 1,098 Python lines. The test suite passes (13 tests), and the HTTP smoke check plus a manual hub/browser startup check pass. Final evidence and any limitations will be recorded when T1 parks in §9.
+**T1 update (2026-09-29):** the hub's project and patch tools use the in-repo workspace package; the source count is 1,098 Python lines. The test suite passes (13 tests), and the HTTP smoke check plus a manual hub/browser startup check pass. T1's evidence and limitations are recorded in §9.
 
 ## 2. Decisions
 
@@ -229,9 +229,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T1 — standalone and smaller. T0 is parked (§9).
+**ID:** NONE. T1 is parked pending USER acceptance (§9); no next tranche is declared.
 
-**Current:** T1 is declared and approved. The implementing AGENT owns this tranche; any change to §3 or §4 needs a USER decision (D6).
+**Current:** T1 was declared and approved. Its implementation is complete and awaiting USER acceptance of the parking record; any change to §3 or §4 needs a USER decision (D6).
 
 ### T1 declaration: standalone and smaller (approved)
 
@@ -277,7 +277,7 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 - [x] 9. Add `requirements.txt`.
 - [x] 10. Update README, AGENTS, and PLAN current-state documentation.
 
-**Now:** run the final T1 acceptance checks after adding create/read/list coverage, then park for USER review.
+**Now:** T1 implementation and verification are complete; await USER acceptance before merging.
 
 **Non-goals:**
 - No event log, persistence, lifecycles, new tools, UI redesign or numpy use.
@@ -298,12 +298,12 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
 **Known risks:**
 - Rewriting the backup and rollback code is where subtle bugs hide. The existing three patch tests stay and must pass without change to what they assert.
 
-**Declaration state:** approved by USER on 2026-09-29. Implementation is in progress on `t1-standalone`.
+**Declaration state:** approved by USER on 2026-09-29. Implementation is parked on `t1-standalone`, pending USER acceptance.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** YES for T1 (USER, 2026-09-29). Reset to NO when T1 is parked.
+**Implementation permission:** NO. T1 is parked; the next tranche has not been declared.
 
 ## 9. Parked Tranches
 
@@ -331,6 +331,21 @@ The code is at least 25% smaller, and nothing refers to anything outside the rep
   - D9 extended to people and commit messages. D10 added: USER, AGENT, ROLE and SYSTEM labels, with a rights table in `docs/CONTRACTS.md` §0. "Human" is replaced by USER throughout, and the two T0 commits were reworded to carry `Actor: AGENT`.
 - **Handoff (D11):** parking T0 ends the setup phase. From here the development team declares and implements tranches, and the USER approves, reviews and steers.
 - **Next step:** the team orients and declares T1, starting from the draft in §7.
+
+**T1, standalone and smaller: PARKED 2026-09-29, pending USER acceptance.** Built on `t1-standalone`; not merged.
+- **Outcome met:** the hub runs from this repo without reference-code imports. Project listing, reading, creation, reviewed patch application, cancellation, backups, and rollback are implemented in the owned workspace package. The legacy app, sandbox file-tool family, and pre-request-ID client path are removed. The selected project starts empty. Runtime source is 1,098 lines, down from 3,002 in the T0 baseline.
+- **Evidence:**
+  - `python -B -m unittest discover -s tests -v` — 13 tests passed.
+  - `python lab.py hub-server` — server started. The browser/API probe returned HTTP 200 for both the browser page and state API; the selected project was `None` and `appFolder` was absent.
+  - `tests/test_http_smoke.py` — selected a temporary project through HTTP; cancellation left its file unchanged; approval applied the patch and produced a backup.
+  - `python -c "import pathlib; print(sum(len(p.read_text(encoding='utf-8').splitlines()) for p in pathlib.Path('src').rglob('*.py')))"` — 1,098 lines (S9 T1 limit: 2,250).
+  - `rg -ni 'parts-bin|PARTS_BIN' src tests` — no matches.
+  - `rg -ni 'openai|codex|chatgpt|anthropic|claude|google|gemini|microsoft|copilot' src` — no matches.
+  - `git diff --check` — clean. Largest Python module: 171 lines.
+  - Diff review from T0 commit `0fd3798` — changed files align with the T1 scope recorded here.
+- **Limitations:** model inference was not part of the T1 smoke run; T1 verifies the hub and approval plumbing without Ollama.
+- **Deferrals:** none beyond §4.
+- **Next step:** USER reviews the T1 diff and accepts or requests changes to the parking. Only after acceptance may it be merged into `main`; then reorient and declare T2.
 
 **T1, standalone and smaller: PARKED 2026-09-29, pending USER acceptance.** Built on `t1-standalone`; not merged.
 - **Outcome met:** the hub runs from this repo without the reference-code imports; project listing, reading, creation, reviewed patch application, cancellation, backups, and rollback are implemented in the owned workspace package. The legacy app, sandbox file-tool family, and pre-request-ID client path are removed. The selected project starts empty.
