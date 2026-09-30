@@ -231,9 +231,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T3 — Lifecycles and runner, USER review fix-up.
+**ID:** NONE — T3 re-parked for USER acceptance.
 
-**Current:** T1 and T2 are accepted on `main`; T3 implementation is complete on `t3-lifecycles` and parked for USER acceptance. §3 stop conditions and §4 non-goals remain frozen (D6).
+**Current:** T1 and T2 are accepted on `main`; T3 implementation and USER review fixes are complete on `t3-lifecycles` and parked for USER acceptance. §3 stop conditions and §4 non-goals remain frozen (D6).
 
 **Branch:** `t3-lifecycles`.
 
@@ -260,7 +260,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] Keep capped command output from the end with a trim marker, decision and test.
 - [x] Record three review limitations and update parking evidence.
 
-**Now:** Rechecking the scope guard and documentation before the T3 parking commit.
+**Now:** T3 is parked; awaiting USER acceptance before merging or declaring T4.
 
 **Non-goals:** T4 knowledge/indexing; T5 bench; T6 planner/builder/debugger/reviewer role team and deterministic gate; replacing `engine.run_turn`; UI redesign beyond the two entrances and lifecycle status; changing §3 or §4; new dependencies beyond standard library plus numpy.
 
@@ -276,12 +276,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Known risks:** The builder's environment must let Python create and clean temp directories; verified 2026-09-29 with 25 tests passing. If it cannot, stop and tell the USER. The planner role arrives in T6, so T3 must bridge New goal into the existing `engine.run_turn` path without coupling lifecycle ownership to it. Cancellation and timeout behavior must clean up child processes on Windows. Any change to the event or contract schema is recorded as a decision in §2. Resolve any contract/UI ambiguities inside T3 without changing the frozen stop conditions or non-goals.
 
-**Declaration state:** USER approved T3 declaration and entry on 2026-09-29; USER requested and approved review fixes on 2026-09-29.
+**Declaration state:** USER approved T3 declaration and entry on 2026-09-29; USER requested and approved review fixes on 2026-09-29. All T3 tasks are complete and re-parked for review.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** YES for T3 review fixes (USER, 2026-09-29).
+**Implementation permission:** NO. T3 is parked pending USER acceptance; no tranche is active.
 
 ## 9. Parked Tranches
 
@@ -339,8 +339,8 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Next step:** reorient from the accepted T2 state and declare T3 from its provisional draft when ready.
 - **Review follow-up (2026-09-29):** USER returned four findings before acceptance; all were resolved before T2 was accepted and merged: restore default model preference, remove the in-memory event-history copy, use `MAX_RECENT_TURNS`, and document optional `data.display` metadata.
 
-**T3, lifecycles and runner: PARKED 2026-09-29, pending USER acceptance.** Built on `t3-lifecycles`; not merged.
-- **Outcome met:** New goal and Chat are separate in the browser and CLI. New goal follows the declared job path with USER plan approval; job and approval states are event-backed and restored after restart. Pending approvals expire and unfinished jobs fail on restart without replay. USER-only cancellation works, while approval waits leave chat responsive. The existing chat loop requests named, USER-approved commands from `.lab/allowlist.json`; execution uses exact argv without a shell, in the project root, with timeout, capped output and `command.result` events. Windows timeout and cancel tests confirm child processes are gone. The task transition table is in place without running task instances.
+**T3, lifecycles and runner: RE-PARKED 2026-09-29 after USER review fixes, pending USER acceptance.** Built on `t3-lifecycles`; not merged.
+- **Outcome met:** New goal and Chat are separate in the browser and CLI. New goal follows the declared job path with USER plan approval; job and approval states are event-backed and restored after restart. Pending approvals expire and unfinished jobs fail on restart without replay. USER-only cancellation works. One turn runs at a time, while approval waits yield to chat; later prompts see earlier completed turns. The existing chat loop requests named, USER-approved commands from `.lab/allowlist.json`; execution uses exact argv without a shell, in the project root, with timeout, capped tail output and `command.result` events. Windows timeout and cancel tests confirm child processes are gone. The task transition table is in place without running task instances.
 - **Evidence:**
   - `python -B -m unittest discover -s tests -v` — 50 tests passed in 8.365 s after USER review fixes, including ordered chat history, four parked approvals, a running goal sharing the turn slot, retained final command output, and all prior coverage. The builder environment needed filesystem access for Python temporary directories.
   - `python -B -m unittest discover -s tests -p test_approvals.py -v` — 7 approval and scheduling tests passed.
