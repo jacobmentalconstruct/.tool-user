@@ -52,8 +52,8 @@ class CommandRunner:
         output_limit = config.get("max_output_bytes", 20000)
         if not isinstance(timeout, (int, float)) or isinstance(timeout, bool) or not 0 < timeout <= 3600:
             raise ValueError("timeout_s must be between 0 and 3600 seconds.")
-        if not isinstance(output_limit, int) or isinstance(output_limit, bool) or not 1 <= output_limit <= 1_000_000:
-            raise ValueError("max_output_bytes must be between 1 and 1,000,000.")
+        if not isinstance(output_limit, int) or isinstance(output_limit, bool) or not 32 <= output_limit <= 1_000_000:
+            raise ValueError("max_output_bytes must be between 32 and 1,000,000.")
         return CommandSpec(name, tuple(argv), self.root, float(timeout), output_limit)
 
     @staticmethod
@@ -88,13 +88,16 @@ class CommandRunner:
             creationflags=flags, start_new_session=sys.platform != "win32",
         )
         captured = bytearray()
+        total_bytes = 0
 
         def drain():
+            nonlocal total_bytes
             assert process.stdout is not None
             while chunk := os.read(process.stdout.fileno(), 4096):
-                remaining = spec.max_output_bytes - len(captured)
-                if remaining > 0:
-                    captured.extend(chunk[:remaining])
+                total_bytes += len(chunk)
+                captured.extend(chunk)
+                if len(captured) > spec.max_output_bytes:
+                    del captured[:-spec.max_output_bytes]
 
         reader = threading.Thread(target=drain, daemon=True)
         reader.start()
@@ -114,6 +117,17 @@ class CommandRunner:
         reader.join(timeout=5)
         if process.stdout:
             process.stdout.close()
+        if total_bytes > spec.max_output_bytes:
+            keep = spec.max_output_bytes
+            while True:
+                marker = f"[… {total_bytes - keep} bytes trimmed]\n".encode("utf-8")
+                next_keep = max(0, spec.max_output_bytes - len(marker))
+                if next_keep == keep:
+                    break
+                keep = next_keep
+            output = marker + (captured[-keep:] if keep else b"")
+        else:
+            output = captured
         return {"name": spec.name, "exit_code": process.returncode if status in {"ok", "failed"} else -1,
                 "duration_s": round(time.monotonic() - started, 3),
-                "output": captured.decode("utf-8", errors="replace"), "status": status}
+                "output": output.decode("utf-8", errors="ignore"), "status": status}

@@ -38,14 +38,24 @@ class CommandRunnerTests(unittest.TestCase):
             "commands": commands, "timeout_s": timeout, "max_output_bytes": limit,
         }), encoding="utf-8")
 
-    def test_exact_argv_project_cwd_and_output_cap(self):
+    def test_exact_argv_and_project_cwd(self):
         self.allow({"where": [sys.executable, "-c", "import os;print(os.getcwd());print('x'*100)"]},
-                   limit=120)
+                   limit=20000)
         runner = CommandRunner(self.root)
         result = runner.run(runner.resolve("where"))
         self.assertEqual("ok", result["status"])
         self.assertEqual(0, result["exit_code"])
         self.assertTrue(result["output"].startswith(str(self.root)))
+        self.assertIn("x" * 100, result["output"])
+
+    def test_output_cap_preserves_final_status_line(self):
+        self.allow({"tests": [sys.executable, "-c",
+                              "print('x'*500);print('FAILED (failures=1)')"]}, limit=120)
+        runner = CommandRunner(self.root)
+        result = runner.run(runner.resolve("tests"))
+        self.assertTrue(result["output"].startswith("[… "))
+        self.assertIn("bytes trimmed]\n", result["output"])
+        self.assertEqual("FAILED (failures=1)", result["output"].splitlines()[-1])
         self.assertLessEqual(len(result["output"].encode("utf-8")), 120)
 
     def test_name_only_lookup_refuses_unknown_and_invalid_allowlist(self):

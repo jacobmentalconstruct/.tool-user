@@ -89,7 +89,7 @@ The file lives in the target project at `.lab/allowlist.json`. Only the USER cre
 
 - Roles ask for a command **by name**, never as free text.
 - The command runs with its argument list exactly as written, in the project root, with no shell.
-- The result is a `command.result` event: `name`, `exit_code`, `duration_s`, and the output, trimmed from the end if it's too long.
+- The result is a `command.result` event: `name`, `exit_code`, `duration_s`, and output capped to the last `max_output_bytes`. A leading `[… N bytes trimmed]` line reports omitted bytes and counts toward the cap. The cap is at least 32 bytes (PLAN.md D15).
 - Until the separate role team arrives, the existing chat loop acts as the ROLE through `run_command(name)`. Browser and CLI callers cannot request a command directly. USER approval precedes every run; timeout and cancellation stop the process tree on Windows.
 
 ## 5. Context pack (T4)
