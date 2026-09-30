@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import tempfile
 import sys
 import unittest
 from pathlib import Path
@@ -10,7 +11,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from local_memory_lab.bench.tasks import punch_function  # noqa: E402
+from local_memory_lab.bench.tasks import (  # noqa: E402
+    load_tasks, prepare_punched_copy, punch_function,
+)
 
 
 class BenchTaskTests(unittest.TestCase):
@@ -40,6 +43,28 @@ class BenchTaskTests(unittest.TestCase):
             punch_function("def value(): return 4\n", "value")
         with self.assertRaises(ValueError):
             punch_function("def value():\n    return 4\n", "missing")
+
+    def test_committed_task_corpus_is_pinned_and_names_single_test_ids(self):
+        tasks = load_tasks(ROOT / "bench" / "tasks")
+        self.assertEqual(22, len(tasks))
+        self.assertEqual({"self@c916053"}, {task["source"] for task in tasks})
+        self.assertTrue(all(len(task["check"]) == 5 for task in tasks))
+
+    def test_punched_copy_leaves_snapshot_unchanged_and_stays_outside_it(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            snapshot = root / "snapshot"
+            snapshot.mkdir()
+            source = "def answer():\n    return 42\n"
+            (snapshot / "module.py").write_text(source, encoding="utf-8")
+            task = {"id": "fixture-001", "target": {
+                "path": "module.py", "function": "answer"}}
+            copy = root / "copies" / "fixture-001"
+            prepare_punched_copy(snapshot, task, copy)
+            self.assertEqual(source, (snapshot / "module.py").read_text(encoding="utf-8"))
+            self.assertIn("raise NotImplementedError", (copy / "module.py").read_text(encoding="utf-8"))
+            with self.assertRaises(ValueError):
+                prepare_punched_copy(snapshot, task, snapshot / "nested-copy")
 
 
 if __name__ == "__main__":

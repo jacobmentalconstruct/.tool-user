@@ -247,21 +247,23 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Progress:**
 - [x] 1. Pin the snapshot and create/validate at least 15 covered hole-punch tasks (D3 fallback only if needed).
-- [ ] 2. Implement isolated task validation, builder runs, context comparisons and search scoring.
+- [x] 2. Implement isolated task validation, builder runs, context comparisons and search scoring.
 - [ ] 3. Run the named local model comparisons and record required metrics; set `roles.json` from results.
 - [ ] 4. Document reproduction, verify the full suite and park with committed evidence.
 
 **Task 1 evidence:** 22 task records pin `self@c916053`; all 22 named tests passed on the pristine snapshot and failed after their target body was punched in a separate temporary copy. `python -B -m unittest discover -s tests -p "test_bench_tasks.py" -v` — 3 helper tests passed.
 
-**Now:** Task 2: reusable task validation and the isolated builder harness.
+**Task 2 evidence:** `python lab.py bench validate --baselines --contexts` — 22 original tests passed, 22 punched tests failed as intended, and all 22 packs built from punched copies excluded their removed bodies. Focused harness and scoring tests pass.
+
+**Now:** Task 3: bounded model comparisons and committed results/configuration.
 
 **Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
 
 **Acceptance criteria:**
 - Fast task-unit tests cover task formats and the body-punch transformation without running the full corpus: `python -B -m unittest discover -s tests -p "test_bench_tasks.py" -v`.
-- Corpus validation confirms one pinned `self@<commit>` source, at least 15 tasks, each original single test passes, and each punched single test fails: `python lab.py bench validate --baselines`.
+- Opt-in corpus validation confirms one pinned `self@<commit>` source, at least 15 tasks, each original single test passes, each punched single test fails, and no punched-copy context pack contains its removed body: `python lab.py bench validate --baselines --contexts`. It runs outside the default suite so the normal regression run stays fast.
 - Harness tests prove task copies are isolated, both conditions receive the goal/path/punched file, builder JSON is validated, edits outside declared gold files are rejected, and invalid outputs are counted: `python -B -m unittest discover -s tests -p "test_bench_harness.py" -v`.
-- Context tests prove every task index is built from its punched copy and its pack omits the removed body; scoring tests show gold-file recall in top five and separate builder success with and without context: `python -B -m unittest discover -s tests -p "test_bench_scoring.py" -v`.
+- Context/scoring tests prove the pack is built from a punched copy without its removed body; scoring tests show gold-file recall in top five and separate builder success with and without context: `python -B -m unittest discover -s tests -p "test_bench_scoring.py" -v`.
 - The committed run contains at least 15 tasks and per named candidate records pass rate, elapsed time, tokens/s, invalid-output rate, top-five search quality, and builder success under both context conditions: `python lab.py bench validate`.
 - `roles.json` parses and names the measured builder assignment while preserving planned T6 role assignments: `python -B -m unittest discover -s tests -p "test_roles.py" -v`.
 - The full suite and architecture check pass: `python -B -m unittest discover -s tests -v`; `python -B -m unittest discover -s tests -p "test_architecture.py" -v`; `git diff --check`.
