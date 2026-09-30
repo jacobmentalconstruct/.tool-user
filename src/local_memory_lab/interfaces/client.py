@@ -51,6 +51,8 @@ def show_events(events: list[dict], after_id: int = 0, request_id: str | None = 
         display = data.get("display")
         if display:
             print(f"[{display['speaker']}] {display['text']}", flush=True)
+        if event["kind"] == "job.state":
+            print(f"[Job {event['job']}] {data['state']}", flush=True)
 
 
 def main(argv=None):
@@ -60,6 +62,8 @@ def main(argv=None):
     send.add_argument("text")
     send.add_argument("--wait", action="store_true", help="Watch until the reply arrives")
     send.add_argument("--timeout", type=int, default=180)
+    goal = sub.add_parser("goal", help="Submit a New goal")
+    goal.add_argument("text")
     sub.add_parser("status", help="Show current session status")
     sub.add_parser("watch", help="Watch new conversation events")
     remember = sub.add_parser("remember", help="Add a session note")
@@ -72,6 +76,8 @@ def main(argv=None):
         print(f"Model: {state['model']} | Busy: {state['busy']} | Queued: {state['queueLength']}")
         if state["pendingApproval"]:
             print("Waiting for USER approval:", state["pendingApproval"]["name"])
+        for job in state.get("jobs", []):
+            print(f"Job {job['id']}: {job['state']} — {job['goal']}")
         print(f"Event cursor: {state['lastEventId']} | Notes: {len(state['notes'])}")
     elif args.command == "remember":
         api(config, "/api/notes", {"text": args.text})
@@ -97,6 +103,9 @@ def main(argv=None):
                     return
                 time.sleep(0.5)
             raise RuntimeError("Timed out waiting for a reply. The session may still be working or awaiting approval.")
+    elif args.command == "goal":
+        response = api(config, "/api/goals", {"text": args.text})
+        print("New goal queued:", response["jobId"])
     elif args.command == "watch":
         state = api(config, "/api/state")
         cursor = state["lastEventId"]

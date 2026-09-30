@@ -102,6 +102,13 @@ def make_handler(session: SharedSession, user_token: str, agent_token: str):
                     raise ValueError("Request body must be an object.")
                 if self.path == "/api/messages":
                     result["requestId"] = session.submit(payload.get("text"), actor)
+                elif self.path == "/api/goals":
+                    result["jobId"] = session.submit_goal(payload.get("text"), actor)
+                elif self.path == "/api/jobs/cancel":
+                    if actor != "USER":
+                        self._reject(HTTPStatus.FORBIDDEN, "Only the USER browser can cancel a job.")
+                        return
+                    session.cancel_job(payload.get("id"), actor)
                 elif self.path == "/api/notes":
                     session.add_note(payload.get("text"), actor)
                 elif self.path == "/api/notes/remove":

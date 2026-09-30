@@ -63,7 +63,8 @@
     <section class="conversation">
       <div id="timeline" aria-live="polite"></div>
       <div id="error"></div>
-      <form id="promptForm"><textarea id="prompt" placeholder="Send a message to the shared Ollama session…" aria-label="Message"></textarea><button type="submit">Send</button></form>
+      <form id="promptForm"><textarea id="prompt" placeholder="Chat with the shared session…" aria-label="Chat message"></textarea><button type="submit">Chat</button></form>
+      <form id="goalForm"><textarea id="goal" placeholder="Describe a new goal for the selected project…" aria-label="New goal"></textarea><button type="submit">New goal</button></form>
     </section>
     <aside>
       <h2>Model</h2><div class="muted">One model and one conversation for both of us.</div>
@@ -71,6 +72,7 @@
       <h2>Project folder</h2><div class="muted">Choose an existing folder for the agent to inspect and edit. Patches to existing files pause for your review and approval.</div>
       <div class="project-form"><input id="projectPath" placeholder="Paste a folder path" aria-label="Project folder path"><button id="useProject" type="button">Use</button></div>
       <div id="selectedProject" class="muted">No project selected.</div>
+      <h2>Jobs</h2><div id="jobs" class="muted">No goals submitted.</div>
       <h2>Long term notes</h2><div class="muted">These stay in the shared session.</div>
       <div class="note-form"><input id="note" placeholder="A fact to remember" aria-label="New note"><button id="remember" type="button">Add</button></div>
       <div id="notes"></div>
@@ -79,7 +81,7 @@
   </main>
   <div id="approval" class="overlay" role="dialog" aria-modal="true" aria-label="File change approval">
     <div class="dialog"><h2 id="approvalTitle">Approve patch?</h2><div id="approvalName" class="muted"></div>
-      <div id="diffPreview"><div class="muted">In the diff, − lines are removed and + lines are added.</div><pre id="diffContent"></pre></div>
+      <div id="diffPreview"><div id="diffLegend" class="muted">In the diff, − lines are removed and + lines are added.</div><pre id="diffContent"></pre></div>
       <div class="actions"><button id="cancel" class="cancel">Cancel</button><button id="approveChange">Apply patch</button></div>
     </div>
   </div>
@@ -129,11 +131,27 @@
         approvalId = approval.id;
         document.querySelector('#approvalTitle').textContent = approval.title;
         document.querySelector('#approvalName').textContent = approval.name;
-        document.querySelector('#diffContent').textContent = approval.diff || '';
+        document.querySelector('#diffContent').textContent = approval.detail || approval.diff || '';
+        document.querySelector('#diffLegend').style.display = approval.kind === 'patch' ? 'block' : 'none';
         document.querySelector('#diffPreview').style.display = 'block';
-        document.querySelector('#approveChange').textContent = 'Apply patch';
+        document.querySelector('#approveChange').textContent = approval.kind === 'plan' ? 'Approve plan' : approval.kind === 'command' ? 'Run command' : 'Apply patch';
       }
       overlay.classList.add('show');
+    }
+    function renderJobs(jobs) {
+      const box = document.querySelector('#jobs'); box.replaceChildren();
+      if (!jobs.length) { box.textContent = 'No goals submitted.'; return; }
+      for (const job of jobs.slice(-5).reverse()) {
+        const row = document.createElement('div'); row.className = 'note';
+        const label = document.createElement('span'); label.textContent = `${job.state}: ${job.goal}`;
+        row.append(label);
+        if (!['done', 'failed', 'cancelled', 'rejected'].includes(job.state)) {
+          const cancel = document.createElement('button'); cancel.textContent = 'Cancel';
+          cancel.onclick = async () => { try { await api('/api/jobs/cancel', { id: job.id }); showError(''); await refresh(); } catch (e) { showError(e.message); } };
+          row.append(cancel);
+        }
+        box.append(row);
+      }
     }
     async function refresh() {
       if (loading) return; loading = true;
@@ -142,13 +160,15 @@
         const updates = await api('/api/events?after=' + lastEventId);
         renderEvents(updates.events);
         renderNotes(state.notes);
+        renderJobs(state.jobs || []);
         renderApproval(state.pendingApproval);
         document.querySelector('#selectedProject').textContent = state.projectRoot ? 'Selected: ' + state.projectRoot : 'No project selected.';
         if (!projectPathInitialized) {
           document.querySelector('#projectPath').value = state.projectRoot || '';
           projectPathInitialized = true;
         }
-        document.querySelector('#status').textContent = state.pendingApproval ? 'Approval needed' : state.busy ? 'Thinking…' : state.queueLength ? 'Queued' : 'Ready';
+        const activeJob = (state.jobs || []).find(j => !['done', 'failed', 'cancelled', 'rejected'].includes(j.state));
+        document.querySelector('#status').textContent = state.pendingApproval ? 'Approval needed' : activeJob ? `Goal: ${activeJob.state}` : state.busy ? 'Thinking…' : state.queueLength ? 'Queued' : 'Ready';
         const picker = document.querySelector('#model');
         if (picker.options.length !== state.models.length || !state.models.every((m, i) => picker.options[i]?.value === m)) {
           picker.replaceChildren(); state.models.forEach(m => picker.add(new Option(m, m)));
@@ -161,6 +181,10 @@
     document.querySelector('#promptForm').onsubmit = async event => {
       event.preventDefault(); const box = document.querySelector('#prompt'); const text = box.value.trim(); if (!text) return;
       try { await api('/api/messages', { text }); box.value = ''; showError(''); await refresh(); } catch (e) { showError(e.message); }
+    };
+    document.querySelector('#goalForm').onsubmit = async event => {
+      event.preventDefault(); const box = document.querySelector('#goal'); const text = box.value.trim(); if (!text) return;
+      try { await api('/api/goals', { text }); box.value = ''; showError(''); await refresh(); } catch (e) { showError(e.message); }
     };
     document.querySelector('#prompt').onkeydown = event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); document.querySelector('#promptForm').requestSubmit(); } };
     document.querySelector('#remember').onclick = async () => { const box = document.querySelector('#note');

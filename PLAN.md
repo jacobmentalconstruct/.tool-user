@@ -117,6 +117,7 @@ All recorded 2026-09-29.
   - The USER and any advising AGENT review, discuss strategy and give input through chat and the hub. They don't implement unless they declare a tranche themselves.
   - The rights table is in `docs/CONTRACTS.md` §0. The code enforces it from T2 on, when the event log introduces actors. Until then, the hub's two tokens map to USER and AGENT.
 - **D12 T3 event payloads (2026-09-29):** T3 uses the existing `job.state`, `task.state`, `approval.requested`, `approval.resolved` and `command.result` kinds; it adds no kind or top-level event field. `job.state` carries `data.state`, the initial `data.goal`, and `data.reason` on failure/cancellation. Approval events carry the §3 approval identity, kind and state; T2's older patch approval events remain readable. `command.result` carries the §4 result fields. This records the event-data schema introduced by T3 before implementation; any later shape change needs another decision.
+- **D13 Goal-submission provenance (2026-09-29):** the first `job.state` event also carries `data.submittedBy` (`user` or `agent`) and optional `data.display` text for the shared timeline. SYSTEM remains the event actor because it owns job-state transitions (§0); `submittedBy` records who requested the goal. No new event kind or top-level field is added.
 
 ## 3. Target end state and stop conditions
 
@@ -248,11 +249,11 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **Progress:**
 - [x] 1. Implement the T3 job path, restart failure handling, and the task transition table.
 - [x] 2. Implement non-blocking plan/command approvals, restart expiry, and USER-only cancellation.
-- [ ] 3. Add distinct Chat/New goal entrances and stage visibility in browser and CLI.
+- [x] 3. Add distinct Chat/New goal entrances and stage visibility in browser and CLI.
 - [ ] 4. Implement the chat loop's named-command tool, USER-approved runner, and event results.
 - [ ] 5. Add focused tests and align documentation with the delivered behavior.
 
-**Now:** Tasks 1–2 are complete; connecting New goal to the T3 job path and exposing stages in task 3.
+**Now:** Tasks 1–3 are complete; implementing the named command runner and Windows process cleanup in task 4.
 
 **Non-goals:** T4 knowledge/indexing; T5 bench; T6 planner/builder/debugger/reviewer role team and deterministic gate; replacing `engine.run_turn`; UI redesign beyond the two entrances and lifecycle status; changing §3 or §4; new dependencies beyond standard library plus numpy.
 

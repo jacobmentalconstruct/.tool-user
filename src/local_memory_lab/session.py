@@ -11,6 +11,7 @@ from .agent.engine import DEFAULT_MODEL, installed_chat_models, run_turn
 from .agent.project_tools import ProjectTools
 from .agent.tool_router import SharedTools
 from .event_store import EventStore
+from .lifecycles import JOB_TERMINAL
 from .locations import CONTROL
 from .session_state import SessionState
 
@@ -72,9 +73,12 @@ class SharedSession:
             return event
 
     def transition_job(self, job_id: str, target: str, *, goal: str = "",
-                       reason: str = "") -> dict:
+                       reason: str = "", submitted_by: str = "") -> dict:
         with self.lock:
-            data = self.state.jobs.transition_data(job_id, target, goal=goal, reason=reason)
+            data = self.state.jobs.transition_data(
+                job_id, target, goal=goal, reason=reason, submitted_by=submitted_by)
+            if target == "queued" and submitted_by:
+                data["display"] = {"speaker": submitted_by.upper(), "text": "New goal: " + goal.strip()}
             return self._record("system", "job.state", data, job=job_id)
 
     @staticmethod
@@ -111,6 +115,25 @@ class SharedSession:
             self.prompts.put_nowait(event["id"])
         return request_id
 
+    def submit_goal(self, goal: str, actor: str) -> str:
+        if not isinstance(goal, str) or not goal.strip() or len(goal) > 8000:
+            raise ValueError("Goal must contain 1 to 8,000 characters.")
+        actor_label = self._actor_label(actor)
+        with self.lock:
+            if self.project_root is None:
+                raise ValueError("Choose a project folder before submitting a goal.")
+            if self.state.jobs.active_ids():
+                raise ValueError("Wait for the current goal to finish.")
+            job_id = str(uuid4())
+            self.transition_job(job_id, "queued", goal=goal, submitted_by=actor_label)
+            self.transition_job(job_id, "planning")
+            self.transition_job(job_id, "awaiting_plan_approval")
+            approval_id = self.request_approval(
+                "plan", "Approve goal plan", goal.strip(), actor="system", job=job_id)
+            threading.Thread(target=self._run_goal, args=(job_id, approval_id),
+                             daemon=True, name="goal-" + job_id[:8]).start()
+            return job_id
+
     def snapshot(self, actor: str) -> dict:
         with self.lock:
             approvals = [item.public(actor == "USER") for item in self.state.approvals.pending()]
@@ -132,7 +155,7 @@ class SharedSession:
         actor_label = self._require_user(actor)
         root = ProjectTools.choose_root(raw_path)
         with self.lock:
-            if self.busy or not self.prompts.empty():
+            if self.busy or not self.prompts.empty() or self.state.jobs.active_ids():
                 raise ValueError("Wait for the current conversation to finish before changing projects.")
             self._record(actor_label, "project.selected", {
                 "path": str(root),
@@ -226,10 +249,64 @@ class SharedSession:
                 if pending.job == job_id:
                     self._resolve_approval(pending.id, "superseded", "system")
 
-    def _confirm_patch(self, request_id: str, proposal: dict) -> bool:
+    def _confirm_patch(self, request_id: str, proposal: dict,
+                       job_id: str | None = None) -> bool:
         approval_id = self.request_approval("patch", proposal["title"], proposal["diff"],
-                                            actor="role:builder", request_id=request_id)
+                                            actor="role:builder", request_id=request_id,
+                                            job=job_id)
         return self.wait_for_approval(approval_id)
+
+    def _run_goal(self, job_id: str, approval_id: str) -> None:
+        entered_running = False
+        try:
+            approved = self.wait_for_approval(approval_id)
+            with self.lock:
+                if self.state.jobs.records[job_id].state in JOB_TERMINAL:
+                    return
+                if not approved:
+                    resolution = self.state.approvals.records[approval_id].state
+                    if resolution == "rejected":
+                        self.transition_job(job_id, "rejected")
+                    else:
+                        self.transition_job(job_id, "failed", reason="plan approval expired")
+                    return
+                self.transition_job(job_id, "running")
+                self._active_turns += 1
+                self.busy = True
+                entered_running = True
+                model = self.model
+                notes = list(self.notes)
+                project_root = self.project_root
+                goal = self.state.jobs.records[job_id].goal
+            answer, _ = run_turn(
+                goal, model, [], notes,
+                SharedTools(project_root,
+                            lambda proposal: self._confirm_patch(job_id, proposal, job_id),
+                            job_id),
+                lambda result: self._record("system", "tool.result", {
+                    "display": {"speaker": "Tool", "text": result["message"]},
+                    "toolStatus": result["status"],
+                }, job=job_id),
+                cancelled=lambda: self.state.jobs.records[job_id].state == "cancelled",
+            )
+            with self.lock:
+                if self.state.jobs.records[job_id].state == "running":
+                    self._record("system", "chat.reply", {
+                        "display": {"speaker": "Assistant", "text": answer},
+                    }, job=job_id)
+                    self.transition_job(job_id, "done")
+        except Exception as exc:
+            with self.lock:
+                if self.state.jobs.records[job_id].state not in JOB_TERMINAL:
+                    self.transition_job(job_id, "failed", reason=str(exc))
+                    self._record("system", "error", {
+                        "display": {"speaker": "Error", "text": str(exc)},
+                    }, job=job_id)
+        finally:
+            if entered_running:
+                with self.lock:
+                    self._active_turns -= 1
+                    self.busy = self._active_turns > 0
 
     def _work(self):
         while True:

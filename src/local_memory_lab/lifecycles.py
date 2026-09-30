@@ -40,6 +40,7 @@ class Job:
     state: str
     goal: str
     reason: str = ""
+    submitted_by: str = ""
 
 
 @dataclass
@@ -49,7 +50,7 @@ class Jobs:
     records: dict[str, Job] = field(default_factory=dict)
 
     def transition_data(self, job_id: str, target: str, *, goal: str = "",
-                        reason: str = "") -> dict:
+                        reason: str = "", submitted_by: str = "") -> dict:
         if not isinstance(job_id, str) or not job_id:
             raise ValueError("Choose a job ID.")
         current = self.records.get(job_id)
@@ -61,6 +62,10 @@ class Jobs:
         data = {"state": target}
         if source is None:
             data["goal"] = goal.strip()
+            if submitted_by:
+                if submitted_by not in {"user", "agent"}:
+                    raise ValueError("Choose the USER or AGENT submitter.")
+                data["submittedBy"] = submitted_by
         if reason:
             data["reason"] = reason
         return data
@@ -73,16 +78,19 @@ class Jobs:
         if not isinstance(job_id, str) or not job_id:
             raise ValueError("A job state event needs a job ID.")
         self.transition_data(job_id, data["state"], goal=data.get("goal", ""),
-                             reason=data.get("reason", ""))
+                             reason=data.get("reason", ""),
+                             submitted_by=data.get("submittedBy", ""))
         previous = self.records.get(job_id)
         self.records[job_id] = Job(job_id, data["state"],
                                    data.get("goal", "") if previous is None else previous.goal,
-                                   data.get("reason", ""))
+                                   data.get("reason", ""),
+                                   data.get("submittedBy", "") if previous is None else previous.submitted_by)
 
     def active_ids(self) -> list[str]:
         return [job_id for job_id, job in self.records.items() if job.state not in JOB_TERMINAL]
 
     def public(self) -> list[dict]:
         return [{"id": job.id, "state": job.state, "goal": job.goal,
+                 **({"submittedBy": job.submitted_by} if job.submitted_by else {}),
                  **({"reason": job.reason} if job.reason else {})}
                 for job in self.records.values()]
