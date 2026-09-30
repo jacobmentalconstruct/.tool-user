@@ -263,7 +263,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **T4 task 3 review fixes:**
 - [x] Use reciprocal rank fusion so matching keyword results outrank non-matches with equal vectors.
 
-**Now:** Recording verification evidence and preparing the T4 park.
+**Now:** T4 is parked on `t4-knowledge`, pending USER acceptance.
 
 **Hook ownership (recorded before implementation):** A new `knowledge/service.py` owns the selected project's store, idle indexing worker, refresh queue, and context-pack retrieval. Before a turn acquires its activity lease, the session path asks the service to finish an idle hash scan, then retrieves context before `run_turn`. Indexing waits for leases to clear; turns wait for an already-running index to finish. The approved-patch callback queues only applied paths for refresh, which runs after the turn lease ends (so commands are covered too). Restoring a selected project queues a scan on service startup. Keep `session.py` at or below 400 lines.
 
@@ -287,7 +287,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** YES for T4 (USER, 2026-09-29).
+**Implementation permission:** NO. T4 is parked pending USER acceptance.
 
 ## 9. Parked Tranches
 
@@ -359,3 +359,15 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Limitations:** live Ollama inference was not part of the automated or hub smoke tests. Goals receive notes but no chat history. A chat-started command stops only by timeout because chat has no USER cancellation path. Command output is duplicated in `tool.result` display text as well as `command.result.data.output`. Cancellation is checked at model/tool boundaries; a tool call already in progress may finish. An abrupt hub crash marks a running job failed on restart but cannot stop a command process that was already running when the hub died.
 - **Deferrals:** the T6 role team, gate and task execution remain as planned; otherwise none beyond §4.
 - **Next step:** T4 knowledge layer, declared and active on `t4-knowledge`.
+
+**T4, knowledge layer: PARKED 2026-09-30 on `t4-knowledge`, pending USER acceptance.** Not merged.
+- **Outcome met:** The selected project has a separate SQLite knowledge index with deterministic Python/Markdown chunks and summaries, FTS5, stored embeddings, and an `ast` graph. Hybrid retrieval uses reciprocal rank fusion and keyword-only fallback. Chat and goal turns receive bounded context packs. Project scans run at selection/startup and idle boundaries; they detect outside edits by hash, retry missing embeddings, and remove stale files. USER-approved patch paths are queued for refresh, and indexing waits until turns and commands are idle. `session.py` remains at 400 lines. No event or contract schema changed.
+- **Evidence:**
+  - `python -B -m unittest discover -s tests -v` — 71 tests passed in 11.507 s.
+  - `python -B -m unittest discover -s tests -p "test_context_pack.py" -v` — 2 tests passed, including §5 shape/accounting and the session path.
+  - `python -B -m unittest discover -s tests -p "test_knowledge_integration.py" -v` — 6 tests passed: selection/restart scans, outside-edit refresh before a turn, approved-patch refresh and rejected-patch refusal, missing-embedding retry, keyword fallback, and no indexing during a turn or command.
+  - `python -B -m unittest discover -s tests -p "test_architecture.py" -v` — 2 tests passed.
+  - `git diff --check 5fd56d6..HEAD` — clean. `git diff --unified=0 5fd56d6..HEAD -- PLAN.md` shows no edits to §§3–4.
+- **Limitations:** Automated tests use fake/dummy embedders; live Ollama inference was not run. The indexer handles allowed `.py`, `.md`, and `.markdown` files. Scan errors are retained in the knowledge service but are not shown in the browser. Full hash scans happen before a new turn, so large projects may delay turn startup; unchanged files skip chunking and embedding.
+- **Deferrals:** none beyond §4.
+- **Next step:** Reorient and review T4; after USER acceptance, consider declaring T5 Bench from §5. T5 remains provisional.
