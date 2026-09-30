@@ -255,16 +255,29 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Task 2 evidence:** `python lab.py bench validate --baselines --contexts` — 22 original tests passed, 22 punched tests failed as intended, and all 22 packs built from punched copies excluded their removed bodies. Focused harness and scoring tests pass.
 
-**Pause checkpoint (2026-09-30, USER-requested):** T5 remains active and implementation permission remains YES. No formal T5 parking or §9 acceptance record is being made. Work is paused while the USER attends a meeting and will review the state later.
+**Review handoff (2026-09-30, reviewer AGENT → builder AGENT).** Read this block first when resuming T5.
 
-- **Last completed tasks:** Task 1 is committed as `37effe5` (`T5 wip: pin snapshot and validate hole-punch tasks`); Task 2 is committed as `12abdc2` (`T5 wip: add isolated benchmark harness`). The T5 permission record is `c916053` (`T5 wip: record implementation permission`).
-- **Working tree at pause:** `src/local_memory_lab/bench/harness.py` is modified to include `eval_count` in attempt results, and `src/local_memory_lab/bench/runner.py` is untracked. These are unfinished Task 3 work and are intentionally not represented as a completed task commit. No other changes were reported by `git status --short` at checkpoint.
-- **Task 1 proof:** 22 task records pin `self@c916053`. Each named test passed on the pristine snapshot and failed after its target body was punched in a separate temporary copy. The focused task helper tests passed.
-- **Task 2 proof:** corpus validation reported 22 valid records, 22 pristine tests passing, 22 punched tests failing as intended, and 22 punched-copy context leak checks passing. Validation used a deterministic fake embedder; it made no Ollama/network/GPU inference calls. Focused `test_bench_tasks.py`, `test_bench_harness.py`, and `test_bench_scoring.py` checks passed (5, 5, and 3 tests respectively); the corpus validation was also run with `python lab.py bench validate --baselines --contexts`.
-- **Task 3 not yet started as a model run:** no Ollama candidate availability query, model load, or inference run has been made. The USER has not confirmed that the GPU is free. Do not run the full bench until the USER explicitly confirms the GPU is free, and never while local roles are working.
-- **Resume sequence:** first inspect the unfinished runner and harness diff; complete and test Task 3's bounded execution and result collection; only after explicit USER confirmation, check the three declared candidates (`qwen3.5:9b`, `qwen3.5:4b`, `qwen3.5:2b`) and run one temperature-0 attempt per task/model/condition with the declared 180-second per-task timeout. Preserve the isolation guarantee: inference and patch application use disposable task copies and must leave the pinned snapshot and working tree unchanged. Record unavailable candidates rather than substituting models. Then validate and commit results/configuration, document reproduction, run required focused checks and full suite/architecture/diff checks, and prepare the T5 parking evidence for USER review. Task 4 remains open; the full regression suite has not yet been run after the T5 additions.
+- **USER approvals given (previously unrecorded):** after the 10:04 pause, the USER freed the GPU and approved (1) test runs without code changes, then (2) limited changes to get the builder models running correctly. The GPU was free as of this handoff. **Re-confirm with the USER before any new model run.**
+- **Uncommitted Task 3 work (builder's):** `bench/runner.py` (run, resume, record, aggregate, `choose_builder`) and `tests/test_bench_runner.py` are new; `bench/harness.py`, `bench/cli.py` and `tests/test_bench_harness.py` are modified. Full suite: 90 tests pass; `git diff --check` is clean.
+- **Runs made so far:** these are raw files in `%TEMP%/local-memory-lab-bench/`, not evidence and not committed.
 
-**Now:** Paused at Task 3 implementation; awaiting USER resumption and explicit GPU-availability confirmation before any model run.
+  | Run | Prompt version | `think` | Invalid output |
+  |---|---|---|---|
+  | `20260930T153923Z` (full) | v1 | not set | 75/132; qwen3.5:9b passed 27% (32% with context, 23% without), 4b 7%, 2b 0%; top-five recall 0.68 |
+  | `20260930T170215Z` | v2 | not set | 1/4 |
+  | `20260930T170647Z` | v3 | false | 23/23 |
+  | `20260930T171151Z` (full) | v4 | false | **132/132**: 94 wrong keys, 38 not valid JSON, 16 hit the 2,048-token output cap |
+
+- **Diagnosis (reviewer, unproven):** invalid output reached 100% exactly when `think: false` was added, so Ollama likely stops enforcing the JSON output format for qwen3.5 when thinking is disabled. v1's "not valid JSON" failures more likely come from output being cut off at the token limit. The raw replies were not saved, so this cannot be confirmed from the files.
+- **Approved limited fix, in order; nothing beyond this:**
+  1. On invalid output, save a shortened copy of the model reply (about the first 2,000 characters) in the result row.
+  2. `choose_builder` raises an error when the best pass rate is 0, rather than choosing by list order.
+  3. Define the prompt version string once as a constant; `_run_identity` reads `task_source` from the tasks instead of hardcoding it.
+  4. Probe, with the USER's confirmation: one task on `qwen3.5:9b`, `think: false` against thinking left on; save the raw replies and `eval_count`. Adopt whichever setting reliably produces valid JSON as the frozen prompt version (raise the output cap if thinking is on). If thinking is required, record it in `roles.json` and in `docs/CONTRACTS.md` §8 (currently `builder think false`), and note the change against D4.
+  5. Commit as `T5 wip: fix builder output protocol`, then do one clean full run under the frozen version, `python lab.py bench run --confirm-gpu-free`, followed by `python lab.py bench record <raw file>`. Only that run decides `roles.json`. List v1–v4 in the park record as history.
+- **Then:** Task 4 (reproduction docs, `python lab.py bench validate --results`, full suite, architecture check, `git diff --check`), then park T5 for review by the reviewer AGENT and the USER.
+
+**Now:** Handed off to the builder AGENT for the approved limited fix above (steps 1–5). The reviewer AGENT reviews the resulting commits before the full run is recorded.
 
 **Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
 
