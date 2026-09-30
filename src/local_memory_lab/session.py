@@ -26,7 +26,7 @@ class SharedSession:
         self.prompts: queue.Queue[int] = queue.Queue(maxsize=32)
         self.store = EventStore(store_path or CONTROL / "events.sqlite")
         self.state = SessionState.restore(self.store)
-        self.knowledge = KnowledgeService(self.state.workspace.project_root)
+        self.knowledge = KnowledgeService(self.state.workspace.project_root, start_worker=start_worker)
         self.busy = False
         self._active_turns = 0
         self._turn_slot = threading.Semaphore(1)
@@ -269,6 +269,10 @@ class SharedSession:
                                             actor="role:builder", request_id=request_id,
                                             job=job_id)
         return self.wait_for_approval(approval_id)
+    def _tools_for(self, project_root: Path | None, request_id: str, job_id: str | None = None) -> SharedTools:
+        return SharedTools(project_root, lambda proposal: self._confirm_patch(request_id, proposal, job_id), request_id,
+                           lambda name: self._run_named_command(name, project_root, request_id, job_id),
+                           self.knowledge.refresh_paths)
 
     def _run_named_command(self, name: str, project_root: Path | None,
                            request_id: str, job_id: str | None = None) -> dict:
@@ -310,20 +314,19 @@ class SharedSession:
             with self.lock:
                 if self.state.jobs.records[job_id].state in JOB_TERMINAL:
                     return
+                self.knowledge.begin_activity()
                 self.transition_job(job_id, "running")
                 self._active_turns += 1
                 self.busy = True
                 entered_running = True
                 model = self.model
-                notes = [*self.notes, self.knowledge.context_for(goal)]
+                notes = list(self.notes)
                 project_root = self.project_root
                 goal = self.state.jobs.records[job_id].goal
+            notes.append(self.knowledge.context_for(goal))
             answer, _ = run_turn(
                 goal, model, [], notes,
-                SharedTools(project_root,
-                            lambda proposal: self._confirm_patch(job_id, proposal, job_id),
-                            job_id,
-                            lambda name: self._run_named_command(name, project_root, job_id, job_id)),
+                self._tools_for(project_root, job_id, job_id),
                 lambda result: self._record("system", "tool.result", {
                     "display": {"speaker": "Tool", "text": result["message"]},
                     "toolStatus": result["status"],
@@ -346,8 +349,8 @@ class SharedSession:
         finally:
             if entered_running:
                 with self.lock:
-                    self._active_turns -= 1
-                    self.busy = self._active_turns > 0
+                    self._active_turns -= 1; self.busy = self._active_turns > 0
+                self.knowledge.end_activity()
             if getattr(self._turn_local, "owns_slot", False):
                 self._turn_local.owns_slot = False
                 self._turn_slot.release()
@@ -356,6 +359,7 @@ class SharedSession:
         while True:
             prompt_event_id = self.prompts.get()
             self._turn_slot.acquire()
+            self.knowledge.begin_activity()
             with self.lock:
                 self._active_turns += 1
                 self.busy = True
@@ -372,15 +376,12 @@ class SharedSession:
             prompt = prompt_event["data"]["display"]["text"]
             with self.lock:
                 model = self.model
-                notes = [*self.notes, self.knowledge.context_for(prompt)]
+                notes = list(self.notes)
                 turns = list(self.turns)
                 project_root = self.project_root
+            notes.append(self.knowledge.context_for(prompt))
             answer, turn = run_turn(prompt, model, turns, notes,
-                                    SharedTools(project_root,
-                                                lambda proposal: self._confirm_patch(request_id, proposal),
-                                                request_id,
-                                                lambda name: self._run_named_command(
-                                                    name, project_root, request_id)),
+                                    self._tools_for(project_root, request_id),
                                     lambda result: self._event("Tool", result["message"],
                                                                toolStatus=result["status"], requestId=request_id))
             with self.lock:
@@ -392,8 +393,8 @@ class SharedSession:
             self._event("Error", str(exc), requestId=request_id)
         finally:
             with self.lock:
-                self._active_turns -= 1
-                self.busy = self._active_turns > 0
+                self._active_turns -= 1; self.busy = self._active_turns > 0
+            self.knowledge.end_activity()
             self.prompts.task_done()
             self._turn_local.owns_slot = False
             self._turn_slot.release()

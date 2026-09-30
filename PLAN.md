@@ -251,7 +251,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 2. Persist one project-scoped index with FTS5, embeddings and an `ast` graph.
 - [x] 3. Query Ollama embeddings and combine keyword/vector retrieval.
 - [x] 4. Assemble bounded context packs through the shared session path.
-- [ ] 5. Refresh after approved changes only while idle, verify and update docs.
+- [x] 5. Refresh after approved changes only while idle, verify and update docs.
 
 **T4 task 1 review fixes:**
 - [x] Split class chunks into a header and addressable method chunks.
@@ -263,7 +263,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **T4 task 3 review fixes:**
 - [x] Use reciprocal rank fusion so matching keyword results outrank non-matches with equal vectors.
 
-**Now:** Implementing idle indexing, approved-patch refresh, restart recovery and documentation (task 5).
+**Now:** Recording verification evidence and preparing the T4 park.
 
 **Hook ownership (recorded before implementation):** A new `knowledge/service.py` owns the selected project's store, idle indexing worker, refresh queue, and context-pack retrieval. The session path asks this service for context before `run_turn` and acquires an activity lease around each turn; indexing waits for leases to clear, while turns wait for an already-running index to finish. The approved-patch callback queues only applied paths for refresh, which runs after the turn lease ends (so commands are covered too). Restoring a selected project queues a scan on service startup. Keep `session.py` at or below 400 lines.
 

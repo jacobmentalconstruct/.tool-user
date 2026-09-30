@@ -34,6 +34,8 @@ New goals wait for USER plan approval in the browser. The browser and CLI both s
 
 The hub listens only on `127.0.0.1`. The browser and the agent client get different random tokens, and only the browser can approve changes or choose the project. The tokens sit in a local file, so they guard against mistakes, not against other programs on your machine.
 
+When a project is selected, the hub indexes its allowed Python and Markdown files into a separate SQLite knowledge store under `live_control/knowledge/`. Chat and goal turns receive a bounded context pack from that index. Indexing waits for active turns and their commands; an approved patch queues its changed files for refresh. If Ollama embeddings are unavailable, keyword search remains available.
+
 ## Tests
 
 ```

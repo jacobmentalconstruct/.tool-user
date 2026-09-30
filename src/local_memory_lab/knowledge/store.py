@@ -132,6 +132,19 @@ class KnowledgeStore:
             row = db.execute("SELECT * FROM source_files WHERE path = ?", (relative,)).fetchone()
         return dict(row) if row else None
 
+    def indexed_paths(self) -> list[str]:
+        with self._connect() as db:
+            rows = db.execute("SELECT path FROM source_files ORDER BY path").fetchall()
+        return [row["path"] for row in rows]
+
+    def remove_file(self, relative: str) -> None:
+        with self._connect() as db:
+            ids = [row[0] for row in db.execute(
+                "SELECT id FROM chunks WHERE path = ?", (relative,))]
+            for chunk_id in ids:
+                db.execute("DELETE FROM chunks_fts WHERE rowid = ?", (chunk_id,))
+            db.execute("DELETE FROM source_files WHERE path = ?", (relative,))
+
     def list_chunks(self, relative: str) -> list[dict]:
         with self._connect() as db:
             rows = db.execute("SELECT * FROM chunks WHERE path = ? ORDER BY ordinal", (relative,)).fetchall()

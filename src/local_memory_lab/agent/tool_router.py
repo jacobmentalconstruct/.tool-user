@@ -21,9 +21,9 @@ class SharedTools:
     schemas = PROJECT_TOOLS + PATCH_TOOLS + [RUN_COMMAND]
 
     def __init__(self, project_root: Path | None, request_patch_approval, request_id: str,
-                 request_command=None):
+                 request_command=None, patch_applied=None):
         self.project = ProjectTools(project_root)
-        self.patches = PatchTools(self.project, request_patch_approval, request_id)
+        self.patches = PatchTools(self.project, request_patch_approval, request_id, patch_applied)
         self.request_command = request_command
         self.system_hint = (
             "Use list_project and read_project_file to inspect the selected project. "

@@ -58,7 +58,7 @@ src/local_memory_lab/
   command_runner.py         USER-approved named command execution
   locations.py              repo-relative paths
   workspace/                 safe project paths, patches, and backups
-  knowledge/                 source chunks, index, retrieval, and context packs (T4)
+  knowledge/                 source chunks, index service, retrieval, and context packs (T4)
   agent/                    Ollama loop and bounded project tools (loop replaced in T6)
   interfaces/               browser server + page, launcher, CLI client (adapters only)
 tests/                      unittest suite

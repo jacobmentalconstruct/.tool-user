@@ -28,10 +28,12 @@ PATCH_TOOLS = [
 
 
 class PatchTools:
-    def __init__(self, project: ProjectTools, request_approval: Callable[[dict], bool], request_id: str):
+    def __init__(self, project: ProjectTools, request_approval: Callable[[dict], bool], request_id: str,
+                 on_applied: Callable[[list[str]], None] | None = None):
         self.project = project
         self.request_approval = request_approval
         self.request_id = request_id
+        self.on_applied = on_applied
 
     def apply(self, entries: object) -> dict:
         if self.project.root is None:
@@ -51,6 +53,8 @@ class PatchTools:
         scope = hashlib.sha256(str(self.project.root).casefold().encode("utf-8")).hexdigest()[:16]
         store = BackupStore(CONTROL / "backups" / scope)
         applied, backup_id = staged_apply(changes, store, self.request_id)
+        if self.on_applied is not None:
+            self.on_applied(applied)
         return {"status": "patched", "message": f"Patched {len(applied)} project file(s); backup {backup_id}",
                 "paths": applied, "backup": backup_id}
 
