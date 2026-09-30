@@ -20,7 +20,7 @@ Local Memory Lab is a local agent team that runs on Ollama models. A shared hub 
 
 1. Orient with the steps above, then read `docs/WORKFLOW.md` in full. It's short.
 2. Check the known state yourself: `python -B -m unittest discover -s tests`. At the T0 baseline this had one import error (`PLAN.md` §1, finding 8); use the current tranche record for the expected state.
-3. If no tranche is active (`PLAN.md` §7), declare the next one from its draft, following "Working as a team" in `docs/WORKFLOW.md`. Present it to the USER and wait for approval before changing any code.
+3. If a tranche is parked pending USER acceptance, review that park first. Once accepted, declare the next tranche from its draft, following "Working as a team" in `docs/WORKFLOW.md`. Present it to the USER and wait for approval before changing any code.
 4. Immediately after approval, record `Implementation permission: YES for T<n> (USER, <date>)` in §8 before touching code. During implementation keep the one-line-per-scope-task `Progress:` checklist and short `Now:` line in §7 current; commit each completed task on its tranche branch as `T<n> wip: <task>` with the `Actor: AGENT` trailer. Reserve `T<n>: <outcome>` for the parking commit.
 
 ## Standing documents (read the relevant section in full when a decision touches it)
@@ -74,4 +74,4 @@ If a `_projectmapper/` folder exists locally, it is a stale, gitignored snapshot
 - **Agent client:** `python lab.py client status`, `python lab.py client watch`, `python lab.py client send "…" --wait`
 - **Models:** Ollama at `127.0.0.1:11434`. Role assignments are in `PLAN.md` D4.
 
-> **T3 approved and in progress:** work is on `t3-lifecycles`; `PLAN.md` §7 tracks its tasks and §8 records USER permission. T2 remains accepted on `main` at `b16b1d4`, with acceptance record `54c6134`.
+> **T3 parked pending USER acceptance:** the completed work is on `t3-lifecycles`; `PLAN.md` §§7–9 hold the result, evidence and limitations. Implementation permission is `NO` until the next tranche is approved.

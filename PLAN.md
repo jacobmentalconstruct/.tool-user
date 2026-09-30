@@ -230,11 +230,11 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T3 — Lifecycles and runner.
+**ID:** NONE. T3 is parked pending USER acceptance; no next tranche is declared.
 
-**Current:** T1 and T2 are accepted and merged to `main` (`7d5f5d8`, `b16b1d4`); the T2 acceptance record is `54c6134`. No tranche is active until the USER approves this declaration. §3 stop conditions and §4 non-goals remain frozen (D6).
+**Current:** T1 and T2 are accepted on `main`; T3 implementation is complete on `t3-lifecycles` and parked for USER acceptance. §3 stop conditions and §4 non-goals remain frozen (D6).
 
-**Branch after approval:** `t3-lifecycles`.
+**Branch:** `t3-lifecycles`.
 
 **Expected outcome:** jobs and approvals have explicit event-backed lifecycles, remain visible in the browser and CLI, and can be cancelled by the USER without blocking chat. A USER-approved, named command runs from the project's `.lab/allowlist.json` with a timeout and capped output; its result is recorded in the event log (S3, S4).
 
@@ -254,7 +254,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 4. Implement the chat loop's named-command tool, USER-approved runner, and event results.
 - [x] 5. Add focused tests and align documentation with the delivered behavior.
 
-**Now:** Tasks 1–5 are complete; reviewing the full T3 diff and preparing the parking record.
+**Now:** T3 is parked for USER review; after acceptance, reorient before declaring T4.
 
 **Non-goals:** T4 knowledge/indexing; T5 bench; T6 planner/builder/debugger/reviewer role team and deterministic gate; replacing `engine.run_turn`; UI redesign beyond the two entrances and lifecycle status; changing §3 or §4; new dependencies beyond standard library plus numpy.
 
@@ -270,12 +270,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Known risks:** The builder's environment must let Python create and clean temp directories; verified 2026-09-29 with 25 tests passing. If it cannot, stop and tell the USER. The planner role arrives in T6, so T3 must bridge New goal into the existing `engine.run_turn` path without coupling lifecycle ownership to it. Cancellation and timeout behavior must clean up child processes on Windows. Any change to the event or contract schema is recorded as a decision in §2. Resolve any contract/UI ambiguities inside T3 without changing the frozen stop conditions or non-goals.
 
-**Declaration state:** USER approved T3 declaration and entry on 2026-09-29.
+**Declaration state:** USER approved T3 declaration and entry on 2026-09-29; T3 is now parked pending acceptance.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** YES for T3 (USER, 2026-09-29).
+**Implementation permission:** NO. T3 is parked pending USER acceptance; no next tranche is declared.
 
 ## 9. Parked Tranches
 
@@ -332,3 +332,16 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Deferrals:** T3 lifecycles and runner, as planned; otherwise none beyond §4.
 - **Next step:** reorient from the accepted T2 state and declare T3 from its provisional draft when ready.
 - **Review follow-up (2026-09-29):** USER returned four findings before acceptance; all were resolved before T2 was accepted and merged: restore default model preference, remove the in-memory event-history copy, use `MAX_RECENT_TURNS`, and document optional `data.display` metadata.
+
+**T3, lifecycles and runner: PARKED 2026-09-29, pending USER acceptance.** Built on `t3-lifecycles`; not merged.
+- **Outcome met:** New goal and Chat are separate in the browser and CLI. New goal follows the declared job path with USER plan approval; job and approval states are event-backed and restored after restart. Pending approvals expire and unfinished jobs fail on restart without replay. USER-only cancellation works, while approval waits leave chat responsive. The existing chat loop requests named, USER-approved commands from `.lab/allowlist.json`; execution uses exact argv without a shell, in the project root, with timeout, capped output and `command.result` events. Windows timeout and cancel tests confirm child processes are gone. The task transition table is in place without running task instances.
+- **Evidence:**
+  - `python -B -m unittest discover -s tests -v` — 46 tests passed in 7.801 s, including T1/T2 regressions, lifecycle/restart, rights, interfaces, command refusals, patch-tool allowlist protection, and Windows child-process cleanup. The builder environment needed filesystem access for Python temporary directories.
+  - `python -B -m unittest discover -s tests -p test_command_runner.py -v` — 7 command-runner tests passed, including the real Windows parent/child timeout and cancel case.
+  - `python -B -m unittest discover -s tests -p test_patch_tools.py -v` — 4 tests passed; agent patch tools refused `.lab/allowlist.json`.
+  - `python lab.py hub-server` — hub started; the browser page contained the New goal form and the authenticated state API returned a jobs list. The smoke server was stopped and its generated link file removed.
+  - `git diff --check 54c6134..HEAD` — clean; `git diff --unified=0 54c6134..HEAD -- PLAN.md` shows no edits to §§3–4. Largest Python module: `session.py`, 379 lines.
+  - D12–D14 record the T3 event-data changes before their implementation; `docs/CONTRACTS.md` now reflects them.
+- **Limitations:** live Ollama inference was not part of the automated or hub smoke tests. Cancellation is checked at model/tool boundaries; a tool call already in progress may finish. An abrupt hub crash marks a running job failed on restart but cannot stop a command process that was already running when the hub died.
+- **Deferrals:** the T6 role team, gate and task execution remain as planned; otherwise none beyond §4.
+- **Next step:** USER reviews the T3 diff and evidence, then accepts the park or returns findings. Only after acceptance may T3 be merged into `main`; then reorient and declare T4.

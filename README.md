@@ -6,7 +6,7 @@ The point is to move the expensive inference onto free local models, so that an 
 
 ## Status
 
-**T2 (Event log) is accepted on `main`; T3 (Lifecycles and runner) is in progress on `t3-lifecycles`.** Session history persists in `live_control/events.sqlite`. To reset it, stop the hub and delete that file before restarting. See [PLAN.md](PLAN.md) for T3's current scope and progress.
+**T2 (Event log) is accepted on `main`; T3 (Lifecycles and runner) is complete on `t3-lifecycles` and parked for USER acceptance.** Session history persists in `live_control/events.sqlite`. To reset it, stop the hub and delete that file before restarting. See [PLAN.md](PLAN.md) for the T3 evidence and limitations.
 
 The prototype is finished when the agent can make progress on its own development in a sandboxed copy of this repo. The route there, and where we are on it, is in [PLAN.md](PLAN.md).
 
