@@ -50,7 +50,9 @@ Local Memory Lab is a local agent team that runs on Ollama models. A shared hub 
 ```
 lab.py                      thin entry point: hub-open | hub-server | client
 src/local_memory_lab/
-  session.py                shared session state (split into domain owners in T2)
+  session.py                shared session coordinator; event-backed projections live in session_state.py
+  event_store.py            append-only SQLite event log and cursor reads
+  session_state.py          restored event-backed domain projections
   locations.py              repo-relative paths
   workspace/                 safe project paths, patches, and backups
   agent/                    Ollama loop and bounded project tools (loop replaced in T6)
@@ -69,4 +71,4 @@ If a `_projectmapper/` folder exists locally, it is a stale, gitignored snapshot
 - **Agent client:** `python lab.py client status`, `python lab.py client watch`, `python lab.py client send "…" --wait`
 - **Models:** Ollama at `127.0.0.1:11434`. Role assignments are in `PLAN.md` D4.
 
-> **T2 parked pending USER acceptance:** the event log, cursor API, and USER review fixes are complete on `t2-event-log`. See `PLAN.md` §7–§9.
+> **T2 accepted and merged:** the event log, cursor API, and USER review fixes are on `main` at `b16b1d4`. No tranche is active; T3 is provisional. See `PLAN.md` §7–§9.

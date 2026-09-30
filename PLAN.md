@@ -186,7 +186,7 @@ All recorded 2026-09-29.
 
 ## 5. Tranches
 
-Each tranche follows `docs/WORKFLOW.md`: declare, get approval, implement, consolidate, verify, review, park. T2 onward is provisional.
+Each tranche follows `docs/WORKFLOW.md`: declare, get approval, implement, consolidate, verify, review, park. T3 onward is provisional.
 
 | # | Tranche | Produces | Meets |
 |---|---|---|---|
@@ -227,9 +227,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** NONE. T2 is parked pending USER acceptance; no next tranche is declared.
+**ID:** NONE. T2 is accepted and merged; no next tranche is declared.
 
-**Current:** T1 was accepted by USER and merged to `main` at `7d5f5d8`. T2 and all four USER review fixes are complete on `t2-event-log` and parked for USER acceptance. §3 stop conditions and §4 non-goals remain frozen (D6).
+**Current:** T1 was accepted by USER and merged to `main` at `7d5f5d8`. T2, including all four USER review fixes, was accepted and merged to `main` at `b16b1d4`. T3 remains provisional; §3 stop conditions and §4 non-goals remain frozen (D6).
 
 **Expected outcome:** SQLite is the append-only source of truth for shared session events. Session state is rebuilt from the log, actors and rights follow `docs/CONTRACTS.md` §§0–1, clients can read by cursor, and restart restores the event-backed state (S2).
 
@@ -251,7 +251,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 3. Use `MAX_RECENT_TURNS` in conversation projection trimming.
 - [x] 4. Document the optional `data.display` presentation field in the event contract.
 
-**Now:** T2 review fixes are parked on `t2-event-log`; awaiting USER acceptance before merging to `main`.
+**Now:** No tranche is active. Reorient from the accepted T2 record, then declare T3 from its draft when ready.
 
 **Non-goals:** T3 job/approval lifecycles and command runner; T4 knowledge/indexing; new user-facing entrances or UI redesign; changing §3 or §4; new dependencies beyond the recorded standard library plus numpy.
 
@@ -270,7 +270,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T2 is parked pending USER acceptance; no next tranche is declared.
+**Implementation permission:** NO. T2 is accepted and merged; T3 has not been declared.
 
 ## 9. Parked Tranches
 
@@ -316,14 +316,14 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Deferrals:** none beyond §4.
 - **Next step:** T1 accepted; reorient and proceed with the USER-approved T2 declaration in §7.
 
-**T2, event log: PARKED 2026-09-29, pending USER acceptance after review fixes.** Built on `t2-event-log`; not merged.
+**T2, event log: PARKED and ACCEPTED 2026-09-29.** Built on `t2-event-log`; merged into `main` as `b16b1d4`.
 - **Outcome met:** SQLite at `live_control/events.sqlite` is the append-only event source. Conversation, notes and workspace selections are rebuilt from events on startup. USER/AGENT actions carry contract actor labels, restricted actions are checked by the HTTP adapter and session, and workers read prompts by event ID. Browser and CLI fetch new events with an `after` cursor. Fresh sessions prefer `DEFAULT_MODEL` when installed. The session retains recent model turns but no duplicate in-memory event history. Unfinished prompts are marked interrupted on restart and are not replayed.
 - **Evidence:**
   - `python -B -m unittest discover -s tests -v` — 25 tests passed, including event immutability and ordering, event cursor reads, event-backed HTTP state, actor rights, restart restoration, interrupted prompt handling, default-model preference, recent-turn limit, and T1 regressions.
   - `git diff --check main..HEAD` — clean.
   - `tests/test_session_state.py` — selected project, model, notes, conversation history and recent model context restored from SQLite; HTTP state omits a copied event list and `/api/events?after=1` returns only newer events. A fresh session prefers `DEFAULT_MODEL` over an earlier-listed installed model, and the projection retains only `MAX_RECENT_TURNS`.
   - `tests/test_http_smoke.py` — AGENT is denied project/model selection and approval resolution; USER patch approval still works.
-- **Limitations:** model inference was not part of the T2 tests. A prompt interrupted by restart is visibly marked as an error and is not resumed automatically to avoid repeating project side effects. Pending approval UI state is transient; approval/job lifecycles and durable job-state projection belong to T3. No `job.state` events exist yet because T2 adds no job lifecycle.
+- **Limitations:** model inference was not part of the T2 tests. A prompt interrupted by restart is visibly marked as an error and is not resumed automatically to avoid repeating project side effects. Pending approval UI state is transient; approval/job lifecycles and durable job-state projection belong to T3. No `job.state` events exist yet because T2 adds no job lifecycle. `DEFAULT_MODEL` and `MAX_RECENT_TURNS` are imported from `agent/engine.py`; move them to a neutral module before T6 deletes it.
 - **Deferrals:** T3 lifecycles and runner, as planned; otherwise none beyond §4.
-- **Next step:** USER reviews the revised T2 diff and accepts or requests changes. Only after acceptance may it be merged into `main`; then reorient and declare T3.
-- **Review follow-up (2026-09-29):** all four findings were fixed before acceptance: restore default model preference, remove the in-memory event-history copy, use `MAX_RECENT_TURNS`, and document optional `data.display` metadata. T2 remains unmerged.
+- **Next step:** reorient from the accepted T2 state and declare T3 from its provisional draft when ready.
+- **Review follow-up (2026-09-29):** USER returned four findings before acceptance; all were resolved before T2 was accepted and merged: restore default model preference, remove the in-memory event-history copy, use `MAX_RECENT_TURNS`, and document optional `data.display` metadata.
