@@ -233,9 +233,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **ID:** T5 — Bench.
 
-**Current:** T1–T4 are accepted on `main`; T4's code is merged at `c287f3f`, and the accepted state plus revised T5 declaration are pushed at `6f9c388`. Its full suite passed 71 tests. S3–S5 are complete; §3 stop conditions and §4 non-goals remain frozen (D6). T5 is provisional pending USER review and implementation approval.
+**Current:** T1–T4 are accepted on `main`; T4's code is merged at `c287f3f`, and the accepted state plus revised T5 declaration are pushed at `6f9c388`. Its full suite passed 71 tests. S3–S5 are complete; §3 stop conditions and §4 non-goals remain frozen (D6). T5 was approved by USER on 2026-09-30 and remains active during a USER-requested long pause; this is a progress checkpoint, not a tranche park or acceptance.
 
-**Branch:** `t5-bench` (create after declaration approval).
+**Branch:** `t5-bench`.
 
 **Expected outcome:** a reproducible, committed bench of at least 15 real-code hole-punch tasks from a pinned T1–T4 repository snapshot; measured top-five search quality and builder success with/without context; and a `roles.json` assignment supported by builder model results (D3, D4, S7, `docs/CONTRACTS.md` §§7–9).
 
@@ -255,7 +255,16 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Task 2 evidence:** `python lab.py bench validate --baselines --contexts` — 22 original tests passed, 22 punched tests failed as intended, and all 22 packs built from punched copies excluded their removed bodies. Focused harness and scoring tests pass.
 
-**Now:** Task 3: bounded model comparisons and committed results/configuration.
+**Pause checkpoint (2026-09-30, USER-requested):** T5 remains active and implementation permission remains YES. No formal T5 parking or §9 acceptance record is being made. Work is paused while the USER attends a meeting and will review the state later.
+
+- **Last completed tasks:** Task 1 is committed as `37effe5` (`T5 wip: pin snapshot and validate hole-punch tasks`); Task 2 is committed as `12abdc2` (`T5 wip: add isolated benchmark harness`). The T5 permission record is `c916053` (`T5 wip: record implementation permission`).
+- **Working tree at pause:** `src/local_memory_lab/bench/harness.py` is modified to include `eval_count` in attempt results, and `src/local_memory_lab/bench/runner.py` is untracked. These are unfinished Task 3 work and are intentionally not represented as a completed task commit. No other changes were reported by `git status --short` at checkpoint.
+- **Task 1 proof:** 22 task records pin `self@c916053`. Each named test passed on the pristine snapshot and failed after its target body was punched in a separate temporary copy. The focused task helper tests passed.
+- **Task 2 proof:** corpus validation reported 22 valid records, 22 pristine tests passing, 22 punched tests failing as intended, and 22 punched-copy context leak checks passing. Validation used a deterministic fake embedder; it made no Ollama/network/GPU inference calls. Focused `test_bench_tasks.py`, `test_bench_harness.py`, and `test_bench_scoring.py` checks passed (5, 5, and 3 tests respectively); the corpus validation was also run with `python lab.py bench validate --baselines --contexts`.
+- **Task 3 not yet started as a model run:** no Ollama candidate availability query, model load, or inference run has been made. The USER has not confirmed that the GPU is free. Do not run the full bench until the USER explicitly confirms the GPU is free, and never while local roles are working.
+- **Resume sequence:** first inspect the unfinished runner and harness diff; complete and test Task 3's bounded execution and result collection; only after explicit USER confirmation, check the three declared candidates (`qwen3.5:9b`, `qwen3.5:4b`, `qwen3.5:2b`) and run one temperature-0 attempt per task/model/condition with the declared 180-second per-task timeout. Preserve the isolation guarantee: inference and patch application use disposable task copies and must leave the pinned snapshot and working tree unchanged. Record unavailable candidates rather than substituting models. Then validate and commit results/configuration, document reproduction, run required focused checks and full suite/architecture/diff checks, and prepare the T5 parking evidence for USER review. Task 4 remains open; the full regression suite has not yet been run after the T5 additions.
+
+**Now:** Paused at Task 3 implementation; awaiting USER resumption and explicit GPU-availability confirmation before any model run.
 
 **Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
 
