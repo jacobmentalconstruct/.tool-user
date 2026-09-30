@@ -27,7 +27,8 @@ class SharedSession:
         self.state = SessionState.restore(self.store)
         self.busy = False
         self._active_turns = 0
-        self._turn_slots = threading.Semaphore(4)
+        self._turn_slot = threading.Semaphore(1)
+        self._turn_local = threading.local()
         self._approval_waiters: dict[str, threading.Event] = {}
         self.models: list[str] = []
         self.model_error = ""
@@ -236,10 +237,19 @@ class SharedSession:
     def wait_for_approval(self, approval_id: str, timeout: float = 300) -> bool:
         with self.lock:
             waiter = self._approval_waiters[approval_id]
-        if not waiter.wait(timeout):
-            with self.lock:
-                if self.state.approvals.records[approval_id].state == "pending":
-                    self._resolve_approval(approval_id, "expired", "system")
+        parked = getattr(self._turn_local, "owns_slot", False)
+        if parked:
+            self._turn_local.owns_slot = False
+            self._turn_slot.release()
+        try:
+            if not waiter.wait(timeout):
+                with self.lock:
+                    if self.state.approvals.records[approval_id].state == "pending":
+                        self._resolve_approval(approval_id, "expired", "system")
+        finally:
+            if parked:
+                self._turn_slot.acquire()
+                self._turn_local.owns_slot = True
         with self.lock:
             self._approval_waiters.pop(approval_id, None)
             return self.state.approvals.records[approval_id].state == "approved"
@@ -294,6 +304,11 @@ class SharedSession:
                     else:
                         self.transition_job(job_id, "failed", reason="plan approval expired")
                     return
+            self._turn_slot.acquire()
+            self._turn_local.owns_slot = True
+            with self.lock:
+                if self.state.jobs.records[job_id].state in JOB_TERMINAL:
+                    return
                 self.transition_job(job_id, "running")
                 self._active_turns += 1
                 self.busy = True
@@ -332,11 +347,14 @@ class SharedSession:
                 with self.lock:
                     self._active_turns -= 1
                     self.busy = self._active_turns > 0
+            if getattr(self._turn_local, "owns_slot", False):
+                self._turn_local.owns_slot = False
+                self._turn_slot.release()
 
     def _work(self):
         while True:
-            self._turn_slots.acquire()
             prompt_event_id = self.prompts.get()
+            self._turn_slot.acquire()
             with self.lock:
                 self._active_turns += 1
                 self.busy = True
@@ -344,6 +362,7 @@ class SharedSession:
 
     def _run_prompt(self, prompt_event_id: int) -> None:
         request_id = None
+        self._turn_local.owns_slot = True
         try:
             prompt_event = self.store.get(prompt_event_id)
             if prompt_event is None or prompt_event["kind"] != "chat.prompt":
@@ -375,6 +394,7 @@ class SharedSession:
                 self._active_turns -= 1
                 self.busy = self._active_turns > 0
             self.prompts.task_done()
-            self._turn_slots.release()
+            self._turn_local.owns_slot = False
+            self._turn_slot.release()
 
 

@@ -230,7 +230,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** NONE. T3 is parked pending USER acceptance; no next tranche is declared.
+**ID:** T3 — Lifecycles and runner, USER review fix-up.
 
 **Current:** T1 and T2 are accepted on `main`; T3 implementation is complete on `t3-lifecycles` and parked for USER acceptance. §3 stop conditions and §4 non-goals remain frozen (D6).
 
@@ -254,7 +254,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 4. Implement the chat loop's named-command tool, USER-approved runner, and event results.
 - [x] 5. Add focused tests and align documentation with the delivered behavior.
 
-**Now:** T3 is parked for USER review; after acceptance, reorient before declaring T4.
+**USER review fix-up Progress:**
+- [x] Serialize active turns, while approval waits yield; test ordered history and four parked approvals.
+- [ ] Keep capped command output from the end with a trim marker, decision and test.
+- [ ] Record three review limitations and update parking evidence.
+
+**Now:** Implementing tail retention for capped command output and recording its contract decision.
 
 **Non-goals:** T4 knowledge/indexing; T5 bench; T6 planner/builder/debugger/reviewer role team and deterministic gate; replacing `engine.run_turn`; UI redesign beyond the two entrances and lifecycle status; changing §3 or §4; new dependencies beyond standard library plus numpy.
 
@@ -270,12 +275,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Known risks:** The builder's environment must let Python create and clean temp directories; verified 2026-09-29 with 25 tests passing. If it cannot, stop and tell the USER. The planner role arrives in T6, so T3 must bridge New goal into the existing `engine.run_turn` path without coupling lifecycle ownership to it. Cancellation and timeout behavior must clean up child processes on Windows. Any change to the event or contract schema is recorded as a decision in §2. Resolve any contract/UI ambiguities inside T3 without changing the frozen stop conditions or non-goals.
 
-**Declaration state:** USER approved T3 declaration and entry on 2026-09-29; T3 is now parked pending acceptance.
+**Declaration state:** USER approved T3 declaration and entry on 2026-09-29; USER requested and approved review fixes on 2026-09-29.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T3 is parked pending USER acceptance; no next tranche is declared.
+**Implementation permission:** YES for T3 review fixes (USER, 2026-09-29).
 
 ## 9. Parked Tranches
 

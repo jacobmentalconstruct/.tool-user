@@ -18,6 +18,36 @@ from local_memory_lab.event_store import EventStore  # noqa: E402
 
 
 class ApprovalTests(unittest.TestCase):
+    def test_unapproved_prompts_run_in_order_with_prior_history(self):
+        with tempfile.TemporaryDirectory() as temp:
+            first_started = threading.Event()
+            release_first = threading.Event()
+            calls = []
+
+            def fake_turn(prompt, model, turns, notes, tools, on_tool):
+                calls.append((prompt, list(turns)))
+                if prompt == "first":
+                    first_started.set()
+                    self.assertTrue(release_first.wait(2))
+                return "reply to " + prompt, [{"role": "user", "content": prompt}]
+
+            with patch("local_memory_lab.session.run_turn", side_effect=fake_turn):
+                session = SharedSession(Path(temp) / "events.sqlite", load_models=False,
+                                        start_worker=True)
+                session.submit("first", "USER")
+                self.assertTrue(first_started.wait(2))
+                session.submit("second", "USER")
+                self.assertEqual(["first"], [call[0] for call in calls])
+                release_first.set()
+                deadline = time.monotonic() + 2
+                while len(calls) < 2 and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                self.assertEqual(["first", "second"], [call[0] for call in calls])
+                self.assertEqual([[{"role": "user", "content": "first"}]], calls[1][1])
+                while session.busy and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                self.assertFalse(session.busy)
+
     def test_t2_patch_approval_events_restore(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "events.sqlite"
@@ -102,6 +132,40 @@ class ApprovalTests(unittest.TestCase):
                     self.fail("Chat stayed blocked behind an approval.")
                 pending_id = session.state.approvals.pending()[0].id
                 session.approve(pending_id, True)
+                deadline = time.monotonic() + 2
+                while session.busy and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                self.assertFalse(session.busy)
+
+    def test_four_parked_approvals_do_not_block_chat(self):
+        with tempfile.TemporaryDirectory() as temp:
+            holder: dict[str, SharedSession] = {}
+            free_done = threading.Event()
+
+            def fake_turn(prompt, model, turns, notes, tools, on_tool):
+                if prompt.startswith("blocked"):
+                    session = holder["session"]
+                    approval_id = session.request_approval(
+                        "patch", "Patch", "diff", actor="role:builder")
+                    session.wait_for_approval(approval_id)
+                else:
+                    free_done.set()
+                return "reply to " + prompt, []
+
+            with patch("local_memory_lab.session.run_turn", side_effect=fake_turn):
+                session = SharedSession(Path(temp) / "events.sqlite", load_models=False,
+                                        start_worker=True)
+                holder["session"] = session
+                for index in range(4):
+                    session.submit(f"blocked {index}", "USER")
+                    deadline = time.monotonic() + 2
+                    while len(session.state.approvals.pending()) < index + 1 and time.monotonic() < deadline:
+                        time.sleep(0.01)
+                    self.assertEqual(index + 1, len(session.state.approvals.pending()))
+                session.submit("free", "USER")
+                self.assertTrue(free_done.wait(2), "Four parked turns blocked chat.")
+                for pending in list(session.state.approvals.pending()):
+                    session.approve(pending.id, True)
                 deadline = time.monotonic() + 2
                 while session.busy and time.monotonic() < deadline:
                     time.sleep(0.01)
