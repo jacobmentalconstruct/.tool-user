@@ -233,7 +233,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **ID:** T5 — Bench.
 
-**Current:** T1–T4 are accepted on `main`; T4 is merged locally at `c287f3f`. Its full suite passed 71 tests. `main` has not yet been pushed after the T4 merge. S3–S5 are complete; §3 stop conditions and §4 non-goals remain frozen (D6). T5 is provisional pending USER review and implementation approval.
+**Current:** T1–T4 are accepted on `main`; T4's code is merged at `c287f3f`, and the accepted state plus revised T5 declaration are pushed at `aa88139`. Its full suite passed 71 tests. S3–S5 are complete; §3 stop conditions and §4 non-goals remain frozen (D6). T5 is provisional pending USER review and implementation approval.
 
 **Branch:** `t5-bench` (create after declaration approval).
 
@@ -344,7 +344,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Deferrals:** the T6 role team, gate and task execution remain as planned; otherwise none beyond §4.
 - **Next step:** T4 knowledge layer, declared and active on `t4-knowledge`.
 
-**T4, knowledge layer: PARKED 2026-09-30 on `t4-knowledge`; accepted by USER 2026-09-30 and merged locally to `main` at `c287f3f`.** Not yet pushed.
+**T4, knowledge layer: PARKED 2026-09-30 on `t4-knowledge`; accepted by USER 2026-09-30, merged to `main` at `c287f3f`, and pushed with the acceptance record at `aa88139`.**
 - **Outcome met:** The selected project has a separate SQLite knowledge index with deterministic Python/Markdown chunks and summaries, FTS5, stored embeddings, and an `ast` graph. Hybrid retrieval uses reciprocal rank fusion and keyword-only fallback. Chat and goal turns receive bounded context packs. Project scans run at selection/startup and idle boundaries; they detect outside edits by hash, retry missing embeddings, and remove stale files. USER-approved patch paths are queued for refresh, and indexing waits until turns and commands are idle. `session.py` remains at 400 lines. No event or contract schema changed.
 - **Evidence:**
   - `python -B -m unittest discover -s tests -v` — 71 tests passed in 11.131 s after the T4 review fixes.
