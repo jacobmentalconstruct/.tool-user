@@ -247,12 +247,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Progress:**
 - [x] 1. Implement the T3 job path, restart failure handling, and the task transition table.
-- [ ] 2. Implement non-blocking plan/command approvals, restart expiry, and USER-only cancellation.
+- [x] 2. Implement non-blocking plan/command approvals, restart expiry, and USER-only cancellation.
 - [ ] 3. Add distinct Chat/New goal entrances and stage visibility in browser and CLI.
 - [ ] 4. Implement the chat loop's named-command tool, USER-approved runner, and event results.
 - [ ] 5. Add focused tests and align documentation with the delivered behavior.
 
-**Now:** Task 1 is complete; implementing approvals, restart expiry and USER-only cancellation in task 2.
+**Now:** Tasks 1–2 are complete; connecting New goal to the T3 job path and exposing stages in task 3.
 
 **Non-goals:** T4 knowledge/indexing; T5 bench; T6 planner/builder/debugger/reviewer role team and deterministic gate; replacing `engine.run_turn`; UI redesign beyond the two entrances and lifecycle status; changing §3 or §4; new dependencies beyond standard library plus numpy.
 

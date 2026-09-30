@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import queue
 import threading
-from dataclasses import dataclass, field
 from pathlib import Path
 from uuid import uuid4
 
@@ -16,18 +15,6 @@ from .locations import CONTROL
 from .session_state import SessionState
 
 
-@dataclass
-class Approval:
-    id: str
-    request_id: str
-    kind: str
-    title: str
-    name: str
-    diff: str = ""
-    decided: threading.Event = field(default_factory=threading.Event)
-    approved: bool = False
-
-
 class SharedSession:
     def __init__(self, store_path: Path | str | None = None, *,
                  load_models: bool = True, start_worker: bool = True):
@@ -36,7 +23,8 @@ class SharedSession:
         self.store = EventStore(store_path or CONTROL / "events.sqlite")
         self.state = SessionState.restore(self.store)
         self.busy = False
-        self.pending: Approval | None = None
+        self._active_turns = 0
+        self._approval_waiters: dict[str, threading.Event] = {}
         self.models: list[str] = []
         self.model_error = ""
         if load_models:
@@ -49,6 +37,8 @@ class SharedSession:
                 "requestId": request_id,
                 "display": {"speaker": "Error", "text": "The session restarted before this reply completed."},
             })
+        for pending in list(self.state.approvals.pending()):
+            self._resolve_approval(pending.id, "expired", "system")
         for job_id in self.state.jobs.active_ids():
             self.transition_job(job_id, "failed", reason="interrupted by restart")
         if start_worker:
@@ -123,19 +113,16 @@ class SharedSession:
 
     def snapshot(self, actor: str) -> dict:
         with self.lock:
-            pending = None
-            if self.pending:
-                pending = {"id": self.pending.id, "requestId": self.pending.request_id,
-                           "name": self.pending.name, "kind": self.pending.kind,
-                           "title": self.pending.title}
-                if actor == "USER":
-                    pending.update({"diff": self.pending.diff})
+            approvals = [item.public(actor == "USER") for item in self.state.approvals.pending()]
             return {
                 "lastEventId": self.store.last_id, "busy": self.busy,
-                "queueLength": self.prompts.qsize(), "pendingApproval": pending,
+                "queueLength": self.prompts.qsize(),
+                "pendingApproval": approvals[0] if approvals else None,
+                "pendingApprovals": approvals,
                 "model": self.model, "models": list(self.models),
                 "modelError": self.model_error, "notes": self.notes,
                 "projectRoot": str(self.project_root) if self.project_root else None,
+                "jobs": self.state.jobs.public(),
             }
 
     def events_after(self, event_id: int) -> list[dict]:
@@ -190,74 +177,98 @@ class SharedSession:
         if not isinstance(approved, bool):
             raise ValueError("Approval decision must be true or false.")
         with self.lock:
-            pending = self.pending
-            if pending is None or pending.id != approval_id or pending.decided.is_set():
-                raise ValueError("This approval is no longer pending.")
-            pending.approved = approved
-            self._record(actor_label, "approval.resolved", {
-                "id": approval_id, "approved": approved,
-            })
-            pending.decided.set()
+            self._resolve_approval(approval_id, "approved" if approved else "rejected", actor_label)
+
+    def request_approval(self, kind: str, summary: str, detail: str, *,
+                         actor: str, job: str | None = None,
+                         request_id: str | None = None) -> str:
+        if kind not in {"plan", "patch", "command"}:
+            raise ValueError("Choose a contract approval kind.")
+        if (kind == "plan" and actor != "system") or (kind != "plan" and actor != "role:builder"):
+            raise ValueError("Only the lifecycle or a ROLE may request this approval.")
+        approval_id = str(uuid4())
+        with self.lock:
+            self._approval_waiters[approval_id] = threading.Event()
+            self._record(actor, "approval.requested", {
+                "id": approval_id, "kind": kind, "summary": summary, "detail": detail,
+                "state": "pending", "requestId": request_id,
+                "display": {"speaker": "Approval", "text": f"Review {summary.lower()} in the browser."},
+            }, job=job)
+        return approval_id
+
+    def _resolve_approval(self, approval_id: str, state: str, actor: str) -> None:
+        with self.lock:
+            pending = self.state.approvals.require_pending(approval_id)
+            self._record(actor, "approval.resolved", {
+                "id": approval_id, "state": state, "approved": state == "approved",
+                "requestId": pending.request_id,
+            }, job=pending.job)
+            waiter = self._approval_waiters.get(approval_id)
+            if waiter:
+                waiter.set()
+
+    def wait_for_approval(self, approval_id: str, timeout: float = 300) -> bool:
+        with self.lock:
+            waiter = self._approval_waiters[approval_id]
+        if not waiter.wait(timeout):
+            with self.lock:
+                if self.state.approvals.records[approval_id].state == "pending":
+                    self._resolve_approval(approval_id, "expired", "system")
+        with self.lock:
+            self._approval_waiters.pop(approval_id, None)
+            return self.state.approvals.records[approval_id].state == "approved"
+
+    def cancel_job(self, job_id: str, actor: str = "USER") -> None:
+        self._require_user(actor)
+        with self.lock:
+            self.transition_job(job_id, "cancelled", reason="cancelled by USER")
+            for pending in list(self.state.approvals.pending()):
+                if pending.job == job_id:
+                    self._resolve_approval(pending.id, "superseded", "system")
 
     def _confirm_patch(self, request_id: str, proposal: dict) -> bool:
-        detail = proposal["name"] + "\n" + "\n".join(proposal["paths"])
-        pending = Approval(str(uuid4()), request_id, "patch", proposal["title"], detail,
-                           diff=proposal["diff"])
-        return self._wait_for_approval(pending)
-
-    def _wait_for_approval(self, pending: Approval) -> bool:
-        with self.lock:
-            self.pending = pending
-            self._record("system", "approval.requested", {
-                "id": pending.id, "kind": pending.kind, "title": pending.title,
-                "name": pending.name, "requestId": pending.request_id,
-                "display": {"speaker": "Approval", "text": f"Review {pending.title.lower()} in the browser."},
-            })
-        pending.decided.wait(timeout=300)
-        with self.lock:
-            if self.pending is pending:
-                self.pending = None
-        if not pending.decided.is_set():
-            self._record("system", "approval.resolved", {
-                "id": pending.id, "approved": False, "timedOut": True,
-                "requestId": pending.request_id,
-                "display": {"speaker": "Approval", "text": "Approval timed out; files were kept."},
-            })
-            return False
-        return pending.approved
+        approval_id = self.request_approval("patch", proposal["title"], proposal["diff"],
+                                            actor="role:builder", request_id=request_id)
+        return self.wait_for_approval(approval_id)
 
     def _work(self):
         while True:
             prompt_event_id = self.prompts.get()
-            request_id = None
-            try:
-                prompt_event = self.store.get(prompt_event_id)
-                if prompt_event is None or prompt_event["kind"] != "chat.prompt":
-                    continue
-                request_id = prompt_event["data"]["requestId"]
-                prompt = prompt_event["data"]["display"]["text"]
-                with self.lock:
-                    self.busy = True
-                    model = self.model
-                    notes = list(self.notes)
-                    turns = list(self.turns)
-                    project_root = self.project_root
-                answer, turn = run_turn(prompt, model, turns, notes,
-                                        SharedTools(project_root,
-                                                    lambda proposal: self._confirm_patch(request_id, proposal),
-                                                    request_id),
-                                        lambda result: self._event("Tool", result["message"],
-                                                                   toolStatus=result["status"], requestId=request_id))
-                with self.lock:
-                    self._record("system", "chat.reply", {
-                        "display": {"speaker": "Assistant", "text": answer},
-                        "requestId": request_id, "turn": turn,
-                    })
-            except Exception as exc:
-                self._event("Error", str(exc), requestId=request_id)
-            finally:
-                with self.lock:
-                    self.busy = False
-                self.prompts.task_done()
+            with self.lock:
+                self._active_turns += 1
+                self.busy = True
+            threading.Thread(target=self._run_prompt, args=(prompt_event_id,), daemon=True).start()
+
+    def _run_prompt(self, prompt_event_id: int) -> None:
+        request_id = None
+        try:
+            prompt_event = self.store.get(prompt_event_id)
+            if prompt_event is None or prompt_event["kind"] != "chat.prompt":
+                return
+            request_id = prompt_event["data"]["requestId"]
+            prompt = prompt_event["data"]["display"]["text"]
+            with self.lock:
+                model = self.model
+                notes = list(self.notes)
+                turns = list(self.turns)
+                project_root = self.project_root
+            answer, turn = run_turn(prompt, model, turns, notes,
+                                    SharedTools(project_root,
+                                                lambda proposal: self._confirm_patch(request_id, proposal),
+                                                request_id),
+                                    lambda result: self._event("Tool", result["message"],
+                                                               toolStatus=result["status"], requestId=request_id))
+            with self.lock:
+                self._record("system", "chat.reply", {
+                    "display": {"speaker": "Assistant", "text": answer},
+                    "requestId": request_id, "turn": turn,
+                })
+        except Exception as exc:
+            self._event("Error", str(exc), requestId=request_id)
+        finally:
+            with self.lock:
+                self._active_turns -= 1
+                self.busy = self._active_turns > 0
+            self.prompts.task_done()
 
 

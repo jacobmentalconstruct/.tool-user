@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from local_memory_lab.agent.engine import DEFAULT_MODEL, MAX_RECENT_TURNS  # noqa: E402
-from local_memory_lab.session import Approval, SharedSession  # noqa: E402
+from local_memory_lab.session import SharedSession  # noqa: E402
 from local_memory_lab.interfaces.web import make_handler  # noqa: E402
 from local_memory_lab.session_state import ConversationState  # noqa: E402
 
@@ -138,17 +138,18 @@ class SessionRestoreTests(unittest.TestCase):
             session.submit("agent may chat", "AGENT")
             queued_event = session.store.get(session.prompts.get_nowait())
             self.assertEqual("agent may chat", queued_event["data"]["display"]["text"])
-            session.pending = Approval("approval-1", "request-1", "patch", "Patch", "file")
+            approval_id = session.request_approval(
+                "patch", "Patch", "file", actor="role:builder", request_id="request-1")
 
             with self.assertRaisesRegex(ValueError, "Only the USER"):
                 session.set_project_root(str(project), "AGENT")
             with self.assertRaisesRegex(ValueError, "Only the USER"):
                 session.select_model("model-a", "AGENT")
             with self.assertRaisesRegex(ValueError, "Only the USER"):
-                session.approve("approval-1", True, "AGENT")
-            session.approve("approval-1", True, "USER")
+                session.approve(approval_id, True, "AGENT")
+            session.approve(approval_id, True, "USER")
             with self.assertRaisesRegex(ValueError, "true or false"):
-                session.approve("approval-1", 1, "USER")
+                session.approve(approval_id, 1, "USER")
 
             events = session.store.read_after(0)
             self.assertEqual("agent", next(e["actor"] for e in events if e["kind"] == "note.added"))

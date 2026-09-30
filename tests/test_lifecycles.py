@@ -42,9 +42,12 @@ class LifecycleTests(unittest.TestCase):
             session.transition_job("j-1", "queued", goal="repair")
             session.transition_job("j-1", "planning")
             session.transition_job("j-1", "awaiting_plan_approval")
+            approval_id = session.request_approval(
+                "plan", "Approve goal", "repair", actor="system", job="j-1")
             restarted = SharedSession(path, load_models=False, start_worker=False)
             job = restarted.state.jobs.records["j-1"]
             self.assertEqual(("failed", "interrupted by restart"), (job.state, job.reason))
+            self.assertEqual("expired", restarted.state.approvals.records[approval_id].state)
             self.assertEqual(0, restarted.prompts.qsize())
             self.assertEqual("job.state", restarted.events_after(0)[-1]["kind"])
             self.assertEqual("system", restarted.events_after(0)[-1]["actor"])
