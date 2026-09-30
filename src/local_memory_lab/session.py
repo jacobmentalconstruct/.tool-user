@@ -49,6 +49,8 @@ class SharedSession:
                 "requestId": request_id,
                 "display": {"speaker": "Error", "text": "The session restarted before this reply completed."},
             })
+        for job_id in self.state.jobs.active_ids():
+            self.transition_job(job_id, "failed", reason="interrupted by restart")
         if start_worker:
             threading.Thread(target=self._work, daemon=True, name="shared-ollama-session").start()
 
@@ -72,11 +74,18 @@ class SharedSession:
             return DEFAULT_MODEL
         return self.models[0] if self.models else DEFAULT_MODEL
 
-    def _record(self, actor: str, kind: str, data: dict) -> dict:
+    def _record(self, actor: str, kind: str, data: dict, *,
+                job: str | None = None, task: str | None = None) -> dict:
         with self.lock:
-            event = self.store.append(actor, kind, data)
+            event = self.store.append(actor, kind, data, job=job, task=task)
             self.state.apply(event)
             return event
+
+    def transition_job(self, job_id: str, target: str, *, goal: str = "",
+                       reason: str = "") -> dict:
+        with self.lock:
+            data = self.state.jobs.transition_data(job_id, target, goal=goal, reason=reason)
+            return self._record("system", "job.state", data, job=job_id)
 
     @staticmethod
     def _actor_label(actor: str) -> str:

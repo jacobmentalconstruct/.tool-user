@@ -116,6 +116,7 @@ All recorded 2026-09-29.
   - **From T1 on:** the development team (any AGENTs, and later the project's own ROLEs) orients from the docs alone, declares each tranche, implements it after the USER approves, and parks it.
   - The USER and any advising AGENT review, discuss strategy and give input through chat and the hub. They don't implement unless they declare a tranche themselves.
   - The rights table is in `docs/CONTRACTS.md` §0. The code enforces it from T2 on, when the event log introduces actors. Until then, the hub's two tokens map to USER and AGENT.
+- **D12 T3 event payloads (2026-09-29):** T3 uses the existing `job.state`, `task.state`, `approval.requested`, `approval.resolved` and `command.result` kinds; it adds no kind or top-level event field. `job.state` carries `data.state`, the initial `data.goal`, and `data.reason` on failure/cancellation. Approval events carry the §3 approval identity, kind and state; T2's older patch approval events remain readable. `command.result` carries the §4 result fields. This records the event-data schema introduced by T3 before implementation; any later shape change needs another decision.
 
 ## 3. Target end state and stop conditions
 
@@ -227,50 +228,52 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** NONE. T2 is accepted and merged; no next tranche is declared.
+**ID:** T3 — Lifecycles and runner.
 
-**Current:** T1 was accepted by USER and merged to `main` at `7d5f5d8`. T2, including all four USER review fixes, was accepted and merged to `main` at `b16b1d4`. T3 remains provisional; §3 stop conditions and §4 non-goals remain frozen (D6).
+**Current:** T1 and T2 are accepted and merged to `main` (`7d5f5d8`, `b16b1d4`); the T2 acceptance record is `54c6134`. No tranche is active until the USER approves this declaration. §3 stop conditions and §4 non-goals remain frozen (D6).
 
-**Expected outcome:** SQLite is the append-only source of truth for shared session events. Session state is rebuilt from the log, actors and rights follow `docs/CONTRACTS.md` §§0–1, clients can read by cursor, and restart restores the event-backed state (S2).
+**Branch after approval:** `t3-lifecycles`.
+
+**Expected outcome:** jobs and approvals have explicit event-backed lifecycles, remain visible in the browser and CLI, and can be cancelled by the USER without blocking chat. A USER-approved, named command runs from the project's `.lab/allowlist.json` with a timeout and capped output; its result is recorded in the event log (S3, S4).
+
+**T3 job path:** `queued → planning → awaiting_plan_approval → running → done / failed / cancelled`. Planning is a pass-through: the goal text is the plan. The USER approves the plan before `running` calls `run_turn`, or rejects it and the job ends `rejected`. The task machine is its transition table and tests only; no tasks run until T6.
 
 **Scope (task list, in order):**
-1. Add an append-only SQLite event store with increasing IDs and `after` cursor reads, matching the event contract.
-2. Split shared session ownership into domain components whose state is derived from the event log; persist and restore the session state required by S2.
-3. Apply named actor labels and enforce T2 rights, including preventing AGENT project/model selection and approval resolution.
-4. Connect the existing browser and CLI read/write paths to the event-backed session and cursor API; add focused persistence, rights, and integration coverage.
+1. Add job lifecycle ownership and validated transitions from `docs/CONTRACTS.md` §2 for the T3 job path above. Persist transitions as `job.state`, restore them from the log, and mark non-finished jobs `failed` with reason `interrupted by restart` without replaying them. Add the task transition table and tests only; no task instances run until T6. Keep lifecycle ownership in a new module, with `session.py` as coordinator.
+2. Add approval lifecycle ownership from §3, including non-blocking waits, USER-only resolution and cancellation of unfinished jobs, and plan approval or rejection before `run_turn`. On restart, expire pending approvals with no side effects. Keep chat and other hub events responsive while approvals are pending; keep approval ownership in a new module.
+3. Add a distinct **New goal** entrance alongside **Chat** in the browser and CLI; connect goal submission to visible job stages, and show the current stage in both views without adding the T6 role team.
+4. Implement the `.lab/allowlist.json` command runner from §4 in a new module. The existing chat loop acts as the ROLE through a name-only `run_command(name)` tool that requests command approval; the browser and CLI cannot request commands directly, and AGENT requests are refused. After USER approval, run the exact argument list without a shell in the project root, enforce timeout/output limits, and record results/refusals as events.
+5. Add focused lifecycle, approval, cancellation, command-runner, restart, HTTP/CLI integration coverage; update current documentation to match the implemented behavior.
 
 **Progress:**
-- [x] 1. Add append-only SQLite event storage and cursor reads.
-- [x] 2. Split session domain ownership and rebuild required state from events across restart.
-- [x] 3. Enforce contract actor labels and rights.
-- [x] 4. Integrate browser/CLI paths and add event, restart, rights, and integration coverage.
+- [x] 1. Implement the T3 job path, restart failure handling, and the task transition table.
+- [ ] 2. Implement non-blocking plan/command approvals, restart expiry, and USER-only cancellation.
+- [ ] 3. Add distinct Chat/New goal entrances and stage visibility in browser and CLI.
+- [ ] 4. Implement the chat loop's named-command tool, USER-approved runner, and event results.
+- [ ] 5. Add focused tests and align documentation with the delivered behavior.
 
-**USER review fix-up Progress:**
-- [x] 1. Prefer the configured default chat model when it is installed; fall back to the first installed model otherwise.
-- [x] 2. Stop retaining the full event history in the session projection.
-- [x] 3. Use `MAX_RECENT_TURNS` in conversation projection trimming.
-- [x] 4. Document the optional `data.display` presentation field in the event contract.
+**Now:** Task 1 is complete; implementing approvals, restart expiry and USER-only cancellation in task 2.
 
-**Now:** No tranche is active. Reorient from the accepted T2 record, then declare T3 from its draft when ready.
-
-**Non-goals:** T3 job/approval lifecycles and command runner; T4 knowledge/indexing; new user-facing entrances or UI redesign; changing §3 or §4; new dependencies beyond the recorded standard library plus numpy.
+**Non-goals:** T4 knowledge/indexing; T5 bench; T6 planner/builder/debugger/reviewer role team and deterministic gate; replacing `engine.run_turn`; UI redesign beyond the two entrances and lifecycle status; changing §3 or §4; new dependencies beyond standard library plus numpy.
 
 **Acceptance criteria:**
-- `python -B -m unittest discover -s tests -v` passes with event log, restart, rights, and existing regression coverage.
-- Tests prove event IDs increase, cursor reads return only events after the requested ID, and stored events cannot be updated or deleted through the store.
-- A restart test proves selected project, model, notes, event history, and existing job-state fields restore from the SQLite log as applicable to current T2 state.
-- Rights tests prove AGENT cannot select project/model or resolve approvals, while permitted USER and SYSTEM actions are attributed to the contract actor labels.
-- HTTP/API tests prove state reads are event-backed and event reads support `after` cursors.
-- `git diff --check` passes; no changes to §3 or §4.
+- Lifecycle and restart tests prove the specified T3 job path and task transition table, invalid transition refusals, pending approvals expiring without side effects on restart, and non-finished jobs failing with `interrupted by restart` without replay: `python -B -m unittest discover -s tests -p "test_lifecycles.py" -v`.
+- Approval tests prove a pending plan or command approval does not block chat, only USER resolves approvals or cancels unfinished jobs, AGENT cannot cancel, and rejection/expiry causes no side effects: `python -B -m unittest discover -s tests -p "test_approvals.py" -v`.
+- Browser and CLI integration tests prove Chat and New goal are distinct and both expose the current job stage: `python -B -m unittest discover -s tests -p "test_job_interfaces.py" -v`.
+- Command-runner tests prove `run_command(name)` is requested through the chat loop as ROLE, AGENT and direct browser/CLI command requests are refused, and name-only lookup, exact argv/no shell, project-root working directory, timeout/output cap, approval gating and logged results: `python -B -m unittest discover -s tests -p "test_command_runner.py" -v`.
+- On Windows, timeout and cancel tests prove the command's child processes are gone after the command stops: `python -B -m unittest discover -s tests -p "test_command_runner.py" -v`.
+- Workspace tests prove patch tools continue to refuse `.lab/allowlist.json`: `python -B -m unittest discover -s tests -p "test_workspace.py" -v`.
+- The complete regression suite passes: `python -B -m unittest discover -s tests -v`.
+- Documentation whitespace validation passes and scope guard remains intact: `git diff --check 54c6134..HEAD`; `git diff --unified=0 54c6134..HEAD -- PLAN.md` shows no edits to §§3–4.
 
-**Known risks:** existing in-memory `SharedSession` couples unrelated state; mapping all current mutations into durable events may reveal contract gaps. Event schema changes after T2 parks require a decision per `docs/CONTRACTS.md`.
+**Known risks:** The builder's environment must let Python create and clean temp directories; verified 2026-09-29 with 25 tests passing. If it cannot, stop and tell the USER. The planner role arrives in T6, so T3 must bridge New goal into the existing `engine.run_turn` path without coupling lifecycle ownership to it. Cancellation and timeout behavior must clean up child processes on Windows. Any change to the event or contract schema is recorded as a decision in §2. Resolve any contract/UI ambiguities inside T3 without changing the frozen stop conditions or non-goals.
 
-**Declaration state:** USER approved T2 declaration and entry on 2026-09-29.
+**Declaration state:** USER approved T3 declaration and entry on 2026-09-29.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T2 is accepted and merged; T3 has not been declared.
+**Implementation permission:** YES for T3 (USER, 2026-09-29).
 
 ## 9. Parked Tranches
 

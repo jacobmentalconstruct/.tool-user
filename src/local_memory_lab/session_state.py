@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .agent.engine import MAX_RECENT_TURNS
 from .event_store import EventStore
+from .lifecycles import Jobs
 
 
 @dataclass
@@ -64,6 +65,7 @@ class SessionState:
     conversation: ConversationState = field(default_factory=ConversationState)
     notes: NotesState = field(default_factory=NotesState)
     workspace: WorkspaceState = field(default_factory=WorkspaceState)
+    jobs: Jobs = field(default_factory=Jobs)
 
     @classmethod
     def restore(cls, store: EventStore) -> "SessionState":
@@ -81,3 +83,4 @@ class SessionState:
         self.conversation.apply(event)
         self.notes.apply(event)
         self.workspace.apply(event)
+        self.jobs.apply(event)
