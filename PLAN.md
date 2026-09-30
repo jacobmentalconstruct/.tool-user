@@ -251,7 +251,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [ ] 3. Run the named local model comparisons and record required metrics; set `roles.json` from results.
 - [ ] 4. Document reproduction, verify the full suite and park with committed evidence.
 
-**Now:** T5 declaration is revised per USER review and awaits re-review; implementation permission remains NO.
+**Now:** T5 is approved; task 1 is next. Implementation has not started.
 
 **Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
 
@@ -266,12 +266,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Known risks:** T1–T4 may yield fewer than 15 independently hole-punchable functions; only then use D3's fixture fallback, copied and exercised inside this repo in isolation. The named models may be unavailable; do not silently add candidates, and stop to tell the USER if none can run. The 90+ bounded calls may take hours on 16 GB GPU hardware and results can vary; record model tags, Ollama version, hardware, settings, timeouts and unavailable candidates. Run the full bench only after the USER confirms the GPU is free, and never while local roles are working. A task can be invalid if its single test does not pass pristine code and fail the punched copy; validate both before model runs. Keep all model inference local and all generated patches inside disposable task copies. Bench code goes in new modules only; `session.py` is at the 400-line cap and must not grow. Do not change the event or contract schema without a decision in §2.
 
-**Declaration state:** T5 is declared from §5 after USER acceptance of T4 on 2026-09-30. Awaiting USER review; implementation permission remains NO.
+**Declaration state:** T5 is declared from §5 after USER acceptance of T4 on 2026-09-30 and approved by USER on 2026-09-30.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T5 declaration is awaiting USER review.
+**Implementation permission:** YES for T5 (USER, 2026-09-30).
 
 ## 9. Parked Tranches
 
