@@ -90,6 +90,35 @@ class KnowledgeStoreTests(unittest.TestCase):
             self.assertNotIn("old_name", [node.name for node in nodes])
             self.assertIn("new_name", [node.name for node in nodes])
 
+    def test_shared_import_symbol_allows_indexing_and_reindexing(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            root = base / "project"
+            root.mkdir()
+            store = KnowledgeStore(root, base / "live_control")
+            sources = {
+                "first.py": "import pathlib\ndef first():\n    return pathlib.Path('.')\n",
+                "second.py": "import pathlib\ndef second():\n    return pathlib.Path('.')\n",
+            }
+            for relative, content in sources.items():
+                path = root / relative
+                path.write_text(content, encoding="utf-8")
+                chunks, summary = chunk_file(Workspace(root), relative)
+                store.replace_file(relative, content, chunks, summary)
+
+            path = root / "first.py"
+            content = path.read_text(encoding="utf-8")
+            chunks, summary = chunk_file(Workspace(root), "first.py")
+            store.replace_file("first.py", content, chunks, summary)
+
+            nodes, edges = store.graph()
+            self.assertEqual(1, sum(node.key == "symbol:pathlib" for node in nodes))
+            self.assertEqual({"file:first.py", "file:second.py"},
+                             {edge.source for edge in edges
+                              if edge.target == "symbol:pathlib" and edge.kind == "imports"})
+            self.assertEqual({"first.py", "second.py"},
+                             {item["path"] for item in store.search_fts("pathlib")})
+
 
 if __name__ == "__main__":
     unittest.main()

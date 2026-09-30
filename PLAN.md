@@ -257,6 +257,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] Split class chunks into a header and addressable method chunks.
 - [x] Ignore Markdown heading syntax inside fenced code blocks.
 
+**T4 task 2 review fixes:**
+- [x] Make shared graph-symbol inserts idempotent; test two-file imports and re-index.
+
 **Now:** Adding the Ollama embedding adapter and hybrid retrieval with a fake server (task 3).
 
 **Non-goals:** T5 bench tasks or model comparisons; T6 role team, planner, gate, `roles.json` or deletion of `run_turn`; new UI workflow; an external vector database or graph server; a custom embedder; indexing the user's other projects; changes to §§3–4 or dependencies beyond standard library and numpy.

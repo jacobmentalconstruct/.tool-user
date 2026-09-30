@@ -114,7 +114,7 @@ class KnowledgeStore:
                            (cursor.lastrowid, str(cursor.lastrowid), relative, chunk.kind, chunk.text))
             node_map = {node.key: node for node in nodes}
             for node in nodes:
-                db.execute("INSERT INTO graph_nodes(key, path, name, kind, line) VALUES (?, ?, ?, ?, ?)",
+                db.execute("INSERT OR IGNORE INTO graph_nodes(key, path, name, kind, line) VALUES (?, ?, ?, ?, ?)",
                            (node.key, node.path or None, node.name, node.kind, node.line))
             for edge in edges:
                 if edge.source not in node_map:
