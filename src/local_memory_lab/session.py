@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import queue
+import json
 import threading
 from pathlib import Path
 from uuid import uuid4
@@ -11,6 +12,7 @@ from .agent.engine import DEFAULT_MODEL, installed_chat_models, run_turn
 from .agent.project_tools import ProjectTools
 from .agent.tool_router import SharedTools
 from .event_store import EventStore
+from .command_runner import CommandRunner
 from .lifecycles import JOB_TERMINAL
 from .locations import CONTROL
 from .session_state import SessionState
@@ -256,6 +258,27 @@ class SharedSession:
                                             job=job_id)
         return self.wait_for_approval(approval_id)
 
+    def _run_named_command(self, name: str, project_root: Path | None,
+                           request_id: str, job_id: str | None = None) -> dict:
+        if project_root is None:
+            raise ValueError("Choose a project before running commands.")
+        runner = CommandRunner(project_root)
+        spec = runner.resolve(name)
+        detail = json.dumps({"argv": list(spec.argv), "cwd": str(spec.root)}, indent=2)
+        approval_id = self.request_approval(
+            "command", f"Run {name}?", detail, actor="role:builder",
+            request_id=request_id, job=job_id)
+        if not self.wait_for_approval(approval_id):
+            return {"status": "cancelled", "message": f"Command {name} was not approved."}
+        cancelled = (lambda: self.state.jobs.records[job_id].state == "cancelled") if job_id else None
+        result = runner.run(spec, cancelled=cancelled)
+        self._record("system", "command.result", result, job=job_id)
+        message = f"Command {name}: {result['status']} (exit {result['exit_code']})."
+        if result["output"]:
+            message += "\n" + result["output"]
+        return {"status": "ok" if result["status"] == "ok" else result["status"],
+                "message": message, **result}
+
     def _run_goal(self, job_id: str, approval_id: str) -> None:
         entered_running = False
         try:
@@ -282,7 +305,8 @@ class SharedSession:
                 goal, model, [], notes,
                 SharedTools(project_root,
                             lambda proposal: self._confirm_patch(job_id, proposal, job_id),
-                            job_id),
+                            job_id,
+                            lambda name: self._run_named_command(name, project_root, job_id, job_id)),
                 lambda result: self._record("system", "tool.result", {
                     "display": {"speaker": "Tool", "text": result["message"]},
                     "toolStatus": result["status"],
@@ -332,7 +356,9 @@ class SharedSession:
             answer, turn = run_turn(prompt, model, turns, notes,
                                     SharedTools(project_root,
                                                 lambda proposal: self._confirm_patch(request_id, proposal),
-                                                request_id),
+                                                request_id,
+                                                lambda name: self._run_named_command(
+                                                    name, project_root, request_id)),
                                     lambda result: self._event("Tool", result["message"],
                                                                toolStatus=result["status"], requestId=request_id))
             with self.lock:

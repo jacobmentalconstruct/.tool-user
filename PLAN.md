@@ -118,6 +118,7 @@ All recorded 2026-09-29.
   - The rights table is in `docs/CONTRACTS.md` §0. The code enforces it from T2 on, when the event log introduces actors. Until then, the hub's two tokens map to USER and AGENT.
 - **D12 T3 event payloads (2026-09-29):** T3 uses the existing `job.state`, `task.state`, `approval.requested`, `approval.resolved` and `command.result` kinds; it adds no kind or top-level event field. `job.state` carries `data.state`, the initial `data.goal`, and `data.reason` on failure/cancellation. Approval events carry the §3 approval identity, kind and state; T2's older patch approval events remain readable. `command.result` carries the §4 result fields. This records the event-data schema introduced by T3 before implementation; any later shape change needs another decision.
 - **D13 Goal-submission provenance (2026-09-29):** the first `job.state` event also carries `data.submittedBy` (`user` or `agent`) and optional `data.display` text for the shared timeline. SYSTEM remains the event actor because it owns job-state transitions (§0); `submittedBy` records who requested the goal. No new event kind or top-level field is added.
+- **D14 Command outcome metadata (2026-09-29):** `command.result` keeps the required §4 fields (`name`, `exit_code`, `duration_s`, `output`) and adds `data.status` (`ok`, `failed`, `timeout`, or `cancelled`) so a timeout or USER cancellation is distinguishable from a command's nonzero exit. `exit_code` is `-1` when the process was stopped before it returned an exit code. No top-level event field or event kind changes.
 
 ## 3. Target end state and stop conditions
 
@@ -250,10 +251,10 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 1. Implement the T3 job path, restart failure handling, and the task transition table.
 - [x] 2. Implement non-blocking plan/command approvals, restart expiry, and USER-only cancellation.
 - [x] 3. Add distinct Chat/New goal entrances and stage visibility in browser and CLI.
-- [ ] 4. Implement the chat loop's named-command tool, USER-approved runner, and event results.
+- [x] 4. Implement the chat loop's named-command tool, USER-approved runner, and event results.
 - [ ] 5. Add focused tests and align documentation with the delivered behavior.
 
-**Now:** Tasks 1–3 are complete; implementing the named command runner and Windows process cleanup in task 4.
+**Now:** Tasks 1–4 are complete; consolidating integration coverage and documentation in task 5.
 
 **Non-goals:** T4 knowledge/indexing; T5 bench; T6 planner/builder/debugger/reviewer role team and deterministic gate; replacing `engine.run_turn`; UI redesign beyond the two entrances and lifecycle status; changing §3 or §4; new dependencies beyond standard library plus numpy.
 

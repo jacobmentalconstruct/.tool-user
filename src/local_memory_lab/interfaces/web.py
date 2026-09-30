@@ -109,6 +109,9 @@ def make_handler(session: SharedSession, user_token: str, agent_token: str):
                         self._reject(HTTPStatus.FORBIDDEN, "Only the USER browser can cancel a job.")
                         return
                     session.cancel_job(payload.get("id"), actor)
+                elif self.path == "/api/commands":
+                    self._reject(HTTPStatus.FORBIDDEN, "Only a ROLE may request a named command.")
+                    return
                 elif self.path == "/api/notes":
                     session.add_note(payload.get("text"), actor)
                 elif self.path == "/api/notes/remove":
