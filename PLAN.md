@@ -242,7 +242,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **Scope (task list, in order):**
 1. Add small, deterministic Python and Markdown chunkers plus model-free file summaries. Exclude files through the existing workspace path policy; retain source paths and line spans.
 2. Add the per-project SQLite knowledge store under `live_control/` with file hashes, chunks, FTS5, embedding blobs and code graph nodes/edges. Keep it separate from the event log and give it one owner.
-3. Add the Ollama `nomic-embed-text` adapter and hybrid retrieval: FTS5 plus normalized numpy cosine similarity, with a fake Ollama server in tests. If Ollama is unavailable, keyword retrieval remains usable and the missing embedding is visible.
+3. Add the Ollama `nomic-embed-text` adapter and hybrid retrieval: FTS5 plus numpy cosine similarity combined by reciprocal rank fusion, with a fake Ollama server in tests. If Ollama is unavailable, keyword retrieval remains usable and the missing embedding is visible.
 4. Add the greedy context assembler matching §5 (`budget_tokens`, `used_tokens`, `dropped`, scored `items`), with character/4 token estimates. Make it callable by the current session path so it is exercised before T5/T6 roles arrive, without making a second agent loop.
 5. Index a selected project while turns are idle and refresh changed files after an approved patch. Coalesce changes and avoid indexing during an active model turn or command. Add integration and restart coverage; align current documentation.
 
@@ -260,7 +260,10 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **T4 task 2 review fixes:**
 - [x] Make shared graph-symbol inserts idempotent; test two-file imports and re-index.
 
-**Now:** Building the bounded context pack assembler and connecting retrieval output (task 4).
+**T4 task 3 review fixes:**
+- [x] Use reciprocal rank fusion so matching keyword results outrank non-matches with equal vectors.
+
+**Now:** Continuing the bounded context pack assembler and connecting retrieval output (task 4).
 
 **Non-goals:** T5 bench tasks or model comparisons; T6 role team, planner, gate, `roles.json` or deletion of `run_turn`; new UI workflow; an external vector database or graph server; a custom embedder; indexing the user's other projects; changes to §§3–4 or dependencies beyond standard library and numpy.
 
@@ -269,7 +272,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **Acceptance criteria:**
 - Chunking tests show Python definitions/imports, class headers and addressable methods, Markdown headings/paragraphs outside fences, line spans, exclusions and model-free summaries: `python -B -m unittest discover -s tests -p "test_chunking.py" -v`.
 - Store tests show per-project isolation, FTS5 results, persisted vectors and graph edges, and restart recovery: `python -B -m unittest discover -s tests -p "test_knowledge_store.py" -v`.
-- Retrieval tests use a fake Ollama HTTP server and show ranked hybrid results plus a visible keyword-only fallback: `python -B -m unittest discover -s tests -p "test_retrieval.py" -v`.
+- Retrieval tests use a fake Ollama HTTP server and show reciprocal-rank hybrid results (including keyword matches outranking non-matches with equal vectors) plus a visible keyword-only fallback: `python -B -m unittest discover -s tests -p "test_retrieval.py" -v`.
 - Context-pack tests show the §5 shape, deterministic budget accounting, greedy selection and dropped count: `python -B -m unittest discover -s tests -p "test_context_pack.py" -v`.
 - Integration tests show selected-project indexing, refresh after an approved patch, and no indexing during an active turn or command: `python -B -m unittest discover -s tests -p "test_knowledge_integration.py" -v`.
 - The complete regression suite passes: `python -B -m unittest discover -s tests -v`.

@@ -14,21 +14,26 @@ class HybridRetriever:
         self.embedder = embedder or OllamaEmbedder()
 
     @staticmethod
-    def _keyword_scores(rows: list[dict]) -> dict[int, float]:
-        if not rows:
-            return {}
-        values = [float(row["score"]) for row in rows]
-        low, high = min(values), max(values)
-        if high == low:
-            return {int(row["id"]): 1.0 for row in rows}
-        return {int(row["id"]): (high - float(row["score"])) / (high - low)
-                for row in rows}
+    def _ranks(scores: dict[int, float], *, descending: bool) -> dict[int, int]:
+        """Rank a signal, giving equal scores the same competition rank."""
+        ordered = sorted(scores.items(),
+                         key=lambda item: ((-item[1] if descending else item[1]), item[0]))
+        ranks = {}
+        previous = None
+        rank = 0
+        for position, (chunk_id, score) in enumerate(ordered, 1):
+            if previous is None or score != previous:
+                rank = position
+                previous = score
+            ranks[chunk_id] = rank
+        return ranks
 
     def search(self, query: str, limit: int = 20) -> dict:
         if not isinstance(query, str) or not query.strip() or not isinstance(limit, int) or not 1 <= limit <= 100:
             raise ValueError("Search needs nonempty text and a limit from 1 to 100.")
         keyword_rows = self.store.search_fts(query, min(100, max(20, limit * 5)))
-        keyword_scores = self._keyword_scores(keyword_rows)
+        keyword_scores = {int(row["id"]): float(row["score"]) for row in keyword_rows}
+        keyword_ranks = self._ranks(keyword_scores, descending=False)
         try:
             query_vector = np.asarray(self.embedder.embed(query), dtype=np.float32)
             norm = float(np.linalg.norm(query_vector))
@@ -52,20 +57,22 @@ class HybridRetriever:
         except (EmbeddingUnavailable, OSError, ValueError) as exc:
             return self._keyword_only(keyword_rows, limit, str(exc))
 
+        vector_ranks = self._ranks(vector_scores, descending=True)
         results = []
         for chunk_id in set(keyword_scores) | set(vector_scores):
             row = next((item for item in keyword_rows if int(item["id"]) == chunk_id), None)
             row = row or chunks[chunk_id]
-            has_keyword = chunk_id in keyword_scores
-            has_vector = chunk_id in vector_scores
-            weights = int(has_keyword) + int(has_vector)
-            score = ((keyword_scores.get(chunk_id, 0.0) if has_keyword else 0.0) +
-                     (vector_scores.get(chunk_id, 0.0) if has_vector else 0.0)) / weights
+            keyword_rank = keyword_ranks.get(chunk_id)
+            vector_rank = vector_ranks.get(chunk_id)
+            score = ((1.0 / (60 + keyword_rank) if keyword_rank is not None else 0.0) +
+                     (1.0 / (60 + vector_rank) if vector_rank is not None else 0.0))
             results.append({key: row[key] for key in
                             ("id", "path", "ordinal", "line_start", "line_end", "kind", "text")})
             results[-1].update({"score": score,
                                 "keyword_score": keyword_scores.get(chunk_id),
-                                "vector_score": vector_scores.get(chunk_id)})
+                                "vector_score": vector_scores.get(chunk_id),
+                                "keyword_rank": keyword_rank,
+                                "vector_rank": vector_rank})
         results.sort(key=lambda item: (-item["score"], item["path"], item["ordinal"]))
         return {"status": "hybrid", "fallback_reason": None, "results": results[:limit]}
 

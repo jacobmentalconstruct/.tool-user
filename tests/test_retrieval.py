@@ -100,6 +100,33 @@ class RetrievalTests(unittest.TestCase):
             server.server_close()
             thread.join(timeout=2)
 
+    def test_keyword_match_beats_nonmatch_when_vectors_are_equal(self):
+        server, thread = start_fake_ollama(vectors={"needle": [1.0, 0.0]})
+        try:
+            with tempfile.TemporaryDirectory() as temp:
+                base = Path(temp)
+                root = base / "project"
+                root.mkdir()
+                content = ("# Weak\nneedle appears once\n\n"
+                           "# None\nunrelated vehicle content\n")
+                (root / "guide.md").write_text(content, encoding="utf-8")
+                chunks, summary = chunk_file(Workspace(root), "guide.md")
+                store = KnowledgeStore(root, base / "live_control")
+                store.replace_file("guide.md", content, chunks, summary, graph=False)
+                for row in store.list_chunks("guide.md"):
+                    store.put_embedding(row["id"], "nomic-embed-text", (1.0, 0.0))
+
+                embedder = OllamaEmbedder(base_url=f"http://127.0.0.1:{server.server_port}")
+                results = HybridRetriever(store, embedder).search("needle", limit=2)["results"]
+                self.assertEqual(["Weak", "None"],
+                                 [row["text"].splitlines()[0].lstrip("# ") for row in results])
+                self.assertEqual(results[0]["vector_rank"], results[1]["vector_rank"])
+                self.assertGreater(results[0]["score"], results[1]["score"])
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
     def test_embedder_failure_returns_visible_keyword_only_results(self):
         server, thread = start_fake_ollama(fail=True)
         try:
