@@ -231,63 +231,46 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T4 — Knowledge layer.
+**ID:** T5 — Bench.
 
-**Current:** T1, T2 and T3 are accepted on `main`; T3 and its acceptance record are pushed at `83930d3`. The accepted baseline has 50 passing tests. No knowledge index exists. §3 stop conditions and §4 non-goals remain frozen (D6).
+**Current:** T1–T4 are accepted on `main`; T4 is merged locally at `c287f3f`. Its full suite passed 71 tests. `main` has not yet been pushed after the T4 merge. S3–S5 are complete; §3 stop conditions and §4 non-goals remain frozen (D6). T5 is provisional pending USER review and implementation approval.
 
-**Branch:** `t4-knowledge`.
+**Branch:** `t5-bench` (create after declaration approval).
 
-**Expected outcome:** one project-scoped knowledge store supplies bounded context packs using FTS5, Ollama embeddings with numpy similarity, an `ast` code graph, and model-free summaries. Applied changes refresh the affected index data; indexing yields to active turns (S5, `docs/CONTRACTS.md` §§5–6).
+**Expected outcome:** a reproducible, committed bench of at least 15 real-code hole-punch tasks from a pinned T1–T4 repository snapshot; measured top-five search quality and builder success with/without context; and a `roles.json` assignment supported by builder model results (D3, D4, S7, `docs/CONTRACTS.md` §§7–9).
 
 **Scope (task list, in order):**
-1. Add small, deterministic Python and Markdown chunkers plus model-free file summaries. Exclude files through the existing workspace path policy; retain source paths and line spans.
-2. Add the per-project SQLite knowledge store under `live_control/` with file hashes, chunks, FTS5, embedding blobs and code graph nodes/edges. Keep it separate from the event log and give it one owner.
-3. Add the Ollama `nomic-embed-text` adapter and hybrid retrieval: FTS5 plus numpy cosine similarity combined by reciprocal rank fusion, with a fake Ollama server in tests. If Ollama is unavailable, keyword retrieval remains usable and the missing embedding is visible.
-4. Add the greedy context assembler matching §5 (`budget_tokens`, `used_tokens`, `dropped`, scored `items`), with character/4 token estimates. Make it callable by the current session path so it is exercised before T5/T6 roles arrive, without making a second agent loop.
-5. Index a selected project at startup and idle boundaries; refresh changed files after an approved patch. Coalesce changes and avoid indexing during an active model turn or command. Detect outside edits by hash at the next idle scan, retry missing embeddings, add integration/restart coverage, and align current documentation.
+1. Pin the T5 source snapshot by commit. Hole-punch functions whose existing tests cover their behavior; write task goals, exact gold files and checks in the §9 task format. Require at least 15 valid tasks. Use only D3's trimmed fixture fallback if this repo yields fewer than 15; synthetic tasks need a specific `synthetic_reason`.
+2. Build task validation and an isolated harness. Verify each unmodified task passes its check and each hole-punched task fails it. Run the builder against disposable task copies, validate the §7 JSON output, constrain edits to declared files, and score search results against gold files. Keep the pinned snapshot and working tree unchanged.
+3. Measure eligible installed local builder models on the same tasks with and without T4 context packs. Record per-model pass rate, duration, tokens/s, invalid-output rate, top-five search quality, and builder success by context condition. Set `roles.json` from the measured evidence, retaining other role assignments from D4 for T6.
+4. Commit the task corpus, harness, results, role configuration and concise run/reproduction documentation; run focused checks and the full regression suite.
 
 **Progress:**
-- [x] 1. Chunk Python and Markdown and produce model-free summaries.
-- [x] 2. Persist one project-scoped index with FTS5, embeddings and an `ast` graph.
-- [x] 3. Query Ollama embeddings and combine keyword/vector retrieval.
-- [x] 4. Assemble bounded context packs through the shared session path.
-- [x] 5. Refresh after approved changes only while idle, verify and update docs.
+- [ ] 1. Pin the snapshot and create/validate at least 15 covered hole-punch tasks (D3 fallback only if needed).
+- [ ] 2. Implement isolated task validation, builder runs, context comparisons and search scoring.
+- [ ] 3. Run eligible local model comparisons and record required metrics; set `roles.json` from results.
+- [ ] 4. Document reproduction, verify the full suite and park with committed evidence.
 
-**T4 task 1 review fixes:**
-- [x] Split class chunks into a header and addressable method chunks.
-- [x] Ignore Markdown heading syntax inside fenced code blocks.
+**Now:** T5 declaration is ready for USER review; implementation permission remains NO.
 
-**T4 task 2 review fixes:**
-- [x] Make shared graph-symbol inserts idempotent; test two-file imports and re-index.
-
-**T4 task 3 review fixes:**
-- [x] Use reciprocal rank fusion so matching keyword results outrank non-matches with equal vectors.
-
-**Now:** T4 is parked on `t4-knowledge`, pending USER acceptance.
-
-**Hook ownership (recorded before implementation):** A new `knowledge/service.py` owns the selected project's store, idle indexing worker, refresh queue, and context-pack retrieval. Before a turn acquires its activity lease, the session path asks the service to finish an idle hash scan, then retrieves context before `run_turn`. Indexing waits for leases to clear; turns wait for an already-running index to finish. The approved-patch callback queues only applied paths for refresh, which runs after the turn lease ends (so commands are covered too). Restoring a selected project queues a scan on service startup. Keep `session.py` at or below 400 lines.
-
-**Non-goals:** T5 bench tasks or model comparisons; T6 role team, planner, gate, `roles.json` or deletion of `run_turn`; new UI workflow; an external vector database or graph server; a custom embedder; indexing the user's other projects; changes to §§3–4 or dependencies beyond standard library and numpy.
-
-**Implementation boundary:** Put all new product code in new modules. `session.py` is already 400 lines, the S9 ceiling; do not add lines to it.
+**Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
 
 **Acceptance criteria:**
-- Chunking tests show Python definitions/imports, class headers and addressable methods, Markdown headings/paragraphs outside fences, line spans, exclusions and model-free summaries: `python -B -m unittest discover -s tests -p "test_chunking.py" -v`.
-- Store tests show per-project isolation, FTS5 results, persisted vectors and graph edges, and restart recovery: `python -B -m unittest discover -s tests -p "test_knowledge_store.py" -v`.
-- Retrieval tests use a fake Ollama HTTP server and show reciprocal-rank hybrid results (including keyword matches outranking non-matches with equal vectors) plus a visible keyword-only fallback: `python -B -m unittest discover -s tests -p "test_retrieval.py" -v`.
-- Context-pack tests show the §5 shape, deterministic budget accounting, greedy selection and dropped count: `python -B -m unittest discover -s tests -p "test_context_pack.py" -v`.
-- Integration tests show selected-project and restart scans, outside edits refreshed before the next turn, approved-patch refresh (rejected patches do not refresh), missing embeddings retried, keyword fallback, and no indexing during an active turn or command: `python -B -m unittest discover -s tests -p "test_knowledge_integration.py" -v`.
-- The complete regression suite passes: `python -B -m unittest discover -s tests -v`.
-- Scope and ownership checks pass: `git diff --check 5fd56d6..HEAD`; `python -B -m unittest discover -s tests -p "test_architecture.py" -v`; `git diff --unified=0 5fd56d6..HEAD -- PLAN.md` shows no edits to §§3–4.
+- Task validation confirms one pinned `self@<commit>` source, at least 15 valid tasks, each original check passes, and each hole-punched check fails: `python -B -m unittest discover -s tests -p "test_bench_tasks.py" -v`.
+- Harness tests prove task copies are isolated, builder JSON is validated, edits outside declared gold files are rejected, and invalid outputs are counted: `python -B -m unittest discover -s tests -p "test_bench_harness.py" -v`.
+- Search and context scoring tests show gold-file recall in top five and separate builder success with and without context: `python -B -m unittest discover -s tests -p "test_bench_scoring.py" -v`.
+- The committed run contains at least 15 tasks and per eligible model records pass rate, elapsed time, tokens/s, invalid-output rate, top-five search quality, and builder success under both context conditions: `python lab.py bench validate`.
+- `roles.json` parses and names the measured builder assignment while preserving planned T6 role assignments: `python -B -m unittest discover -s tests -p "test_roles.py" -v`.
+- The full suite and architecture check pass: `python -B -m unittest discover -s tests -v`; `python -B -m unittest discover -s tests -p "test_architecture.py" -v`; `git diff --check`.
 
-**Known risks:** The builder environment must permit temporary directories and SQLite FTS5; verified by the accepted T3 suite and `CREATE VIRTUAL TABLE ... USING fts5`, but repeat focused tests as T4 modules arrive. Stop and tell the USER if temp access or FTS5 is unavailable. Ollama may be down during indexing, so keyword search must remain useful and missing vectors must be explicit. Keep background indexing subordinate to active turns on 16 GB GPU hardware; avoid holding the session lock during embedding requests. A project can change outside the hub, so hashes must detect stale entries on the next idle scan. Any event or contract schema change requires a decision in §2 before implementation. New code goes in new modules and `session.py` must remain at or below 400 lines.
+**Known risks:** T1–T4 may yield fewer than 15 independently hole-punchable functions; only then use D3's fixture fallback, copied and exercised inside this repo in isolation. Models or Ollama may be unavailable, and the full run may be slow or variable on 16 GB GPU hardware; record model tags, Ollama version, hardware, settings and failed/unavailable candidates, and stop to tell the USER if no eligible local builder can complete the run. Hole-punch tasks can be invalid if their existing checks do not fail reliably; validate both pristine and punched baselines before any model run. Keep all model inference local and all generated patches inside disposable task copies. Do not change the event or contract schema without a decision in §2.
 
-**Declaration state:** USER accepted T3 and asked to declare and enter T4 on 2026-09-29; T4 is declared and entered from that instruction.
+**Declaration state:** T5 is declared from §5 after USER acceptance of T4 on 2026-09-30. Awaiting USER review; implementation permission remains NO.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T4 is parked pending USER acceptance.
+**Implementation permission:** NO. T5 declaration is awaiting USER review.
 
 ## 9. Parked Tranches
 
@@ -360,7 +343,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Deferrals:** the T6 role team, gate and task execution remain as planned; otherwise none beyond §4.
 - **Next step:** T4 knowledge layer, declared and active on `t4-knowledge`.
 
-**T4, knowledge layer: PARKED 2026-09-30 on `t4-knowledge`, pending USER acceptance.** Not merged.
+**T4, knowledge layer: PARKED 2026-09-30 on `t4-knowledge`; accepted by USER 2026-09-30 and merged locally to `main` at `c287f3f`.** Not yet pushed.
 - **Outcome met:** The selected project has a separate SQLite knowledge index with deterministic Python/Markdown chunks and summaries, FTS5, stored embeddings, and an `ast` graph. Hybrid retrieval uses reciprocal rank fusion and keyword-only fallback. Chat and goal turns receive bounded context packs. Project scans run at selection/startup and idle boundaries; they detect outside edits by hash, retry missing embeddings, and remove stale files. USER-approved patch paths are queued for refresh, and indexing waits until turns and commands are idle. `session.py` remains at 400 lines. No event or contract schema changed.
 - **Evidence:**
   - `python -B -m unittest discover -s tests -v` — 71 tests passed in 11.131 s after the T4 review fixes.
@@ -371,4 +354,4 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   - T4 review fixes: all five session tests that invoke `context_for` inject a fake embedder, so automated tests do not call Ollama; empty context-pack results are omitted from notes.
 - **Limitations:** Automated tests use fake/dummy embedders, including session-level tests; live Ollama inference was not run. The indexer handles allowed `.py`, `.md`, and `.markdown` files. Scan errors are retained in the knowledge service but are not shown in the browser. Full hash scans happen before a new turn, so large projects may delay turn startup; unchanged files skip chunking and embedding.
 - **Deferrals:** none beyond §4.
-- **Next step:** Reorient and review T4; after USER acceptance, consider declaring T5 Bench from §5. T5 remains provisional.
+- **Next step:** Review the T5 Bench declaration in §7. T5 remains provisional until USER approval.
