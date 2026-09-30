@@ -137,6 +137,11 @@ class KnowledgeStore:
             rows = db.execute("SELECT * FROM chunks WHERE path = ? ORDER BY ordinal", (relative,)).fetchall()
         return [dict(row) for row in rows]
 
+    def all_chunks(self) -> list[dict]:
+        with self._connect() as db:
+            rows = db.execute("SELECT * FROM chunks ORDER BY path, ordinal").fetchall()
+        return [dict(row) for row in rows]
+
     def search_fts(self, query: str, limit: int = 20) -> list[dict]:
         if not isinstance(query, str) or not isinstance(limit, int) or not 1 <= limit <= 100:
             raise ValueError("Search query and a limit from 1 to 100 are required.")

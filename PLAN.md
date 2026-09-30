@@ -249,7 +249,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **Progress:**
 - [x] 1. Chunk Python and Markdown and produce model-free summaries.
 - [x] 2. Persist one project-scoped index with FTS5, embeddings and an `ast` graph.
-- [ ] 3. Query Ollama embeddings and combine keyword/vector retrieval.
+- [x] 3. Query Ollama embeddings and combine keyword/vector retrieval.
 - [ ] 4. Assemble bounded context packs through the shared session path.
 - [ ] 5. Refresh after approved changes only while idle, verify and update docs.
 
@@ -260,7 +260,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **T4 task 2 review fixes:**
 - [x] Make shared graph-symbol inserts idempotent; test two-file imports and re-index.
 
-**Now:** Adding the Ollama embedding adapter and hybrid retrieval with a fake server (task 3).
+**Now:** Building the bounded context pack assembler and connecting retrieval output (task 4).
 
 **Non-goals:** T5 bench tasks or model comparisons; T6 role team, planner, gate, `roles.json` or deletion of `run_turn`; new UI workflow; an external vector database or graph server; a custom embedder; indexing the user's other projects; changes to §§3–4 or dependencies beyond standard library and numpy.
 
