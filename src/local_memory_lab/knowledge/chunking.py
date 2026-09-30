@@ -21,6 +21,31 @@ def _chunk(path: str, lines: list[str], start: int, end: int, kind: str) -> Chun
     return Chunk(path, (start, end), kind, "\n".join(lines[start - 1:end]))
 
 
+def _decorated_start(node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef) -> int:
+    return min([node.lineno, *(decorator.lineno for decorator in node.decorator_list)])
+
+
+def _class_chunks(path: str, lines: list[str], node: ast.ClassDef) -> tuple[list[Chunk], list[str]]:
+    methods = [child for child in node.body
+               if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))]
+    class_start = _decorated_start(node)
+    class_end = node.end_lineno or node.lineno
+    header_end = _decorated_start(methods[0]) - 1 if methods else class_end
+    chunks = [_chunk(path, lines, class_start, max(class_start, header_end), "class_header")]
+    names = [f"class {node.name}"]
+    method_nodes = set(methods)
+    for child in node.body:
+        if child in method_nodes:
+            start = _decorated_start(child)
+            end = child.end_lineno or child.lineno
+            chunks.append(_chunk(path, lines, start, end, "method"))
+            names.append(f"method {node.name}.{child.name}")
+        elif child.lineno > header_end:
+            chunks.append(_chunk(path, lines, child.lineno,
+                                 child.end_lineno or child.lineno, "class_member"))
+    return chunks, names
+
+
 def _python_chunks(path: str, content: str) -> tuple[list[Chunk], str]:
     lines = content.splitlines()
     try:
@@ -50,10 +75,14 @@ def _python_chunks(path: str, content: str) -> tuple[list[Chunk], str]:
                 chunks.append(_chunk(path, lines, other[0].lineno,
                                      other[-1].end_lineno or other[-1].lineno, "module"))
                 other = []
-            kind = "class" if isinstance(node, ast.ClassDef) else "function"
-            start = min([node.lineno, *(part.lineno for part in node.decorator_list)])
-            chunks.append(_chunk(path, lines, start, node.end_lineno or node.lineno, kind))
-            definitions.append(f"{kind} {node.name}")
+            if isinstance(node, ast.ClassDef):
+                class_chunks, class_names = _class_chunks(path, lines, node)
+                chunks.extend(class_chunks)
+                definitions.extend(class_names)
+            else:
+                chunks.append(_chunk(path, lines, _decorated_start(node),
+                                     node.end_lineno or node.lineno, "function"))
+                definitions.append(f"function {node.name}")
         else:
             other.append(node)
     if imports:
@@ -70,8 +99,21 @@ def _python_chunks(path: str, content: str) -> tuple[list[Chunk], str]:
 
 def _markdown_chunks(path: str, content: str) -> tuple[list[Chunk], str]:
     lines = content.splitlines()
-    headings = [index for index, line in enumerate(lines, 1)
-                if re.match(r"^#{1,6}\s+\S", line)]
+    headings = []
+    fence: tuple[str, int] | None = None
+    for index, line in enumerate(lines, 1):
+        fence_match = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
+        if fence is not None:
+            marker, length = fence
+            if re.match(rf"^ {{0,3}}{re.escape(marker)}{{{length},}}\s*$", line):
+                fence = None
+            continue
+        if fence_match:
+            token = fence_match.group(1)
+            fence = (token[0], len(token))
+            continue
+        if re.match(r"^ {0,3}#{1,6}\s+\S", line):
+            headings.append(index)
     chunks: list[Chunk] = []
     if headings:
         if headings[0] > 1 and any(line.strip() for line in lines[:headings[0] - 1]):

@@ -253,6 +253,10 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [ ] 4. Assemble bounded context packs through the shared session path.
 - [ ] 5. Refresh after approved changes only while idle, verify and update docs.
 
+**T4 task 1 review fixes:**
+- [x] Split class chunks into a header and addressable method chunks.
+- [x] Ignore Markdown heading syntax inside fenced code blocks.
+
 **Now:** Building the project-scoped SQLite knowledge store and FTS5 index (task 2).
 
 **Non-goals:** T5 bench tasks or model comparisons; T6 role team, planner, gate, `roles.json` or deletion of `run_turn`; new UI workflow; an external vector database or graph server; a custom embedder; indexing the user's other projects; changes to §§3–4 or dependencies beyond standard library and numpy.
@@ -260,7 +264,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **Implementation boundary:** Put all new product code in new modules. `session.py` is already 400 lines, the S9 ceiling; do not add lines to it.
 
 **Acceptance criteria:**
-- Chunking tests show Python definitions/imports, Markdown headings/paragraphs, line spans, exclusions and model-free summaries: `python -B -m unittest discover -s tests -p "test_chunking.py" -v`.
+- Chunking tests show Python definitions/imports, class headers and addressable methods, Markdown headings/paragraphs outside fences, line spans, exclusions and model-free summaries: `python -B -m unittest discover -s tests -p "test_chunking.py" -v`.
 - Store tests show per-project isolation, FTS5 results, persisted vectors and graph edges, and restart recovery: `python -B -m unittest discover -s tests -p "test_knowledge_store.py" -v`.
 - Retrieval tests use a fake Ollama HTTP server and show ranked hybrid results plus a visible keyword-only fallback: `python -B -m unittest discover -s tests -p "test_retrieval.py" -v`.
 - Context-pack tests show the §5 shape, deterministic budget accounting, greedy selection and dropped count: `python -B -m unittest discover -s tests -p "test_context_pack.py" -v`.
