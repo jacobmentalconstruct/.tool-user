@@ -74,8 +74,8 @@ class KnowledgeIntegrationTests(unittest.TestCase):
             (project / "guide.md").write_text("# Guide\nselected project phrase\n", encoding="utf-8")
             control = base / "control"
 
-            def service_factory(root, start_worker):
-                return KnowledgeService(root, control_root=control, embedder=_Embedder(),
+            def service_factory(root, start_worker, embedder=None):
+                return KnowledgeService(root, control_root=control, embedder=embedder or _Embedder(),
                                         start_worker=True)
 
             with patch("local_memory_lab.session.KnowledgeService", side_effect=service_factory):

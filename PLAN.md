@@ -363,11 +363,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **T4, knowledge layer: PARKED 2026-09-30 on `t4-knowledge`, pending USER acceptance.** Not merged.
 - **Outcome met:** The selected project has a separate SQLite knowledge index with deterministic Python/Markdown chunks and summaries, FTS5, stored embeddings, and an `ast` graph. Hybrid retrieval uses reciprocal rank fusion and keyword-only fallback. Chat and goal turns receive bounded context packs. Project scans run at selection/startup and idle boundaries; they detect outside edits by hash, retry missing embeddings, and remove stale files. USER-approved patch paths are queued for refresh, and indexing waits until turns and commands are idle. `session.py` remains at 400 lines. No event or contract schema changed.
 - **Evidence:**
-  - `python -B -m unittest discover -s tests -v` — 71 tests passed in 11.507 s.
+  - `python -B -m unittest discover -s tests -v` — 71 tests passed in 11.131 s after the T4 review fixes.
   - `python -B -m unittest discover -s tests -p "test_context_pack.py" -v` — 2 tests passed, including §5 shape/accounting and the session path.
   - `python -B -m unittest discover -s tests -p "test_knowledge_integration.py" -v` — 6 tests passed: selection/restart scans, outside-edit refresh before a turn, approved-patch refresh and rejected-patch refusal, missing-embedding retry, keyword fallback, and no indexing during a turn or command.
   - `python -B -m unittest discover -s tests -p "test_architecture.py" -v` — 2 tests passed.
   - `git diff --check 5fd56d6..HEAD` — clean. `git diff --unified=0 5fd56d6..HEAD -- PLAN.md` shows no edits to §§3–4.
-- **Limitations:** Automated tests use fake/dummy embedders; live Ollama inference was not run. The indexer handles allowed `.py`, `.md`, and `.markdown` files. Scan errors are retained in the knowledge service but are not shown in the browser. Full hash scans happen before a new turn, so large projects may delay turn startup; unchanged files skip chunking and embedding.
+  - T4 review fixes: all five session tests that invoke `context_for` inject a fake embedder, so automated tests do not call Ollama; empty context-pack results are omitted from notes.
+- **Limitations:** Automated tests use fake/dummy embedders, including session-level tests; live Ollama inference was not run. The indexer handles allowed `.py`, `.md`, and `.markdown` files. Scan errors are retained in the knowledge service but are not shown in the browser. Full hash scans happen before a new turn, so large projects may delay turn startup; unchanged files skip chunking and embedding.
 - **Deferrals:** none beyond §4.
 - **Next step:** Reorient and review T4; after USER acceptance, consider declaring T5 Bench from §5. T5 remains provisional.

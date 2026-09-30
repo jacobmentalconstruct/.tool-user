@@ -20,13 +20,13 @@ from .session_state import SessionState
 
 
 class SharedSession:
-    def __init__(self, store_path: Path | str | None = None, *,
-                 load_models: bool = True, start_worker: bool = True):
+    def __init__(self, store_path: Path | str | None = None, *, load_models: bool = True,
+                 start_worker: bool = True, knowledge_embedder=None):
         self.lock = threading.RLock()
         self.prompts: queue.Queue[int] = queue.Queue(maxsize=32)
         self.store = EventStore(store_path or CONTROL / "events.sqlite")
         self.state = SessionState.restore(self.store)
-        self.knowledge = KnowledgeService(self.state.workspace.project_root, start_worker=start_worker)
+        self.knowledge = KnowledgeService(self.state.workspace.project_root, embedder=knowledge_embedder, start_worker=start_worker)
         self.busy = False
         self._active_turns = 0
         self._turn_slot = threading.Semaphore(1)
@@ -323,7 +323,7 @@ class SharedSession:
                 notes = list(self.notes)
                 project_root = self.project_root
                 goal = self.state.jobs.records[job_id].goal
-            notes.append(self.knowledge.context_for(goal))
+            notes.extend([context] if (context := self.knowledge.context_for(goal)) else [])
             answer, _ = run_turn(
                 goal, model, [], notes,
                 self._tools_for(project_root, job_id, job_id),
@@ -379,7 +379,7 @@ class SharedSession:
                 notes = list(self.notes)
                 turns = list(self.turns)
                 project_root = self.project_root
-            notes.append(self.knowledge.context_for(prompt))
+            notes.extend([context] if (context := self.knowledge.context_for(prompt)) else [])
             answer, turn = run_turn(prompt, model, turns, notes,
                                     self._tools_for(project_root, request_id),
                                     lambda result: self._event("Tool", result["message"],

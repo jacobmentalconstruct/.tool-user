@@ -24,13 +24,24 @@ from local_memory_lab.interfaces.web import make_handler  # noqa: E402
 from local_memory_lab.session import SharedSession  # noqa: E402
 
 
+class FakeEmbedder:
+    model = "test-embedder"
+
+    def embed(self, text):
+        return (1.0, 0.0)
+
+    def embed_many(self, texts):
+        return [(1.0, 0.0) for _ in texts]
+
+
 class JobInterfaceTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         root = Path(self.temporary.name)
         project = root / "project"
         project.mkdir()
-        self.session = SharedSession(root / "events.sqlite", load_models=False, start_worker=False)
+        self.session = SharedSession(root / "events.sqlite", load_models=False, start_worker=False,
+                                     knowledge_embedder=FakeEmbedder())
         self.session.set_project_root(str(project))
         self.server = ThreadingHTTPServer(("127.0.0.1", 0),
                                           make_handler(self.session, "user-token", "agent-token"))

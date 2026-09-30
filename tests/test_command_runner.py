@@ -24,6 +24,16 @@ from local_memory_lab.interfaces.web import make_handler  # noqa: E402
 from local_memory_lab.session import SharedSession  # noqa: E402
 
 
+class FakeEmbedder:
+    model = "test-embedder"
+
+    def embed(self, text):
+        return (1.0, 0.0)
+
+    def embed_many(self, texts):
+        return [(1.0, 0.0) for _ in texts]
+
+
 class CommandRunnerTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -144,7 +154,7 @@ class CommandRunnerTests(unittest.TestCase):
 
         with patch("local_memory_lab.agent.engine.ollama_json", side_effect=fake_ollama):
             session = SharedSession(self.root / "events.sqlite", load_models=False,
-                                    start_worker=True)
+                                    start_worker=True, knowledge_embedder=FakeEmbedder())
             session.set_project_root(str(self.root))
             session.submit("run the named check", "AGENT")
             deadline = time.monotonic() + 2
@@ -177,7 +187,7 @@ class CommandRunnerTests(unittest.TestCase):
 
         with patch("local_memory_lab.agent.engine.ollama_json", side_effect=fake_ollama):
             session = SharedSession(self.root / "events.sqlite", load_models=False,
-                                    start_worker=True)
+                                    start_worker=True, knowledge_embedder=FakeEmbedder())
             session.set_project_root(str(self.root))
             session.submit("try unknown", "AGENT")
             deadline = time.monotonic() + 2

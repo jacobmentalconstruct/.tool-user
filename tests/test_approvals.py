@@ -17,6 +17,16 @@ from local_memory_lab.session import SharedSession  # noqa: E402
 from local_memory_lab.event_store import EventStore  # noqa: E402
 
 
+class FakeEmbedder:
+    model = "test-embedder"
+
+    def embed(self, text):
+        return (1.0, 0.0)
+
+    def embed_many(self, texts):
+        return [(1.0, 0.0) for _ in texts]
+
+
 class ApprovalTests(unittest.TestCase):
     def test_unapproved_prompts_run_in_order_with_prior_history(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -188,7 +198,7 @@ class ApprovalTests(unittest.TestCase):
 
             with patch("local_memory_lab.session.run_turn", side_effect=fake_turn):
                 session = SharedSession(root / "events.sqlite", load_models=False,
-                                        start_worker=True)
+                                        start_worker=True, knowledge_embedder=FakeEmbedder())
                 session.set_project_root(str(root))
                 session.submit_goal("goal", "USER")
                 pending = session.state.approvals.pending()[0]
