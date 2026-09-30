@@ -258,9 +258,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **USER review fix-up Progress:**
 - [x] Serialize active turns, while approval waits yield; test ordered history and four parked approvals.
 - [x] Keep capped command output from the end with a trim marker, decision and test.
-- [ ] Record three review limitations and update parking evidence.
+- [x] Record three review limitations and update parking evidence.
 
-**Now:** Recording the three review limitations and updating parking evidence.
+**Now:** Rechecking the scope guard and documentation before the T3 parking commit.
 
 **Non-goals:** T4 knowledge/indexing; T5 bench; T6 planner/builder/debugger/reviewer role team and deterministic gate; replacing `engine.run_turn`; UI redesign beyond the two entrances and lifecycle status; changing §3 or §4; new dependencies beyond standard library plus numpy.
 
@@ -342,12 +342,13 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **T3, lifecycles and runner: PARKED 2026-09-29, pending USER acceptance.** Built on `t3-lifecycles`; not merged.
 - **Outcome met:** New goal and Chat are separate in the browser and CLI. New goal follows the declared job path with USER plan approval; job and approval states are event-backed and restored after restart. Pending approvals expire and unfinished jobs fail on restart without replay. USER-only cancellation works, while approval waits leave chat responsive. The existing chat loop requests named, USER-approved commands from `.lab/allowlist.json`; execution uses exact argv without a shell, in the project root, with timeout, capped output and `command.result` events. Windows timeout and cancel tests confirm child processes are gone. The task transition table is in place without running task instances.
 - **Evidence:**
-  - `python -B -m unittest discover -s tests -v` — 46 tests passed in 7.801 s, including T1/T2 regressions, lifecycle/restart, rights, interfaces, command refusals, patch-tool allowlist protection, and Windows child-process cleanup. The builder environment needed filesystem access for Python temporary directories.
-  - `python -B -m unittest discover -s tests -p test_command_runner.py -v` — 7 command-runner tests passed, including the real Windows parent/child timeout and cancel case.
+  - `python -B -m unittest discover -s tests -v` — 50 tests passed in 8.365 s after USER review fixes, including ordered chat history, four parked approvals, a running goal sharing the turn slot, retained final command output, and all prior coverage. The builder environment needed filesystem access for Python temporary directories.
+  - `python -B -m unittest discover -s tests -p test_approvals.py -v` — 7 approval and scheduling tests passed.
+  - `python -B -m unittest discover -s tests -p test_command_runner.py -v` — 8 command-runner tests passed, including output-tail retention and the real Windows parent/child timeout and cancel case.
   - `python -B -m unittest discover -s tests -p test_patch_tools.py -v` — 4 tests passed; agent patch tools refused `.lab/allowlist.json`.
   - `python lab.py hub-server` — hub started; the browser page contained the New goal form and the authenticated state API returned a jobs list. The smoke server was stopped and its generated link file removed.
-  - `git diff --check 54c6134..HEAD` — clean; `git diff --unified=0 54c6134..HEAD -- PLAN.md` shows no edits to §§3–4. Largest Python module: `session.py`, 379 lines.
-  - D12–D14 record the T3 event-data changes before their implementation; `docs/CONTRACTS.md` now reflects them.
-- **Limitations:** live Ollama inference was not part of the automated or hub smoke tests. Cancellation is checked at model/tool boundaries; a tool call already in progress may finish. An abrupt hub crash marks a running job failed on restart but cannot stop a command process that was already running when the hub died.
+  - `git diff --check 54c6134..HEAD` — clean; `git diff --unified=0 54c6134..HEAD -- PLAN.md` shows no edits to §§3–4. Largest Python module: `session.py`, 400 lines.
+  - D12–D15 record T3 event-data and output-contract decisions; `docs/CONTRACTS.md` reflects them.
+- **Limitations:** live Ollama inference was not part of the automated or hub smoke tests. Goals receive notes but no chat history. A chat-started command stops only by timeout because chat has no USER cancellation path. Command output is duplicated in `tool.result` display text as well as `command.result.data.output`. Cancellation is checked at model/tool boundaries; a tool call already in progress may finish. An abrupt hub crash marks a running job failed on restart but cannot stop a command process that was already running when the hub died.
 - **Deferrals:** the T6 role team, gate and task execution remain as planned; otherwise none beyond §4.
 - **Next step:** USER reviews the T3 diff and evidence, then accepts the park or returns findings. Only after acceptance may T3 be merged into `main`; then reorient and declare T4.

@@ -171,6 +171,38 @@ class ApprovalTests(unittest.TestCase):
                     time.sleep(0.01)
                 self.assertFalse(session.busy)
 
+    def test_running_goal_holds_turn_slot_until_it_parks(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            goal_started = threading.Event()
+            release_goal = threading.Event()
+            chat_started = threading.Event()
+
+            def fake_turn(prompt, model, turns, notes, tools, on_tool, **kwargs):
+                if prompt == "goal":
+                    goal_started.set()
+                    self.assertTrue(release_goal.wait(2))
+                else:
+                    chat_started.set()
+                return "done", []
+
+            with patch("local_memory_lab.session.run_turn", side_effect=fake_turn):
+                session = SharedSession(root / "events.sqlite", load_models=False,
+                                        start_worker=True)
+                session.set_project_root(str(root))
+                session.submit_goal("goal", "USER")
+                pending = session.state.approvals.pending()[0]
+                session.approve(pending.id, True)
+                self.assertTrue(goal_started.wait(2))
+                session.submit("chat", "USER")
+                self.assertFalse(chat_started.wait(0.1))
+                release_goal.set()
+                self.assertTrue(chat_started.wait(2))
+                deadline = time.monotonic() + 2
+                while session.busy and time.monotonic() < deadline:
+                    time.sleep(0.01)
+                self.assertFalse(session.busy)
+
 
 if __name__ == "__main__":
     unittest.main()
