@@ -150,6 +150,15 @@ class KnowledgeStore:
             rows = db.execute("SELECT * FROM chunks WHERE path = ? ORDER BY ordinal", (relative,)).fetchall()
         return [dict(row) for row in rows]
 
+    def chunks_without_embeddings(self, relative: str, model: str) -> list[dict]:
+        with self._connect() as db:
+            rows = db.execute("""SELECT c.* FROM chunks c
+                                  WHERE c.path = ? AND NOT EXISTS (
+                                      SELECT 1 FROM embeddings e
+                                      WHERE e.chunk_id = c.id AND e.model = ?)
+                                  ORDER BY c.ordinal""", (relative, model)).fetchall()
+        return [dict(row) for row in rows]
+
     def all_chunks(self) -> list[dict]:
         with self._connect() as db:
             rows = db.execute("SELECT * FROM chunks ORDER BY path, ordinal").fetchall()

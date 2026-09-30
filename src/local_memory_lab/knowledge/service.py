@@ -62,13 +62,20 @@ class KnowledgeService:
 
     def begin_activity(self) -> None:
         with self._condition:
+            if self._active == 0 and self.store is not None and self._worker is not None:
+                self._pending_full = True
+                self._condition.notify_all()
             while self._indexing:
+                self._condition.wait()
+            while self._active == 0 and (self._pending_full or self._pending_paths):
                 self._condition.wait()
             self._active += 1
 
     def end_activity(self) -> None:
         with self._condition:
             self._active = max(0, self._active - 1)
+            if self._active == 0 and self.store is not None and self._worker is not None:
+                self._pending_full = True
             self._condition.notify_all()
 
     def wait_idle(self, timeout: float = 10.0) -> bool:
@@ -167,17 +174,17 @@ class KnowledgeService:
         content = workspace.read_project_file(relative)["content"]
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
         previous = store.file_record(relative)
-        if previous and previous["sha256"] == digest:
-            return
-        chunks, summary = chunk_file(workspace, relative)
-        store.replace_file(relative, content, chunks, summary)
-        if not chunks:
+        if not previous or previous["sha256"] != digest:
+            chunks, summary = chunk_file(workspace, relative)
+            store.replace_file(relative, content, chunks, summary)
+        missing = store.chunks_without_embeddings(relative, self.embedder.model)
+        if not missing:
             return
         try:
-            vectors = self.embedder.embed_many([chunk.text for chunk in chunks])
+            vectors = self.embedder.embed_many([row["text"] for row in missing])
         except (EmbeddingUnavailable, OSError, ValueError):
             return
-        for row, vector in zip(store.list_chunks(relative), vectors):
+        for row, vector in zip(missing, vectors):
             store.put_embedding(row["id"], self.embedder.model, vector)
 
     def context_pack(self, query: str, budget_tokens: int = 6000) -> dict:

@@ -29,11 +29,17 @@ class _Embedder:
 
 
 class _UnavailableEmbedder(_Embedder):
+    available = False
+
     def embed(self, text):
-        raise EmbeddingUnavailable("embedding service is down")
+        if not self.available:
+            raise EmbeddingUnavailable("embedding service is down")
+        return super().embed(text)
 
     def embed_many(self, texts):
-        raise EmbeddingUnavailable("embedding service is down")
+        if not self.available:
+            raise EmbeddingUnavailable("embedding service is down")
+        return super().embed_many(texts)
 
 
 class KnowledgeIntegrationTests(unittest.TestCase):
@@ -43,8 +49,8 @@ class KnowledgeIntegrationTests(unittest.TestCase):
             project = base / "project"
             project.mkdir()
             (project / "guide.md").write_text("# Guide\nsearchable fallback phrase\n", encoding="utf-8")
-            service = KnowledgeService(project, control_root=base / "control",
-                                       embedder=_UnavailableEmbedder())
+            embedder = _UnavailableEmbedder()
+            service = KnowledgeService(project, control_root=base / "control", embedder=embedder)
             try:
                 self.assertTrue(service.wait_idle())
                 result = service.retriever.search("fallback")
@@ -52,6 +58,11 @@ class KnowledgeIntegrationTests(unittest.TestCase):
                 self.assertIn("embedding service is down", result["fallback_reason"])
                 self.assertTrue(result["results"])
                 self.assertIn("Keyword-only knowledge fallback", service.context_for("fallback"))
+                embedder.available = True
+                service.begin_activity()
+                service.end_activity()
+                self.assertTrue(service.wait_idle())
+                self.assertTrue(service.store.get_embeddings(model=embedder.model))
             finally:
                 service.close()
 
@@ -108,6 +119,28 @@ class KnowledgeIntegrationTests(unittest.TestCase):
                 self.assertTrue(second.store.search_fts("second"))
             finally:
                 second.close()
+
+    def test_next_idle_scan_refreshes_external_changes_before_turn(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            project = base / "project"
+            project.mkdir()
+            source = project / "guide.md"
+            source.write_text("# Guide\nold external text\n", encoding="utf-8")
+            service = KnowledgeService(project, control_root=base / "control", embedder=_Embedder())
+            try:
+                self.assertTrue(service.wait_idle())
+                source.write_text("# Guide\nnew external text\n", encoding="utf-8")
+                service.begin_activity()
+                try:
+                    self.assertTrue(service.store.search_fts("external"))
+                    self.assertFalse(service.store.search_fts("old"))
+                    self.assertTrue(service.store.search_fts("new"))
+                finally:
+                    service.end_activity()
+                self.assertTrue(service.wait_idle())
+            finally:
+                service.close()
 
     def test_only_applied_patch_queues_and_completes_index_refresh(self):
         with tempfile.TemporaryDirectory() as temp:

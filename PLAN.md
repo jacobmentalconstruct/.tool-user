@@ -244,7 +244,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 2. Add the per-project SQLite knowledge store under `live_control/` with file hashes, chunks, FTS5, embedding blobs and code graph nodes/edges. Keep it separate from the event log and give it one owner.
 3. Add the Ollama `nomic-embed-text` adapter and hybrid retrieval: FTS5 plus numpy cosine similarity combined by reciprocal rank fusion, with a fake Ollama server in tests. If Ollama is unavailable, keyword retrieval remains usable and the missing embedding is visible.
 4. Add the greedy context assembler matching §5 (`budget_tokens`, `used_tokens`, `dropped`, scored `items`), with character/4 token estimates. Make it callable by the current session path so it is exercised before T5/T6 roles arrive, without making a second agent loop.
-5. Index a selected project while turns are idle and refresh changed files after an approved patch. Coalesce changes and avoid indexing during an active model turn or command. Add integration and restart coverage; align current documentation.
+5. Index a selected project at startup and idle boundaries; refresh changed files after an approved patch. Coalesce changes and avoid indexing during an active model turn or command. Detect outside edits by hash at the next idle scan, retry missing embeddings, add integration/restart coverage, and align current documentation.
 
 **Progress:**
 - [x] 1. Chunk Python and Markdown and produce model-free summaries.
@@ -265,7 +265,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Now:** Recording verification evidence and preparing the T4 park.
 
-**Hook ownership (recorded before implementation):** A new `knowledge/service.py` owns the selected project's store, idle indexing worker, refresh queue, and context-pack retrieval. The session path asks this service for context before `run_turn` and acquires an activity lease around each turn; indexing waits for leases to clear, while turns wait for an already-running index to finish. The approved-patch callback queues only applied paths for refresh, which runs after the turn lease ends (so commands are covered too). Restoring a selected project queues a scan on service startup. Keep `session.py` at or below 400 lines.
+**Hook ownership (recorded before implementation):** A new `knowledge/service.py` owns the selected project's store, idle indexing worker, refresh queue, and context-pack retrieval. Before a turn acquires its activity lease, the session path asks the service to finish an idle hash scan, then retrieves context before `run_turn`. Indexing waits for leases to clear; turns wait for an already-running index to finish. The approved-patch callback queues only applied paths for refresh, which runs after the turn lease ends (so commands are covered too). Restoring a selected project queues a scan on service startup. Keep `session.py` at or below 400 lines.
 
 **Non-goals:** T5 bench tasks or model comparisons; T6 role team, planner, gate, `roles.json` or deletion of `run_turn`; new UI workflow; an external vector database or graph server; a custom embedder; indexing the user's other projects; changes to §§3–4 or dependencies beyond standard library and numpy.
 
@@ -276,7 +276,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - Store tests show per-project isolation, FTS5 results, persisted vectors and graph edges, and restart recovery: `python -B -m unittest discover -s tests -p "test_knowledge_store.py" -v`.
 - Retrieval tests use a fake Ollama HTTP server and show reciprocal-rank hybrid results (including keyword matches outranking non-matches with equal vectors) plus a visible keyword-only fallback: `python -B -m unittest discover -s tests -p "test_retrieval.py" -v`.
 - Context-pack tests show the §5 shape, deterministic budget accounting, greedy selection and dropped count: `python -B -m unittest discover -s tests -p "test_context_pack.py" -v`.
-- Integration tests show selected-project indexing, refresh after an approved patch, and no indexing during an active turn or command: `python -B -m unittest discover -s tests -p "test_knowledge_integration.py" -v`.
+- Integration tests show selected-project and restart scans, outside edits refreshed before the next turn, approved-patch refresh (rejected patches do not refresh), missing embeddings retried, keyword fallback, and no indexing during an active turn or command: `python -B -m unittest discover -s tests -p "test_knowledge_integration.py" -v`.
 - The complete regression suite passes: `python -B -m unittest discover -s tests -v`.
 - Scope and ownership checks pass: `git diff --check 5fd56d6..HEAD`; `python -B -m unittest discover -s tests -p "test_architecture.py" -v`; `git diff --unified=0 5fd56d6..HEAD -- PLAN.md` shows no edits to §§3–4.
 
