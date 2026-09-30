@@ -231,57 +231,51 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** NONE — T3 accepted; no tranche active on `main`.
+**ID:** T4 — Knowledge layer.
 
-**Current:** T1, T2 and T3 are accepted on `main`. T3 implementation and USER review fixes are merged and pushed at `5fd56d6`. §3 stop conditions and §4 non-goals remain frozen (D6).
+**Current:** T1, T2 and T3 are accepted on `main`; T3 and its acceptance record are pushed at `83930d3`. The accepted baseline has 50 passing tests. No knowledge index exists. §3 stop conditions and §4 non-goals remain frozen (D6).
 
-**Branch:** `t3-lifecycles`.
+**Branch:** `t4-knowledge`.
 
-**Expected outcome:** jobs and approvals have explicit event-backed lifecycles, remain visible in the browser and CLI, and can be cancelled by the USER without blocking chat. A USER-approved, named command runs from the project's `.lab/allowlist.json` with a timeout and capped output; its result is recorded in the event log (S3, S4).
-
-**T3 job path:** `queued → planning → awaiting_plan_approval → running → done / failed / cancelled`. Planning is a pass-through: the goal text is the plan. The USER approves the plan before `running` calls `run_turn`, or rejects it and the job ends `rejected`. The task machine is its transition table and tests only; no tasks run until T6.
+**Expected outcome:** one project-scoped knowledge store supplies bounded context packs using FTS5, Ollama embeddings with numpy similarity, an `ast` code graph, and model-free summaries. Applied changes refresh the affected index data; indexing yields to active turns (S5, `docs/CONTRACTS.md` §§5–6).
 
 **Scope (task list, in order):**
-1. Add job lifecycle ownership and validated transitions from `docs/CONTRACTS.md` §2 for the T3 job path above. Persist transitions as `job.state`, restore them from the log, and mark non-finished jobs `failed` with reason `interrupted by restart` without replaying them. Add the task transition table and tests only; no task instances run until T6. Keep lifecycle ownership in a new module, with `session.py` as coordinator.
-2. Add approval lifecycle ownership from §3, including non-blocking waits, USER-only resolution and cancellation of unfinished jobs, and plan approval or rejection before `run_turn`. On restart, expire pending approvals with no side effects. Keep chat and other hub events responsive while approvals are pending; keep approval ownership in a new module.
-3. Add a distinct **New goal** entrance alongside **Chat** in the browser and CLI; connect goal submission to visible job stages, and show the current stage in both views without adding the T6 role team.
-4. Implement the `.lab/allowlist.json` command runner from §4 in a new module. The existing chat loop acts as the ROLE through a name-only `run_command(name)` tool that requests command approval; the browser and CLI cannot request commands directly, and AGENT requests are refused. After USER approval, run the exact argument list without a shell in the project root, enforce timeout/output limits, and record results/refusals as events.
-5. Add focused lifecycle, approval, cancellation, command-runner, restart, HTTP/CLI integration coverage; update current documentation to match the implemented behavior.
+1. Add small, deterministic Python and Markdown chunkers plus model-free file summaries. Exclude files through the existing workspace path policy; retain source paths and line spans.
+2. Add the per-project SQLite knowledge store under `live_control/` with file hashes, chunks, FTS5, embedding blobs and code graph nodes/edges. Keep it separate from the event log and give it one owner.
+3. Add the Ollama `nomic-embed-text` adapter and hybrid retrieval: FTS5 plus normalized numpy cosine similarity, with a fake Ollama server in tests. If Ollama is unavailable, keyword retrieval remains usable and the missing embedding is visible.
+4. Add the greedy context assembler matching §5 (`budget_tokens`, `used_tokens`, `dropped`, scored `items`), with character/4 token estimates. Make it callable by the current session path so it is exercised before T5/T6 roles arrive, without making a second agent loop.
+5. Index a selected project while turns are idle and refresh changed files after an approved patch. Coalesce changes and avoid indexing during an active model turn or command. Add integration and restart coverage; align current documentation.
 
 **Progress:**
-- [x] 1. Implement the T3 job path, restart failure handling, and the task transition table.
-- [x] 2. Implement non-blocking plan/command approvals, restart expiry, and USER-only cancellation.
-- [x] 3. Add distinct Chat/New goal entrances and stage visibility in browser and CLI.
-- [x] 4. Implement the chat loop's named-command tool, USER-approved runner, and event results.
-- [x] 5. Add focused tests and align documentation with the delivered behavior.
+- [x] 1. Chunk Python and Markdown and produce model-free summaries.
+- [ ] 2. Persist one project-scoped index with FTS5, embeddings and an `ast` graph.
+- [ ] 3. Query Ollama embeddings and combine keyword/vector retrieval.
+- [ ] 4. Assemble bounded context packs through the shared session path.
+- [ ] 5. Refresh after approved changes only while idle, verify and update docs.
 
-**USER review fix-up Progress:**
-- [x] Serialize active turns, while approval waits yield; test ordered history and four parked approvals.
-- [x] Keep capped command output from the end with a trim marker, decision and test.
-- [x] Record three review limitations and update parking evidence.
+**Now:** Building the project-scoped SQLite knowledge store and FTS5 index (task 2).
 
-**Now:** T3 acceptance is recorded. T4 is next in §5 and is declared on `t4-knowledge` after USER direction.
+**Non-goals:** T5 bench tasks or model comparisons; T6 role team, planner, gate, `roles.json` or deletion of `run_turn`; new UI workflow; an external vector database or graph server; a custom embedder; indexing the user's other projects; changes to §§3–4 or dependencies beyond standard library and numpy.
 
-**Non-goals:** T4 knowledge/indexing; T5 bench; T6 planner/builder/debugger/reviewer role team and deterministic gate; replacing `engine.run_turn`; UI redesign beyond the two entrances and lifecycle status; changing §3 or §4; new dependencies beyond standard library plus numpy.
+**Implementation boundary:** Put all new product code in new modules. `session.py` is already 400 lines, the S9 ceiling; do not add lines to it.
 
 **Acceptance criteria:**
-- Lifecycle and restart tests prove the specified T3 job path and task transition table, invalid transition refusals, pending approvals expiring without side effects on restart, and non-finished jobs failing with `interrupted by restart` without replay: `python -B -m unittest discover -s tests -p "test_lifecycles.py" -v`.
-- Approval tests prove a pending plan or command approval does not block chat, only USER resolves approvals or cancels unfinished jobs, AGENT cannot cancel, and rejection/expiry causes no side effects: `python -B -m unittest discover -s tests -p "test_approvals.py" -v`.
-- Browser and CLI integration tests prove Chat and New goal are distinct and both expose the current job stage: `python -B -m unittest discover -s tests -p "test_job_interfaces.py" -v`.
-- Command-runner tests prove `run_command(name)` is requested through the chat loop as ROLE, AGENT and direct browser/CLI command requests are refused, and name-only lookup, exact argv/no shell, project-root working directory, timeout/output cap, approval gating and logged results: `python -B -m unittest discover -s tests -p "test_command_runner.py" -v`.
-- On Windows, timeout and cancel tests prove the command's child processes are gone after the command stops: `python -B -m unittest discover -s tests -p "test_command_runner.py" -v`.
-- Patch-tool tests prove agent edits continue to refuse `.lab/allowlist.json`: `python -B -m unittest discover -s tests -p "test_patch_tools.py" -v`.
+- Chunking tests show Python definitions/imports, Markdown headings/paragraphs, line spans, exclusions and model-free summaries: `python -B -m unittest discover -s tests -p "test_chunking.py" -v`.
+- Store tests show per-project isolation, FTS5 results, persisted vectors and graph edges, and restart recovery: `python -B -m unittest discover -s tests -p "test_knowledge_store.py" -v`.
+- Retrieval tests use a fake Ollama HTTP server and show ranked hybrid results plus a visible keyword-only fallback: `python -B -m unittest discover -s tests -p "test_retrieval.py" -v`.
+- Context-pack tests show the §5 shape, deterministic budget accounting, greedy selection and dropped count: `python -B -m unittest discover -s tests -p "test_context_pack.py" -v`.
+- Integration tests show selected-project indexing, refresh after an approved patch, and no indexing during an active turn or command: `python -B -m unittest discover -s tests -p "test_knowledge_integration.py" -v`.
 - The complete regression suite passes: `python -B -m unittest discover -s tests -v`.
-- Documentation whitespace validation passes and scope guard remains intact: `git diff --check 54c6134..HEAD`; `git diff --unified=0 54c6134..HEAD -- PLAN.md` shows no edits to §§3–4.
+- Scope and ownership checks pass: `git diff --check 5fd56d6..HEAD`; `python -B -m unittest discover -s tests -p "test_architecture.py" -v`; `git diff --unified=0 5fd56d6..HEAD -- PLAN.md` shows no edits to §§3–4.
 
-**Known risks:** The builder's environment must let Python create and clean temp directories; verified 2026-09-29 with 25 tests passing. If it cannot, stop and tell the USER. The planner role arrives in T6, so T3 must bridge New goal into the existing `engine.run_turn` path without coupling lifecycle ownership to it. Cancellation and timeout behavior must clean up child processes on Windows. Any change to the event or contract schema is recorded as a decision in §2. Resolve any contract/UI ambiguities inside T3 without changing the frozen stop conditions or non-goals.
+**Known risks:** The builder environment must permit temporary directories and SQLite FTS5; verified by the accepted T3 suite and `CREATE VIRTUAL TABLE ... USING fts5`, but repeat focused tests as T4 modules arrive. Stop and tell the USER if temp access or FTS5 is unavailable. Ollama may be down during indexing, so keyword search must remain useful and missing vectors must be explicit. Keep background indexing subordinate to active turns on 16 GB GPU hardware; avoid holding the session lock during embedding requests. A project can change outside the hub, so hashes must detect stale entries on the next idle scan. Any event or contract schema change requires a decision in §2 before implementation. New code goes in new modules and `session.py` must remain at or below 400 lines.
 
-**Declaration state:** USER approved T3 declaration and entry on 2026-09-29; USER requested and approved review fixes on 2026-09-29. USER accepted the re-park on 2026-09-29; all T3 tasks are complete and merged.
+**Declaration state:** USER accepted T3 and asked to declare and enter T4 on 2026-09-29; T4 is declared and entered from that instruction.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T3 is accepted; no tranche is active on `main`.
+**Implementation permission:** YES for T4 (USER, 2026-09-29).
 
 ## 9. Parked Tranches
 
@@ -352,4 +346,4 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   - D12–D15 record T3 event-data and output-contract decisions; `docs/CONTRACTS.md` reflects them.
 - **Limitations:** live Ollama inference was not part of the automated or hub smoke tests. Goals receive notes but no chat history. A chat-started command stops only by timeout because chat has no USER cancellation path. Command output is duplicated in `tool.result` display text as well as `command.result.data.output`. Cancellation is checked at model/tool boundaries; a tool call already in progress may finish. An abrupt hub crash marks a running job failed on restart but cannot stop a command process that was already running when the hub died.
 - **Deferrals:** the T6 role team, gate and task execution remain as planned; otherwise none beyond §4.
-- **Next step:** T4 knowledge layer, declared and entered on `t4-knowledge` after the accepted T3 state.
+- **Next step:** T4 knowledge layer, declared and active on `t4-knowledge`.

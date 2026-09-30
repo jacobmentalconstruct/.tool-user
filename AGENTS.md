@@ -58,6 +58,7 @@ src/local_memory_lab/
   command_runner.py         USER-approved named command execution
   locations.py              repo-relative paths
   workspace/                 safe project paths, patches, and backups
+  knowledge/                 source chunks, index, retrieval, and context packs (T4)
   agent/                    Ollama loop and bounded project tools (loop replaced in T6)
   interfaces/               browser server + page, launcher, CLI client (adapters only)
 tests/                      unittest suite
@@ -74,4 +75,4 @@ If a `_projectmapper/` folder exists locally, it is a stale, gitignored snapshot
 - **Agent client:** `python lab.py client status`, `python lab.py client watch`, `python lab.py client send "…" --wait`
 - **Models:** Ollama at `127.0.0.1:11434`. Role assignments are in `PLAN.md` D4.
 
-> **T3 accepted on `main`:** the work and USER acceptance record are in `PLAN.md` §§7–9. No tranche is active on `main`; T4 is next in §5.
+> **T4 active:** T3 is accepted and pushed on `main` at `83930d3`. The USER asked to declare and enter T4; its scope, progress and permission are in `PLAN.md` §§7–8.
