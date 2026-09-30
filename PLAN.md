@@ -246,12 +246,14 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 4. Commit the task corpus, harness, results, role configuration and concise run/reproduction documentation; run focused checks and the full regression suite.
 
 **Progress:**
-- [ ] 1. Pin the snapshot and create/validate at least 15 covered hole-punch tasks (D3 fallback only if needed).
+- [x] 1. Pin the snapshot and create/validate at least 15 covered hole-punch tasks (D3 fallback only if needed).
 - [ ] 2. Implement isolated task validation, builder runs, context comparisons and search scoring.
 - [ ] 3. Run the named local model comparisons and record required metrics; set `roles.json` from results.
 - [ ] 4. Document reproduction, verify the full suite and park with committed evidence.
 
-**Now:** T5 is approved; task 1 is next. Implementation has not started.
+**Task 1 evidence:** 22 task records pin `self@c916053`; all 22 named tests passed on the pristine snapshot and failed after their target body was punched in a separate temporary copy. `python -B -m unittest discover -s tests -p "test_bench_tasks.py" -v` — 3 helper tests passed.
+
+**Now:** Task 2: reusable task validation and the isolated builder harness.
 
 **Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
 
