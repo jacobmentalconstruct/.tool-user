@@ -252,9 +252,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 2. Implement non-blocking plan/command approvals, restart expiry, and USER-only cancellation.
 - [x] 3. Add distinct Chat/New goal entrances and stage visibility in browser and CLI.
 - [x] 4. Implement the chat loop's named-command tool, USER-approved runner, and event results.
-- [ ] 5. Add focused tests and align documentation with the delivered behavior.
+- [x] 5. Add focused tests and align documentation with the delivered behavior.
 
-**Now:** Tasks 1–4 are complete; consolidating integration coverage and documentation in task 5.
+**Now:** Tasks 1–5 are complete; reviewing the full T3 diff and preparing the parking record.
 
 **Non-goals:** T4 knowledge/indexing; T5 bench; T6 planner/builder/debugger/reviewer role team and deterministic gate; replacing `engine.run_turn`; UI redesign beyond the two entrances and lifecycle status; changing §3 or §4; new dependencies beyond standard library plus numpy.
 
@@ -264,7 +264,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - Browser and CLI integration tests prove Chat and New goal are distinct and both expose the current job stage: `python -B -m unittest discover -s tests -p "test_job_interfaces.py" -v`.
 - Command-runner tests prove `run_command(name)` is requested through the chat loop as ROLE, AGENT and direct browser/CLI command requests are refused, and name-only lookup, exact argv/no shell, project-root working directory, timeout/output cap, approval gating and logged results: `python -B -m unittest discover -s tests -p "test_command_runner.py" -v`.
 - On Windows, timeout and cancel tests prove the command's child processes are gone after the command stops: `python -B -m unittest discover -s tests -p "test_command_runner.py" -v`.
-- Workspace tests prove patch tools continue to refuse `.lab/allowlist.json`: `python -B -m unittest discover -s tests -p "test_workspace.py" -v`.
+- Patch-tool tests prove agent edits continue to refuse `.lab/allowlist.json`: `python -B -m unittest discover -s tests -p "test_patch_tools.py" -v`.
 - The complete regression suite passes: `python -B -m unittest discover -s tests -v`.
 - Documentation whitespace validation passes and scope guard remains intact: `git diff --check 54c6134..HEAD`; `git diff --unified=0 54c6134..HEAD -- PLAN.md` shows no edits to §§3–4.
 

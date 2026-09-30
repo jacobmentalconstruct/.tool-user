@@ -14,9 +14,28 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from local_memory_lab.session import SharedSession  # noqa: E402
+from local_memory_lab.event_store import EventStore  # noqa: E402
 
 
 class ApprovalTests(unittest.TestCase):
+    def test_t2_patch_approval_events_restore(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "events.sqlite"
+            store = EventStore(path)
+            store.append("system", "approval.requested", {
+                "id": "old-approved", "kind": "patch", "title": "Apply project patch?",
+                "name": "1 file(s), +1 / -1",
+            })
+            store.append("user", "approval.resolved", {"id": "old-approved", "approved": True})
+            store.append("system", "approval.requested", {
+                "id": "old-pending", "kind": "patch", "title": "Apply project patch?",
+                "name": "2 file(s), +2 / -2",
+            })
+            restored = SharedSession(path, load_models=False, start_worker=False)
+            self.assertEqual("approved", restored.state.approvals.records["old-approved"].state)
+            self.assertEqual("expired", restored.state.approvals.records["old-pending"].state)
+            self.assertEqual([], restored.state.approvals.pending())
+
     def test_only_user_resolves_and_cancels(self):
         with tempfile.TemporaryDirectory() as temp:
             session = SharedSession(Path(temp) / "events.sqlite", load_models=False,

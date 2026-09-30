@@ -82,6 +82,16 @@ class PatchToolsTests(unittest.TestCase):
         self.assertEqual(target.read_text(encoding="utf-8"), "external\n")
         self.assertEqual(self.backup_store().list(), [])
 
+    def test_agent_patch_cannot_change_user_allowlist(self):
+        allowlist = self.project / ".lab" / "allowlist.json"
+        allowlist.parent.mkdir()
+        allowlist.write_text('{"commands": {}}', encoding="utf-8")
+        result = self.tool(lambda _proposal: self.fail("approval must not be requested")).call(
+            "patch_project_file", {"path": ".lab/allowlist.json",
+                                   "search_block": "commands", "replace_block": "other"})
+        self.assertEqual("error", result["status"])
+        self.assertEqual('{"commands": {}}', allowlist.read_text(encoding="utf-8"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -20,7 +20,8 @@ class ApprovalRecord:
     request_id: str | None = None
 
     def public(self, include_detail: bool) -> dict:
-        result = {"id": self.id, "kind": self.kind, "title": self.summary,
+        title = "Apply project patch?" if self.kind == "patch" else self.summary
+        result = {"id": self.id, "kind": self.kind, "title": title,
                   "name": self.summary, "state": self.state}
         if self.request_id:
             result["requestId"] = self.request_id
@@ -45,7 +46,7 @@ class Approvals:
             if approval_id in self.records:
                 raise ValueError("Approval IDs must be unique.")
             self.records[approval_id] = ApprovalRecord(
-                approval_id, data["kind"], data.get("summary", data.get("title", "Approval")),
+                approval_id, data["kind"], data.get("summary", data.get("name", data.get("title", "Approval"))),
                 data.get("detail", data.get("name", "")),
                 job=event.get("job") or data.get("job"), task=event.get("task") or data.get("task"),
                 request_id=data.get("requestId"),

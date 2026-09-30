@@ -102,6 +102,33 @@ class JobInterfaceTests(unittest.TestCase):
             self.assertEqual("plan approval expired", self.session.state.jobs.records[job_id].reason)
             run.assert_not_called()
 
+    def test_user_can_cancel_a_running_goal_without_done_event(self):
+        entered = threading.Event()
+        release = threading.Event()
+
+        def fake_turn(*args, **kwargs):
+            entered.set()
+            release.wait(2)
+            if kwargs["cancelled"]():
+                raise RuntimeError("Job cancelled.")
+            return "finished", []
+
+        with patch("local_memory_lab.session.run_turn", side_effect=fake_turn):
+            job_id = self.request("/api/goals", {"text": "running goal"})["jobId"]
+            approval_id = self.request("/api/state")["pendingApproval"]["id"]
+            self.request("/api/approval", {"id": approval_id, "approved": True})
+            self.assertTrue(entered.wait(2))
+            self.request("/api/jobs/cancel", {"id": job_id})
+            release.set()
+            self.wait_for(job_id, "cancelled")
+            deadline = time.monotonic() + 2
+            while self.session.busy and time.monotonic() < deadline:
+                time.sleep(0.01)
+            self.assertFalse(self.session.busy)
+            states = [e["data"]["state"] for e in self.session.events_after(0)
+                      if e["kind"] == "job.state" and e.get("job") == job_id]
+            self.assertNotIn("done", states)
+
     def test_browser_and_cli_show_goal_entrance_and_stage(self):
         job_id = self.request("/api/goals", {"text": "visible goal"})["jobId"]
         with urlopen(self.base + "/?token=user-token", timeout=5) as response:

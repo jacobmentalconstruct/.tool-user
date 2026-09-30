@@ -1,4 +1,4 @@
-"""Authoritative in-memory shared session and prompt queue."""
+"""Shared session coordinator around event-backed domains and workers."""
 
 from __future__ import annotations
 
@@ -27,6 +27,7 @@ class SharedSession:
         self.state = SessionState.restore(self.store)
         self.busy = False
         self._active_turns = 0
+        self._turn_slots = threading.Semaphore(4)
         self._approval_waiters: dict[str, threading.Event] = {}
         self.models: list[str] = []
         self.model_error = ""
@@ -253,7 +254,7 @@ class SharedSession:
 
     def _confirm_patch(self, request_id: str, proposal: dict,
                        job_id: str | None = None) -> bool:
-        approval_id = self.request_approval("patch", proposal["title"], proposal["diff"],
+        approval_id = self.request_approval("patch", proposal["name"], proposal["diff"],
                                             actor="role:builder", request_id=request_id,
                                             job=job_id)
         return self.wait_for_approval(approval_id)
@@ -334,6 +335,7 @@ class SharedSession:
 
     def _work(self):
         while True:
+            self._turn_slots.acquire()
             prompt_event_id = self.prompts.get()
             with self.lock:
                 self._active_turns += 1
@@ -373,5 +375,6 @@ class SharedSession:
                 self._active_turns -= 1
                 self.busy = self._active_turns > 0
             self.prompts.task_done()
+            self._turn_slots.release()
 
 

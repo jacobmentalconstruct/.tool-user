@@ -39,6 +39,7 @@ This is the append-only log and the single source of truth (S2). Every other kin
 - **`id`:** a whole number that only ever increases. Clients read new events with `GET /api/events?after=<id>`.
 - **`actor`:** one of `user`, `agent`, `role:<planner|builder|debugger|reviewer>`, or `system` (§0).
 - **`data.display` (optional):** interface presentation metadata stored inside `data`, with string fields `speaker` and `text`. Domain data remains alongside it in `data`; clients may render this hint as a message, but it does not change the event's actor or kind.
+- **T3 event data (D12–D14):** `job.state` carries `state`, initial `goal` and `submittedBy`, and a `reason` when failed or cancelled. `approval.requested` carries the §3 identity, kind, summary, detail and pending state; `approval.resolved` carries the identity and resolution. T2 patch-approval events with an `approved` boolean remain readable. `command.result` carries the §4 fields plus `status` (`ok`, `failed`, `timeout`, `cancelled`); its `exit_code` is `-1` if stopped before an exit code was returned.
 - **`kind`, v0 set:**
   - `chat.prompt`, `chat.reply`
   - `note.added`, `note.removed`
@@ -61,6 +62,8 @@ task: pending → building → testing ⇄ debugging (max 2 rounds) → reviewin
 - Only the lifecycle's owner changes its state, and each change is recorded as a `job.state` or `task.state` event.
 - `cancel` is allowed from any state that isn't finished.
 - A task that fails the gate or runs out of debug rounds ends as `failed`, with the reason recorded. It is never retried silently.
+- In T3, a New goal goes `queued → planning → awaiting_plan_approval → running → done / failed / cancelled`; planning passes through the goal text as the plan, and USER rejection ends the job as `rejected`. The existing `run_turn` supplies the running step. T3 validates the task transition table but creates no task instances; role tasks arrive in T6.
+- On restart, pending approvals become `expired` without side effects, and non-finished jobs become `failed` with reason `interrupted by restart`. Neither is replayed.
 
 ## 3. Approval (T3)
 
@@ -73,6 +76,7 @@ task: pending → building → testing ⇄ debugging (max 2 rounds) → reviewin
 - Only the `user` actor resolves an approval.
 - Waiting never blocks the hub: other events keep flowing, and chat keeps working.
 - An expired approval changes nothing.
+- The USER alone resolves approvals and cancels jobs. A pending approval does not stop chat or other hub events.
 
 ## 4. Command allowlist (T3)
 
@@ -86,6 +90,7 @@ The file lives in the target project at `.lab/allowlist.json`. Only the USER cre
 - Roles ask for a command **by name**, never as free text.
 - The command runs with its argument list exactly as written, in the project root, with no shell.
 - The result is a `command.result` event: `name`, `exit_code`, `duration_s`, and the output, trimmed from the end if it's too long.
+- Until the separate role team arrives, the existing chat loop acts as the ROLE through `run_command(name)`. Browser and CLI callers cannot request a command directly. USER approval precedes every run; timeout and cancellation stop the process tree on Windows.
 
 ## 5. Context pack (T4)
 

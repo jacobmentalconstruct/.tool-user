@@ -6,7 +6,7 @@ The point is to move the expensive inference onto free local models, so that an 
 
 ## Status
 
-**T2 (Event log) is complete, accepted, and merged into `main`.** Session history persists in `live_control/events.sqlite`. To reset it, stop the hub and delete that file before restarting. T3 is the next provisional tranche; no tranche is active. See [PLAN.md](PLAN.md).
+**T2 (Event log) is accepted on `main`; T3 (Lifecycles and runner) is in progress on `t3-lifecycles`.** Session history persists in `live_control/events.sqlite`. To reset it, stop the hub and delete that file before restarting. See [PLAN.md](PLAN.md) for T3's current scope and progress.
 
 The prototype is finished when the agent can make progress on its own development in a sandboxed copy of this repo. The route there, and where we are on it, is in [PLAN.md](PLAN.md).
 
@@ -27,7 +27,10 @@ This opens a private browser link, which is written to `live_control/shared.json
 ```
 python lab.py client status
 python lab.py client send "Hello" --wait
+python lab.py client goal "Describe a goal for the selected project"
 ```
+
+New goals wait for USER plan approval in the browser. The browser and CLI both show the job stage.
 
 The hub listens only on `127.0.0.1`. The browser and the agent client get different random tokens, and only the browser can approve changes or choose the project. The tokens sit in a local file, so they guard against mistakes, not against other programs on your machine.
 
