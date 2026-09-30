@@ -15,6 +15,7 @@ from .event_store import EventStore
 from .command_runner import CommandRunner
 from .lifecycles import JOB_TERMINAL
 from .locations import CONTROL
+from .knowledge.service import KnowledgeService
 from .session_state import SessionState
 
 
@@ -25,6 +26,7 @@ class SharedSession:
         self.prompts: queue.Queue[int] = queue.Queue(maxsize=32)
         self.store = EventStore(store_path or CONTROL / "events.sqlite")
         self.state = SessionState.restore(self.store)
+        self.knowledge = KnowledgeService(self.state.workspace.project_root)
         self.busy = False
         self._active_turns = 0
         self._turn_slot = threading.Semaphore(1)
@@ -38,10 +40,8 @@ class SharedSession:
             except Exception as exc:
                 self.model_error = str(exc)
         for request_id in list(self.state.conversation.pending_prompts):
-            self._record("system", "error", {
-                "requestId": request_id,
-                "display": {"speaker": "Error", "text": "The session restarted before this reply completed."},
-            })
+            self._record("system", "error", {"requestId": request_id,
+                         "display": {"speaker": "Error", "text": "The session restarted before this reply completed."}})
         for pending in list(self.state.approvals.pending()):
             self._resolve_approval(pending.id, "expired", "system")
         for job_id in self.state.jobs.active_ids():
@@ -165,6 +165,7 @@ class SharedSession:
                 "path": str(root),
                 "display": {"speaker": "System", "text": f"Project folder selected: {root}"},
             })
+            self.knowledge.set_project(root)
 
     def add_note(self, text: str, actor: str = "USER"):
         actor_label = self._actor_label(actor)
@@ -314,7 +315,7 @@ class SharedSession:
                 self.busy = True
                 entered_running = True
                 model = self.model
-                notes = list(self.notes)
+                notes = [*self.notes, self.knowledge.context_for(goal)]
                 project_root = self.project_root
                 goal = self.state.jobs.records[job_id].goal
             answer, _ = run_turn(
@@ -371,7 +372,7 @@ class SharedSession:
             prompt = prompt_event["data"]["display"]["text"]
             with self.lock:
                 model = self.model
-                notes = list(self.notes)
+                notes = [*self.notes, self.knowledge.context_for(prompt)]
                 turns = list(self.turns)
                 project_root = self.project_root
             answer, turn = run_turn(prompt, model, turns, notes,
@@ -396,5 +397,3 @@ class SharedSession:
             self.prompts.task_done()
             self._turn_local.owns_slot = False
             self._turn_slot.release()
-
-

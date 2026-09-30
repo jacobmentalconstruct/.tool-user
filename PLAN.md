@@ -250,7 +250,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 1. Chunk Python and Markdown and produce model-free summaries.
 - [x] 2. Persist one project-scoped index with FTS5, embeddings and an `ast` graph.
 - [x] 3. Query Ollama embeddings and combine keyword/vector retrieval.
-- [ ] 4. Assemble bounded context packs through the shared session path.
+- [x] 4. Assemble bounded context packs through the shared session path.
 - [ ] 5. Refresh after approved changes only while idle, verify and update docs.
 
 **T4 task 1 review fixes:**
@@ -263,7 +263,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **T4 task 3 review fixes:**
 - [x] Use reciprocal rank fusion so matching keyword results outrank non-matches with equal vectors.
 
-**Now:** Continuing the bounded context pack assembler and connecting retrieval output (task 4).
+**Now:** Implementing idle indexing, approved-patch refresh, restart recovery and documentation (task 5).
+
+**Hook ownership (recorded before implementation):** A new `knowledge/service.py` owns the selected project's store, idle indexing worker, refresh queue, and context-pack retrieval. The session path asks this service for context before `run_turn` and acquires an activity lease around each turn; indexing waits for leases to clear, while turns wait for an already-running index to finish. The approved-patch callback queues only applied paths for refresh, which runs after the turn lease ends (so commands are covered too). Restoring a selected project queues a scan on service startup. Keep `session.py` at or below 400 lines.
 
 **Non-goals:** T5 bench tasks or model comparisons; T6 role team, planner, gate, `roles.json` or deletion of `run_turn`; new UI workflow; an external vector database or graph server; a custom embedder; indexing the user's other projects; changes to §§3–4 or dependencies beyond standard library and numpy.
 
