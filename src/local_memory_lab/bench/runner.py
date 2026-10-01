@@ -107,6 +107,31 @@ def validate_results(document: dict, tasks: list[dict]) -> list[str]:
                 for condition in ("without_context", "with_context")}
     if keys != expected:
         failures.append(f"expected {len(expected)} unique attempts, found {len(keys)}")
+    try:
+        computed_metrics = aggregate_results(results)
+    except (KeyError, TypeError, ValueError, ZeroDivisionError) as exc:
+        failures.append(f"cannot compute metrics from result attempts: {exc}")
+        return failures
+    if "metrics" in document and document["metrics"] != computed_metrics:
+        failures.append("stored metrics do not match the result attempts")
+    if "selected_builder" in document:
+        try:
+            selected = choose_builder(computed_metrics)
+        except (KeyError, TypeError, ValueError) as exc:
+            failures.append(f"cannot derive selected builder from attempts: {exc}")
+        else:
+            if document["selected_builder"] != selected:
+                failures.append("selected_builder does not match the measured pass rates")
+    return failures
+
+
+def validate_recorded_result(document: dict, tasks: list[dict]) -> list[str]:
+    """Validate a committed run and its derived metrics and model choice."""
+    failures = validate_results(document, tasks)
+    if not isinstance(document.get("metrics"), dict):
+        failures.append("committed result must include metrics")
+    if not isinstance(document.get("selected_builder"), str):
+        failures.append("committed result must include selected_builder")
     return failures
 
 

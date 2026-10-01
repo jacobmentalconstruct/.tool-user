@@ -62,6 +62,31 @@ class BenchRunnerTests(unittest.TestCase):
         self.assertTrue(any("duplicate" in item
                             for item in runner.validate_results(document, tasks)))
 
+    def test_recorded_validation_rejects_mismatched_metrics_and_selection(self):
+        good = [self._result("a", "qwen3.5:9b", condition)
+                for condition in ("with_context", "without_context")]
+        poor = [{**self._result("a", "qwen3.5:2b", condition), "passed": False,
+                 "status": "failed"}
+                for condition in ("with_context", "without_context")]
+        rows = [*good, *poor]
+        document = {
+            "schema_version": runner.RESULT_SCHEMA,
+            "run_id": "20260930T000000Z-12345678",
+            "available_models": ["qwen3.5:9b", "qwen3.5:2b"],
+            "results": rows,
+            "metrics": runner.aggregate_results(rows),
+            "selected_builder": "qwen3.5:9b",
+        }
+        tasks = [{"id": "a"}]
+        self.assertEqual([], runner.validate_recorded_result(document, tasks))
+        document["metrics"]["qwen3.5:9b"]["pass_rate"] = 0.0
+        self.assertTrue(any("stored metrics" in failure
+                            for failure in runner.validate_recorded_result(document, tasks)))
+        document["metrics"] = runner.aggregate_results(rows)
+        document["selected_builder"] = "qwen3.5:2b"
+        self.assertTrue(any("selected_builder" in failure
+                            for failure in runner.validate_recorded_result(document, tasks)))
+
     def test_record_run_saves_metrics_and_builder_role(self):
         tasks = [{"id": "a"}]
         raw = {"schema_version": runner.RESULT_SCHEMA,

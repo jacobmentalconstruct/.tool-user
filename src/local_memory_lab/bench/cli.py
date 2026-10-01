@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from .harness import validate_context_packs
-from .runner import (record_run, run_benchmark, validate_results)
+from .runner import (record_run, run_benchmark, validate_recorded_result, validate_results)
 from .tasks import load_tasks, validate_baselines
 
 
@@ -69,7 +69,7 @@ def main(argv: list[str] | None = None) -> int:
             for result_file in result_files:
                 document = json.loads(result_file.read_text(encoding="utf-8"))
                 failures.extend(f"{result_file.name}: {failure}"
-                                for failure in validate_results(document, tasks))
+                                for failure in validate_recorded_result(document, tasks))
             roles = repo_root / "roles.json"
             if not roles.exists():
                 failures.append("roles.json is missing")

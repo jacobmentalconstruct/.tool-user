@@ -250,7 +250,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 1. Pin the snapshot and create/validate at least 15 covered hole-punch tasks (D3 fallback only if needed).
 - [x] 2. Implement isolated task validation, builder runs, context comparisons and search scoring.
 - [x] 3. Run the named local model comparisons and record required metrics; set `roles.json` from results.
-- [x] 4. Document reproduction, verify the full suite and park with committed evidence.
+- [ ] 4. Document reproduction, verify the full suite and park with committed evidence.
 
 **Task 1 evidence:** 22 task records pin `self@c916053`; all 22 named tests passed on the pristine snapshot and failed after their target body was punched in a separate temporary copy. `python -B -m unittest discover -s tests -p "test_bench_tasks.py" -v` — 3 helper tests passed.
 
@@ -280,9 +280,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   3. Define the prompt version string once as a constant; `_run_identity` reads `task_source` from the tasks instead of hardcoding it.
   4. **Completed 2026-10-01 after USER confirmed GPU availability:** the `self-001` probe saved both raw replies and `eval_count`. Thinking-on produced valid JSON while `think:false` did not. Freeze thinking-on v5 with the 4,096-token cap; D4 and `docs/CONTRACTS.md` §8 record the protocol. `roles.json` is set from the full benchmark.
   5. **Completed:** commit `fe10979`; clean full run `20261001T124335Z-a0abb772` completed and was recorded. It is the only run that sets `roles.json`. Keep v1–v4 listed as history in the park record.
-- **Then:** Task 4 documentation and checks are complete. Park T5 on `t5-bench` for USER review; merge only after USER acceptance, then declare T6 from §5.
+- **Then:** Task 4 documentation and checks are complete, including the independent review fix. Re-park T5 on `t5-bench` for USER review; merge only after USER acceptance, then declare T6 from §5.
 
-**Now:** T5 is parked on `t5-bench` with its benchmark evidence; awaiting USER review and acceptance. Do not merge or declare T6 until accepted.
+**Now:** The review fix recomputes committed metrics and verifies the selected builder; focused and full checks pass. Commit the fix, get the final read-only review, then re-park T5 for USER acceptance.
 
 **Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
 
@@ -297,12 +297,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Known risks:** T1–T4 may yield fewer than 15 independently hole-punchable functions; only then use D3's fixture fallback, copied and exercised inside this repo in isolation. The named models may be unavailable; do not silently add candidates, and stop to tell the USER if none can run. The 90+ bounded calls may take hours on 16 GB GPU hardware and results can vary; record model tags, Ollama version, hardware, settings, timeouts and unavailable candidates. Run the full bench only after the USER confirms the GPU is free, and never while local roles are working. A task can be invalid if its single test does not pass pristine code and fail the punched copy; validate both before model runs. Keep all model inference local and all generated patches inside disposable task copies. Bench code goes in new modules only; `session.py` is at the 400-line cap and must not grow. Do not change the event or contract schema without a decision in §2.
 
-**Declaration state:** T5 was declared from §5 after USER acceptance of T4 on 2026-09-30, approved by USER on 2026-09-30, and PARKED 2026-10-01 pending USER review and acceptance.
+**Declaration state:** T5 was declared from §5 after USER acceptance of T4 on 2026-09-30, approved by USER on 2026-09-30, and returned from review on 2026-10-01 for one in-scope fix; final re-park is pending.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO (T5 parked 2026-10-01 pending USER review and acceptance).
+**Implementation permission:** YES for T5 review fix (USER, 2026-10-01); reset to NO when re-parking.
 
 ## 9. Parked Tranches
 
@@ -388,7 +388,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Deferrals:** none beyond §4.
 - **Next step:** Review the T5 Bench declaration in §7. T5 remains provisional until USER approval.
 
-**T5, bench: PARKED 2026-10-01 on `t5-bench`, pending USER review and acceptance.** The implementation task commits are `fe10979` (builder output protocol), `0268b91` (record builder benchmark), and `b737676` (reproduction docs and role test). The parking commit is the current final commit on `t5-bench`; it is not merged until the USER accepts this record.
+**T5, bench: PARKED 2026-10-01 on `t5-bench`, pending USER review and acceptance.** The implementation task commits are `fe10979` (builder output protocol), `0268b91` (record builder benchmark), and `b737676` (reproduction docs and role test). The independent review returned one medium validation finding; it was fixed and reverified before this re-park. The parking commit is the current final commit on `t5-bench`; it is not merged until the USER accepts this record.
 - **Outcome met:** The repo-pinned corpus contains 22 hole-punched tasks from `self@c916053`; each task uses its single named test. The harness builds context only from punched copies and gives both conditions the same goal, target path and punched file; the context condition adds the bounded T4 pack. The harness completed 132/132 attempts across qwen3.5:9b, 4b and 2b, with and without context. The measured builder is qwen3.5:9b using the T5-frozen thinking-on protocol; T6 roles remain configured.
 - **Evidence:**
   - `python lab.py bench validate --baselines --contexts` — 22 pristine checks passed, all 22 punched checks failed as intended, and 22 context packs passed answer-leak checks.
@@ -396,9 +396,11 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   - `python lab.py bench record <raw-result-file>` — imported `bench/results/20261001T124335Z-a0abb772.json`; selected qwen3.5:9b and wrote `roles.json`.
   - `python lab.py bench validate --results` — 22 task records valid; 1 committed result valid; `roles.json` builder is measured.
   - `python -B -m unittest discover -s tests -p "test_roles.py" -v` — 1 role-config test passed.
+  - `python -B -m unittest discover -s tests -p "test_bench_runner.py" -v` — 7 tests passed, including rejection of stored metrics or builder choices that contradict the attempts.
   - `python -B -m unittest discover -s tests -v` — 94 tests passed.
   - `python -B -m unittest discover -s tests -p "test_architecture.py" -v` — 2 tests passed.
   - `git diff --check` — clean before parking.
+  - Review resolution: `python lab.py bench validate --results` recomputes every committed run's metrics and chosen builder from the attempt rows; the recorded run passes this stronger check.
   - The recorded run used source commit `fe109793e85c5e3c03619f5aa896268602329892`, all three candidates were available, and top-five search recall was 0.682. qwen3.5:9b passed 16/44 attempts (36.4%), invalid-output rate 29.5%; its pass rates were 31.8% without context and 40.9% with context. qwen3.5:4b passed 6/44 (13.6%), invalid rate 47.7%; qwen3.5:2b passed 2/44 (4.5%), invalid rate 65.9%.
   - The probe raw replies are in `%TEMP%/local-memory-lab-bench/probe-20261001T123927Z-qwen35-9b-thinking.json`. On the same `self-001` input, `think:false` returned a whole-file payload that failed the required one-edit schema (193 eval tokens); `think:true` returned schema-valid JSON (281 eval tokens) but failed the task check. The probe selected `target-stub-one-edit-json-think-enabled-v5`, `think:true`, and a 4,096-token output cap; the full run, not the probe, selected the model.
   - Earlier exploratory runs are history only: v1 (`20260930T153923Z`, 75/132 invalid; qwen3.5:9b 27% pass); v2 (`20260930T170215Z`, 1/4 invalid); v3 (`20260930T170647Z`, 23/23 invalid with `think:false`); v4 (`20260930T171151Z`, 132/132 invalid with `think:false`). Only v5 is committed and selects a role.
