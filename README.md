@@ -6,7 +6,7 @@ The point is to move the expensive inference onto free local models, so that an 
 
 ## Status
 
-**T4 (Knowledge layer) is accepted; T5 (Bench) is in progress on `t5-bench`.** The committed T5 run compares 22 tasks across three local builder models, with and without context. qwen3.5:9b is selected at a 36.4% pass rate. See [the recorded results](bench/results/20261001T124335Z-a0abb772.json) and [PLAN.md](PLAN.md) for details. Session history persists in `live_control/events.sqlite`. To reset it, stop the hub and delete that file before restarting.
+**T4 (Knowledge layer) is accepted on `main`; T5 (Bench) is parked on `t5-bench`, pending USER review.** The committed T5 run compares 22 tasks across three local builder models, with and without context. qwen3.5:9b is selected at a 36.4% pass rate. See [the recorded results](bench/results/20261001T124335Z-a0abb772.json) and [PLAN.md](PLAN.md) for details. Session history persists in `live_control/events.sqlite`. To reset it, stop the hub and delete that file before restarting.
 
 The prototype is finished when the agent can make progress on its own development in a sandboxed copy of this repo. The route there, and where we are on it, is in [PLAN.md](PLAN.md).
 
