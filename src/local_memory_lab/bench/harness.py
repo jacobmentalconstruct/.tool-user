@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import json
+import re
+import subprocess
 import time
+from copy import deepcopy
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 from urllib.request import Request, urlopen
@@ -15,17 +18,21 @@ from .tasks import _run_check, archive_snapshot, load_tasks, prepare_punched_cop
 
 CONTEXT_BUDGET = 6000
 TASK_TIMEOUT = 180
+MODEL_CONTEXT = 16384
+MAX_OUTPUT_TOKENS = 4096
+THINK_ENABLED = True
+PROMPT_VERSION = "target-stub-one-edit-json-think-enabled-v5"
 BUILDER_MODELS = ("qwen3.5:9b", "qwen3.5:4b", "qwen3.5:2b")
 BUILDER_SCHEMA = {
     "type": "object", "required": ["edits", "new_files", "notes"],
     "additionalProperties": False,
     "properties": {
-        "edits": {"type": "array", "items": {"type": "object",
+        "edits": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"type": "object",
             "required": ["path", "search_block", "replace_block"],
             "additionalProperties": False, "properties": {
                 "path": {"type": "string"}, "search_block": {"type": "string"},
                 "replace_block": {"type": "string"}}}},
-        "new_files": {"type": "array", "items": {"type": "object",
+        "new_files": {"type": "array", "maxItems": 0, "items": {"type": "object",
             "required": ["path", "content"], "additionalProperties": False,
             "properties": {"path": {"type": "string"}, "content": {"type": "string"}}}},
         "notes": {"type": "string"},
@@ -33,9 +40,29 @@ BUILDER_SCHEMA = {
 }
 
 
+def builder_schema(task: dict, required_search_block: str | None = None) -> dict:
+    """Constrain structured output paths to this task's declared gold files."""
+    schema = deepcopy(BUILDER_SCHEMA)
+    paths = list(task["gold_files"])
+    schema["properties"]["edits"]["items"]["properties"]["path"]["enum"] = paths
+    schema["properties"]["new_files"]["items"]["properties"]["path"]["enum"] = paths
+    if required_search_block is not None:
+        schema["properties"]["edits"]["items"]["properties"]["search_block"] = {
+            "type": "string", "const": required_search_block}
+    return schema
+
+
 def condition_input(task: dict, punched_target: str, context_pack: dict | None = None) -> dict:
+    marker = re.escape(repr(task["id"]))
+    matches = list(re.finditer(
+        rf"(?m)^[ \t]*raise NotImplementedError\({marker}\)[ \t]*(?:\r?\n|$)",
+        punched_target))
+    if len(matches) != 1:
+        raise ValueError("punched target must contain exactly one task placeholder")
     result = {"goal": task["goal"], "target_path": task["target"]["path"],
-              "target_file": punched_target}
+              "target_function": task["target"]["function"],
+              "target_file": punched_target,
+              "required_search_block": matches[0].group(0)}
     if context_pack is not None:
         result["context_pack"] = context_pack
     return result
@@ -112,6 +139,8 @@ def parse_builder_output(raw: str | dict) -> dict:
     if not isinstance(result["edits"], list) or not isinstance(result["new_files"], list) or not isinstance(
             result["notes"], str):
         raise ValueError("builder output fields have invalid types")
+    if len(result["edits"]) != 1 or result["new_files"]:
+        raise ValueError("each hole-punch task requires exactly one edit and no new files")
     for edit in result["edits"]:
         if not isinstance(edit, dict) or set(edit) != {"path", "search_block", "replace_block"} or not all(
                 isinstance(edit[key], str) for key in ("path", "search_block", "replace_block")):
@@ -121,6 +150,18 @@ def parse_builder_output(raw: str | dict) -> dict:
                 isinstance(item[key], str) for key in ("path", "content")):
             raise ValueError("builder new file has an invalid shape")
     return result
+
+
+class InvalidBuilderOutput(ValueError):
+    """Invalid structured output with the model's usage counters preserved."""
+
+    def __init__(self, message: str, *, elapsed_s: float, eval_count: int,
+                 tokens_per_s: float, raw_reply: str):
+        super().__init__(message)
+        self.elapsed_s = elapsed_s
+        self.eval_count = eval_count
+        self.tokens_per_s = tokens_per_s
+        self.raw_reply = raw_reply
 
 
 def apply_output(checkout: Path, task: dict, output: dict) -> None:
@@ -160,22 +201,33 @@ def score_search(top_paths: list[str], gold_files: list[str]) -> float:
 
 class BuilderClient:
     def __init__(self, model: str, *, base_url: str = "http://127.0.0.1:11434",
-                 timeout: float = TASK_TIMEOUT):
-        if model not in BUILDER_MODELS or not 0 < timeout <= TASK_TIMEOUT:
+                 timeout: float = TASK_TIMEOUT, think: bool = THINK_ENABLED,
+                 max_output_tokens: int = MAX_OUTPUT_TOKENS):
+        if (model not in BUILDER_MODELS or not 0 < timeout <= TASK_TIMEOUT or
+                not isinstance(think, bool) or not 0 < max_output_tokens <= 8192):
             raise ValueError("unknown builder candidate or invalid task timeout")
         self.model, self.base_url, self.timeout = model, base_url.rstrip("/"), timeout
+        self.think, self.max_output_tokens = think, max_output_tokens
 
     def run(self, task: dict, inputs: dict, timeout: float | None = None) -> dict:
         request = Request(self.base_url + "/api/chat", data=json.dumps({
             "model": self.model,
+            "think": self.think,
             "messages": [
                 {"role": "system", "content": (
-                    "Implement the goal in the supplied punched project file. Return only the "
-                    "requested JSON edit object. Do not use or invent other files.")},
-                {"role": "user", "content": json.dumps(inputs, ensure_ascii=False)},
+                    "Respond with one valid JSON object matching the supplied schema, with no "
+                    "markdown or prose outside the JSON. Implement the goal by replacing the "
+                    "NotImplementedError body of the one named target function. Return exactly "
+                    "one edit. Set search_block exactly to required_search_block and replace it "
+                    "with the function body, preserving its indentation and trailing newline. "
+                    "Do not add files or unrelated edits. Use only paths explicitly listed as "
+                    "allowed.")},
+                {"role": "user", "content": json.dumps({
+                    **inputs, "allowed_paths": task["gold_files"]}, ensure_ascii=False)},
             ],
-            "format": BUILDER_SCHEMA, "stream": False,
-            "options": {"temperature": 0},
+            "format": builder_schema(task, inputs["required_search_block"]), "stream": False,
+            "options": {"temperature": 0, "num_ctx": MODEL_CONTEXT,
+                        "num_predict": self.max_output_tokens},
         }).encode("utf-8"), headers={"Content-Type": "application/json"}, method="POST")
         started = time.monotonic()
         with urlopen(request, timeout=min(self.timeout, timeout or self.timeout)) as response:
@@ -183,11 +235,16 @@ class BuilderClient:
         elapsed = time.monotonic() - started
         message = payload.get("message", {})
         content = message.get("content", "")
-        output = parse_builder_output(content)
         eval_count = int(payload.get("eval_count", 0) or 0)
         eval_ns = int(payload.get("eval_duration", 0) or 0)
-        return {"output": output, "elapsed_s": elapsed, "eval_count": eval_count,
-                "tokens_per_s": eval_count / (eval_ns / 1e9) if eval_ns > 0 else 0.0}
+        tokens_per_s = eval_count / (eval_ns / 1e9) if eval_ns > 0 else 0.0
+        try:
+            output = parse_builder_output(content)
+        except ValueError as exc:
+            raise InvalidBuilderOutput(str(exc), elapsed_s=elapsed, eval_count=eval_count,
+                                       tokens_per_s=tokens_per_s, raw_reply=content) from exc
+        return {"output": output, "raw_reply": content, "elapsed_s": elapsed,
+                "eval_count": eval_count, "tokens_per_s": tokens_per_s}
 
 
 def run_attempt(client: BuilderClient, task: dict, checkout: Path, inputs: dict,
@@ -196,10 +253,11 @@ def run_attempt(client: BuilderClient, task: dict, checkout: Path, inputs: dict,
     result = {"task_id": task["id"], "model": client.model,
               "condition": "with_context" if "context_pack" in inputs else "without_context",
               "invalid_output": False, "status": "failed", "error": "", "passed": False,
-              "elapsed_s": 0.0, "tokens_per_s": 0.0}
+              "elapsed_s": 0.0, "eval_count": 0, "tokens_per_s": 0.0}
     try:
         reply = client.run(task, inputs, timeout=timeout)
-        result.update({"elapsed_s": reply["elapsed_s"], "tokens_per_s": reply["tokens_per_s"]})
+        result.update({"elapsed_s": reply["elapsed_s"], "eval_count": reply["eval_count"],
+                       "tokens_per_s": reply["tokens_per_s"]})
         apply_output(checkout, task, reply["output"])
         remaining = timeout - (time.monotonic() - started)
         if remaining <= 0:
@@ -209,9 +267,16 @@ def run_attempt(client: BuilderClient, task: dict, checkout: Path, inputs: dict,
         result["status"] = "passed" if result["passed"] else "failed"
         if check.returncode:
             result["error"] = (check.stderr or check.stdout)[-4000:]
-    except (TimeoutError, OSError, ValueError) as exc:
+    except InvalidBuilderOutput as exc:
+        result.update({"elapsed_s": exc.elapsed_s, "eval_count": exc.eval_count,
+                       "tokens_per_s": exc.tokens_per_s,
+                       "model_reply_excerpt": exc.raw_reply[:2000]})
+        result["invalid_output"] = True
+        result["error"] = str(exc)
+    except (TimeoutError, subprocess.TimeoutExpired, OSError, ValueError) as exc:
         result["invalid_output"] = isinstance(exc, ValueError)
-        result["status"] = "timeout" if isinstance(exc, TimeoutError) else "failed"
+        result["status"] = "timeout" if isinstance(exc, (TimeoutError,
+                                                             subprocess.TimeoutExpired)) else "failed"
         result["error"] = str(exc)
     result["elapsed_s"] = max(result["elapsed_s"], time.monotonic() - started)
     return result

@@ -66,11 +66,12 @@ All recorded 2026-09-29.
   - **Primary source: this repo itself**, snapshotted at the start of T5, when T1–T4 have given it real tests. That makes the bench a rehearsal for self-development (D8).
   - **Fallback source, used only if the repo yields fewer than 15 tasks:** a trimmed copy of `_SANDBOX/_ProjectMAPPER` (standard library only, 28 test files) in `bench/fixtures/`, checked in isolation at that point.
   - Synthetic tasks are allowed only when a specific behaviour can't be tested any other way, and each one needs a reason in the task file.
-- **D4 Model assignments** (set from the T0 measurements in §1; T5's bench confirms or changes them in `roles.json`):
+- **D4 Model assignments** (set from the T0 measurements in §1; T5's bench confirms or changes them in `roles.json`; builder protocol amended 2026-10-01 from the T5 probe):
 
   | Use | Model | Why |
   |---|---|---|
-  | Builder and debugger | `qwen3.5:9b` | Fits entirely on the GPU even with a 32k context, generates 62 tokens/s, JSON schema output OK |
+  | Builder | `qwen3.5:9b` | Fits entirely on the GPU even with a 32k context and generates 62 tokens/s. T5's controlled probe found JSON-schema output valid with thinking enabled and invalid with thinking disabled; the builder uses thinking on and a 4,096-token output cap. |
+  | Debugger | `qwen3.5:9b` | Same 9B model as the builder; T6 will validate its role-specific output protocol. |
   | Planner and reviewer | `qwen3.5:35b` (MoE) | 13.4 tokens/s with part of it on the CPU; JSON schema output and thinking mode OK. A different model from the builder, and its outputs are short |
   | Embedder | `nomic-embed-text` | 768 dimensions; 32 chunks in 2.3 s including load |
   | Cheap helper jobs | `qwen3.5:2b` | 132 tokens/s. Used only if a tranche needs it |
@@ -261,6 +262,8 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Uncommitted Task 3 work (builder's):** `bench/runner.py` (run, resume, record, aggregate, `choose_builder`) and `tests/test_bench_runner.py` are new; `bench/harness.py`, `bench/cli.py` and `tests/test_bench_harness.py` are modified. Full suite: 90 tests pass; `git diff --check` is clean.
 - **Runs made so far:** these are raw files in `%TEMP%/local-memory-lab-bench/`, not evidence and not committed.
 
+- **T5 output-protocol probe (2026-10-01):** `self-001`, `qwen3.5:9b`, same punched target and input, temperature 0. `think:false` returned a whole-file `content` payload instead of the required one-edit schema (193 eval tokens); `think:true` returned schema-valid JSON (281 eval tokens) with a 4,096-token cap. The latter implementation did not pass the task check. Raw replies and token counts: `%TEMP%/local-memory-lab-bench/probe-20261001T123927Z-qwen35-9b-thinking.json`. Freeze T5 at `target-stub-one-edit-json-think-enabled-v5`, `think:true`, 4,096 output tokens; the full benchmark measures task success.
+
   | Run | Prompt version | `think` | Invalid output |
   |---|---|---|---|
   | `20260930T153923Z` (full) | v1 | not set | 75/132; qwen3.5:9b passed 27% (32% with context, 23% without), 4b 7%, 2b 0%; top-five recall 0.68 |
@@ -268,16 +271,16 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   | `20260930T170647Z` | v3 | false | 23/23 |
   | `20260930T171151Z` (full) | v4 | false | **132/132**: 94 wrong keys, 38 not valid JSON, 16 hit the 2,048-token output cap |
 
-- **Diagnosis (reviewer, unproven):** invalid output reached 100% exactly when `think: false` was added, so Ollama likely stops enforcing the JSON output format for qwen3.5 when thinking is disabled. v1's "not valid JSON" failures more likely come from output being cut off at the token limit. The raw replies were not saved, so this cannot be confirmed from the files.
+- **Diagnosis (confirmed by the 2026-10-01 probe below):** with the same `self-001` input, `think:false` produced a whole-file payload without the required edit schema; `think:true` produced schema-valid structured output. The thinking-on implementation failed the task test, so the probe only selected the output protocol; builder quality is decided by the full run.
 - **Approved limited fix, in order; nothing beyond this:**
   1. On invalid output, save a shortened copy of the model reply (about the first 2,000 characters) in the result row.
   2. `choose_builder` raises an error when the best pass rate is 0, rather than choosing by list order.
   3. Define the prompt version string once as a constant; `_run_identity` reads `task_source` from the tasks instead of hardcoding it.
-  4. Probe, with the USER's confirmation: one task on `qwen3.5:9b`, `think: false` against thinking left on; save the raw replies and `eval_count`. Adopt whichever setting reliably produces valid JSON as the frozen prompt version (raise the output cap if thinking is on). If thinking is required, record it in `roles.json` and in `docs/CONTRACTS.md` §8 (currently `builder think false`), and note the change against D4.
+  4. **Completed 2026-10-01 after USER confirmed GPU availability:** the `self-001` probe saved both raw replies and `eval_count`. Thinking-on produced valid JSON while `think:false` did not. Freeze thinking-on v5 with the 4,096-token cap; D4 and `docs/CONTRACTS.md` §8 record the protocol. `roles.json` will be set only from the full benchmark.
   5. Commit as `T5 wip: fix builder output protocol`, then do one clean full run under the frozen version, `python lab.py bench run --confirm-gpu-free`, followed by `python lab.py bench record <raw file>`. Only that run decides `roles.json`. List v1–v4 in the park record as history.
 - **Then:** Task 4 (reproduction docs, `python lab.py bench validate --results`, full suite, architecture check, `git diff --check`), then park T5 for review by the reviewer AGENT and the USER.
 
-**Now:** Handed off to the builder AGENT for the approved limited fix above (steps 1–5). The reviewer AGENT reviews the resulting commits before the full run is recorded.
+**Now:** One-task probe selected thinking-on output protocol; committing the frozen builder protocol before the clean full benchmark. The reviewer AGENT reviews the resulting commits before the full run is recorded.
 
 **Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
 

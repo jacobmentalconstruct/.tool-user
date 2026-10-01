@@ -143,13 +143,13 @@ This is `roles.json` at the repo root, the only place models are assigned.
 
 ```json
 {"planner":  {"model": "qwen3.5:35b", "think": true,  "temperature": 0.2, "num_ctx": 16384},
- "builder":  {"model": "qwen3.5:9b",  "think": false, "temperature": 0,   "num_ctx": 16384},
+ "builder":  {"model": "qwen3.5:9b",  "think": true,  "temperature": 0,   "num_ctx": 16384},
  "debugger": {"model": "qwen3.5:9b",  "think": false, "temperature": 0,   "num_ctx": 16384},
  "reviewer": {"model": "qwen3.5:35b", "think": true,  "temperature": 0,   "num_ctx": 16384},
  "embedder": {"model": "nomic-embed-text"}}
 ```
 
-The values shown are `PLAN.md` D4, set from T0's measurements. T5's bench confirms or changes them.
+The values shown are `PLAN.md` D4, set from T0's measurements. T5's controlled probe found the builder's schema-valid output requires thinking enabled; its benchmark uses a 4,096-token output cap. T5's full bench confirms or changes the builder model assignment.
 
 ## 9. Bench task (T5)
 
