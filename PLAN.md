@@ -232,7 +232,46 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T5 — Bench.
+**ID:** T6 — Team.
+
+**Current:** T1–T5 are accepted on `main`; T5's bench, results and role configuration are merged from `t5-bench`. S2–S5 and S7 are complete; §3 stop conditions and §4 non-goals remain frozen (D6). T6 is declared for USER review and has no implementation permission.
+
+**Branch:** `t6-team` after USER approval; no T6 branch exists yet.
+
+**Expected outcome:** replace the free-running `run_turn` path with a durable planner → builder → debugger → reviewer team on the T3 job machine. A USER-approved goal becomes bounded tasks, each task produces an allowlisted patch only after deterministic checks and review pass, and the job ends with visible success, failure or cancellation (S6; `docs/CONTRACTS.md` §§2–4 and 7–8).
+
+**Scope (task list, in order):**
+1. Add role-step interfaces and configuration for planner, builder, debugger and reviewer. Persist planner-created task records and valid job/task transitions; enforce each role's input/output JSON schema and route context packs through the T4 service.
+2. Replace the T3 running step with the planner and builder pipeline. Run one task at a time, apply builder edits only in the task's declared files, run its named check, and give failures to the debugger for at most two bounded rounds before reviewing.
+3. Add the deterministic gate and USER approval boundary. Require the task check, reviewer `pass`, declared-file and patch-size limits before a patch approval; record role outputs, feedback, gate results and terminal states, with restart and USER-only cancellation behavior preserved.
+4. Remove `agent/engine.py`'s free-running `run_turn` path after the replacement is covered, update browser/CLI projections and documentation, and verify the full regression and architecture checks.
+
+**Progress:**
+- [ ] 1. Role interfaces, config and planner task persistence.
+- [ ] 2. Planner/builder/debugger pipeline with bounded task execution.
+- [ ] 3. Deterministic gate, USER approval and durable terminal outcomes.
+- [ ] 4. Remove `run_turn`, update adapters/docs and verify the tranche.
+
+**Now:** T6 is declared for USER review. No product code changes are authorized until the USER approves this declaration.
+
+**Non-goals:** T7 self-development goals and selfdev worktree; parallel jobs or simultaneous role steps; new model providers or dependencies; changes to §3 or §4; changes to event or contract schemas without a recorded decision in §2; automatic approval by a model; browser redesign; and work beyond S6.
+
+**Acceptance criteria:**
+- Role schemas, config loading, planner task creation and valid lifecycle transitions are covered by focused tests: `python -B -m unittest discover -s tests -p "test_role_steps.py" -v`.
+- A job integration test proves planner → builder → test → reviewer → gate → USER approval, including a debugger round and a rejected gate: `python -B -m unittest discover -s tests -p "test_team_pipeline.py" -v`.
+- Gate tests prove named checks, reviewer pass, declared-file limits, patch caps, USER-only approval, cancellation and restart recovery: `python -B -m unittest discover -s tests -p "test_gate.py" -v`.
+- The old free-running path is absent and no core module imports it: `rg -n "run_turn|agent\.engine" src tests` returns no product references after its removal; `python -B -m unittest discover -s tests -p "test_architecture.py" -v` passes.
+- The full suite, documentation checks and module-size check pass: `python -B -m unittest discover -s tests -v`; `git diff --check`; and the documented source-line count remains within S9.
+
+**Known risks:** Role calls may exhaust local model memory or hit output limits; use the measured T5 builder protocol, check each role's thinking/output budget in setup, and preserve thinking text for invalid replies. `roles.json` currently sets debugger `think: false`, which T5 showed breaks qwen3.5:9b's required format; do not retain that setting unless a focused probe proves it works. Keep role steps serialized so indexing never overlaps active work, and clean up child processes on timeout, cancel or restart. T6 must preserve T3's event and approval semantics while removing `run_turn`; any schema change requires a §2 decision. `session.py` is at the 400-line cap, so new ownership belongs in new modules.
+
+**Declaration state:** T6 declared from the §5 row after USER acceptance of T5 on 2026-10-01; pending USER review and approval.
+
+---
+
+### Previous declaration: T5 — Bench
+
+**ID:** T5 — Bench (accepted; retained for implementation history).
 
 **Current:** T1–T4 are accepted on `main`; T4's code is merged at `c287f3f`, and the accepted state plus revised T5 declaration are pushed at `6f9c388`. Its full suite passed 71 tests. S3–S5 are complete; §3 stop conditions and §4 non-goals remain frozen (D6). T5 was approved by USER on 2026-09-30 and remains active during a USER-requested long pause; this is a progress checkpoint, not a tranche park or acceptance.
 
@@ -282,7 +321,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   5. **Completed:** commit `fe10979`; clean full run `20261001T124335Z-a0abb772` completed and was recorded. It is the only run that sets `roles.json`. Keep v1–v4 listed as history in the park record.
 - **Then:** Task 4 documentation and checks are complete, including the independent review fix. Re-park T5 on `t5-bench` for USER review; merge only after USER acceptance, then declare T6 from §5.
 
-**Now:** T5 re-parked after review fixes, pending USER acceptance. Do not merge or declare T6 until accepted.
+**Now:** T5 was accepted and merged; this prior declaration is retained for implementation history.
 
 **Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
 
@@ -302,7 +341,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO (T5 re-parked 2026-10-01 pending USER acceptance).
+**Implementation permission:** NO (T6 declared 2026-10-01 pending USER approval).
 
 ## 9. Parked Tranches
 
@@ -388,7 +427,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Deferrals:** none beyond §4.
 - **Next step:** Review the T5 Bench declaration in §7. T5 remains provisional until USER approval.
 
-**T5, bench: PARKED 2026-10-01 on `t5-bench`, pending USER review and acceptance.** The implementation task commits are `fe10979` (builder output protocol), `0268b91` (record builder benchmark), and `b737676` (reproduction docs and role test); review fix `b7a15b9` validates recorded metrics and selection. The independent review returned one medium validation finding; it was fixed, verified and re-reviewed before this re-park. The parking commit is the current final commit on `t5-bench`; it is not merged until the USER accepts this record.
+**T5, bench: PARKED and ACCEPTED 2026-10-01 on `t5-bench`; merged into `main` after USER acceptance.** The implementation task commits are `fe10979` (builder output protocol), `0268b91` (record builder benchmark), and `b737676` (reproduction docs and role test); review fix `b7a15b9` validates recorded metrics and selection. The independent review returned one medium validation finding; it was fixed, verified and re-reviewed before this re-park. The acceptance record is committed on `t5-bench` before merge.
 - **Outcome met:** The repo-pinned corpus contains 22 hole-punched tasks from `self@c916053`; each task uses its single named test. The harness builds context only from punched copies and gives both conditions the same goal, target path and punched file; the context condition adds the bounded T4 pack. The harness completed 132/132 attempts across qwen3.5:9b, 4b and 2b, with and without context. The measured builder is qwen3.5:9b using the T5-frozen thinking-on protocol; T6 roles remain configured.
 - **Evidence:**
   - `python lab.py bench validate --baselines --contexts` — 22 pristine checks passed, all 22 punched checks failed as intended, and 22 context packs passed answer-leak checks.
@@ -407,7 +446,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   - Earlier exploratory runs are history only: v1 (`20260930T153923Z`, 75/132 invalid; qwen3.5:9b 27% pass); v2 (`20260930T170215Z`, 1/4 invalid); v3 (`20260930T170647Z`, 23/23 invalid with `think:false`); v4 (`20260930T171151Z`, 132/132 invalid with `think:false`). Only v5 is committed and selects a role.
 - **Limitations:** The comparison covers 22 tasks from one pinned commit and one attempt per task/model/condition; results are model- and prompt-specific and may vary. Of 63 invalid replies in run `20261001T124335Z-a0abb772`, 62 stopped exactly at `eval_count == 4096`, the output cap; all 13 invalid qwen3.5:9b replies did so. In 62 of those capped replies, answer text was empty, meaning the output limit went to thinking. The invalid-output rate mainly reflects the output cap, not the model's code quality: qwen3.5:9b passed 9 of 10 context attempts that produced valid output. Context improved qwen3.5:9b (9 vs 7 passes) and qwen3.5:4b (5 vs 1); qwen3.5:2b tied (1 vs 1). The output-protocol probe used one task per setting; the full run provides the broader measure. Probe replies and earlier v1–v4 raw runs remain local in `%TEMP%` and are not committed.
 - **Deferrals:** No T6 role orchestration or deterministic gate was added; no event or contract schema changed. Other deferrals remain in §4.
-- **Next step:** USER reviews this T5 park. After acceptance, merge `t5-bench` to `main`, push, and declare T6 from §5. Until acceptance, leave `main` unchanged and do not declare the next tranche. T6 notes:
+- **Next step:** T6 is declared in §7 for USER review. T5 notes:
   - Set the builder's output limit or thinking budget as part of T6's builder setup, and check it there.
   - Save the model's thinking text as well as its answer on invalid replies; the answer-only excerpt was empty in 62 of 63 rows.
   - `roles.json` sets the debugger to `think: false`, which the T5 probe showed breaks the required output format on qwen3.5:9b. Do not use that setting in T6 unless it is shown to work.
