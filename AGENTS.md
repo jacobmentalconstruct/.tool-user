@@ -75,4 +75,4 @@ If a `_projectmapper/` folder exists locally, it is a stale, gitignored snapshot
 - **Agent client:** `python lab.py client status`, `python lab.py client watch`, `python lab.py client send "…" --wait`
 - **Models:** Ollama at `127.0.0.1:11434`. Role assignments are in `PLAN.md` D4.
 
-> **Current state:** T5 (Bench) is parked on `t5-bench`, pending USER acceptance; T4 is accepted on `main`. Start at `PLAN.md` §7 and read the T5 entry in §9. Do not merge T5 or declare T6 until the USER accepts the park.
+> **Current state:** T5 re-parked after review fixes, pending USER acceptance; T4 is accepted on `main`. Start at `PLAN.md` §7 and read the T5 entry in §9. Do not merge T5 or declare T6 until the USER accepts the park.

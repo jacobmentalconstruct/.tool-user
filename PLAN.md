@@ -282,7 +282,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   5. **Completed:** commit `fe10979`; clean full run `20261001T124335Z-a0abb772` completed and was recorded. It is the only run that sets `roles.json`. Keep v1–v4 listed as history in the park record.
 - **Then:** Task 4 documentation and checks are complete, including the independent review fix. Re-park T5 on `t5-bench` for USER review; merge only after USER acceptance, then declare T6 from §5.
 
-**Now:** T5 is re-parked on `t5-bench` with the independent review finding resolved; awaiting USER review and acceptance. Do not merge or declare T6 until accepted.
+**Now:** T5 re-parked after review fixes, pending USER acceptance. Do not merge or declare T6 until accepted.
 
 **Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
 
@@ -397,7 +397,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   - `python lab.py bench validate --results` — 22 task records valid; 1 committed result valid; `roles.json` builder is measured.
   - `python -B -m unittest discover -s tests -p "test_roles.py" -v` — 1 role-config test passed.
   - `python -B -m unittest discover -s tests -p "test_bench_runner.py" -v` — 7 tests passed, including rejection of stored metrics or builder choices that contradict the attempts.
-  - `python -B -m unittest discover -s tests -v` — 94 tests passed.
+  - `python -B -m unittest discover -s tests -v` — 95 tests passed.
   - `python -B -m unittest discover -s tests -p "test_architecture.py" -v` — 2 tests passed.
   - `git diff --check` — clean before parking.
   - Review resolution: `python lab.py bench validate --results` recomputes every committed run's metrics and chosen builder from the attempt rows; the recorded run passes this stronger check.
@@ -405,6 +405,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   - The recorded run used source commit `fe109793e85c5e3c03619f5aa896268602329892`, all three candidates were available, and top-five search recall was 0.682. qwen3.5:9b passed 16/44 attempts (36.4%), invalid-output rate 29.5%; its pass rates were 31.8% without context and 40.9% with context. qwen3.5:4b passed 6/44 (13.6%), invalid rate 47.7%; qwen3.5:2b passed 2/44 (4.5%), invalid rate 65.9%.
   - The probe raw replies are in `%TEMP%/local-memory-lab-bench/probe-20261001T123927Z-qwen35-9b-thinking.json`. On the same `self-001` input, `think:false` returned a whole-file payload that failed the required one-edit schema (193 eval tokens); `think:true` returned schema-valid JSON (281 eval tokens) but failed the task check. The probe selected `target-stub-one-edit-json-think-enabled-v5`, `think:true`, and a 4,096-token output cap; the full run, not the probe, selected the model.
   - Earlier exploratory runs are history only: v1 (`20260930T153923Z`, 75/132 invalid; qwen3.5:9b 27% pass); v2 (`20260930T170215Z`, 1/4 invalid); v3 (`20260930T170647Z`, 23/23 invalid with `think:false`); v4 (`20260930T171151Z`, 132/132 invalid with `think:false`). Only v5 is committed and selects a role.
-- **Limitations:** The comparison covers 22 tasks from one pinned commit and one attempt per task/model/condition; results are model- and prompt-specific and may vary. The selected builder still fails 63.6% of attempts, and its with-context condition has a 54.5% invalid-output rate despite higher task pass rate. Context did not help consistently across models. The output-protocol probe used one task per setting; the full run provides the broader measure. Probe replies and earlier v1–v4 raw runs remain local in `%TEMP%` and are not committed.
+- **Limitations:** The comparison covers 22 tasks from one pinned commit and one attempt per task/model/condition; results are model- and prompt-specific and may vary. Of 63 invalid replies in run `20261001T124335Z-a0abb772`, 62 stopped exactly at `eval_count == 4096`, the output cap; all 13 invalid qwen3.5:9b replies did so. In 62 of those capped replies, answer text was empty, meaning the output limit went to thinking. The invalid-output rate mainly reflects the output cap, not the model's code quality: qwen3.5:9b passed 9 of 10 context attempts that produced valid output. Context improved qwen3.5:9b (9 vs 7 passes) and qwen3.5:4b (5 vs 1); qwen3.5:2b tied (1 vs 1). The output-protocol probe used one task per setting; the full run provides the broader measure. Probe replies and earlier v1–v4 raw runs remain local in `%TEMP%` and are not committed.
 - **Deferrals:** No T6 role orchestration or deterministic gate was added; no event or contract schema changed. Other deferrals remain in §4.
-- **Next step:** USER reviews this T5 park. After acceptance, merge `t5-bench` to `main`, push, and declare T6 from §5. Until acceptance, leave `main` unchanged and do not declare the next tranche.
+- **Next step:** USER reviews this T5 park. After acceptance, merge `t5-bench` to `main`, push, and declare T6 from §5. Until acceptance, leave `main` unchanged and do not declare the next tranche. T6 notes:
+  - Set the builder's output limit or thinking budget as part of T6's builder setup, and check it there.
+  - Save the model's thinking text as well as its answer on invalid replies; the answer-only excerpt was empty in 62 of 63 rows.
+  - `roles.json` sets the debugger to `think: false`, which the T5 probe showed breaks the required output format on qwen3.5:9b. Do not use that setting in T6 unless it is shown to work.
