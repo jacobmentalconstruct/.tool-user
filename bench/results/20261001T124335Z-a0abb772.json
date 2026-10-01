@@ -1,0 +1,2806 @@
+{
+  "schema_version": 1,
+  "run_id": "20261001T124335Z-a0abb772",
+  "source_commit": "fe109793e85c5e3c03619f5aa896268602329892",
+  "task_source": "self@c916053",
+  "created_utc": "2026-10-01T12:43:35.719823+00:00",
+  "ollama_version": "0.18.3",
+  "python_version": "3.13.6",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "hardware": "RTX 5060 Ti 16 GB GPU, 32 GB RAM (PLAN.md T0 record)",
+  "ollama_num_parallel": "8",
+  "temperature": 0,
+  "attempts_per_condition": 1,
+  "task_timeout_s": 180,
+  "model_context_tokens": 16384,
+  "max_output_tokens": 4096,
+  "prompt_protocol": "target-stub-one-edit-json-think-enabled-v5",
+  "think": true,
+  "context_budget_tokens": 6000,
+  "sequential": true,
+  "candidates": [
+    "qwen3.5:9b",
+    "qwen3.5:4b",
+    "qwen3.5:2b"
+  ],
+  "available_models": [
+    "qwen3.5:9b",
+    "qwen3.5:4b",
+    "qwen3.5:2b"
+  ],
+  "unavailable_models": [],
+  "results": [
+    {
+      "task_id": "self-001",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_shape_greedy_selection_budget_and_dropped_count (test_context_pack.ContextPackTests.test_shape_greedy_selection_budget_and_dropped_count)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-001-qwen3.5-9b-without_context\\tests\\test_context_pack.py\", line 28, in test_shape_greedy_selection_budget_and_dropped_count\n    self.assertEqual({\"budget_tokens\", \"used_tokens\", \"dropped\", \"items\"}, set(pack))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Items in the first set but not the second:\n'items'\nItems in the second set but not the first:\n'selected'\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 14.262990699964575,
+      "eval_count": 281,
+      "tokens_per_s": 57.88144915209445,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py"
+      ]
+    },
+    {
+      "task_id": "self-001",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 24.314607599982992,
+      "eval_count": 224,
+      "tokens_per_s": 55.15586295865947,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py"
+      ]
+    },
+    {
+      "task_id": "self-001",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 57.13485059997765,
+      "eval_count": 4096,
+      "tokens_per_s": 83.492648150264,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py"
+      ]
+    },
+    {
+      "task_id": "self-001",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 16.678876099991612,
+      "eval_count": 302,
+      "tokens_per_s": 78.64733664440357,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py"
+      ]
+    },
+    {
+      "task_id": "self-001",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.902009399957024,
+      "eval_count": 4096,
+      "tokens_per_s": 122.4438640172166,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py"
+      ]
+    },
+    {
+      "task_id": "self-001",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"C:\\Python313\\Lib\\unittest\\__main__.py\", line 18, in <module>\n    main(module=None)\n    ~~~~^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 103, in __init__\n    self.parseArgs(argv)\n    ~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 142, in parseArgs\n    self.createTests()\n    ~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 153, in createTests\n    self.test = self.testLoader.loadTestsFromNames(self.testNames,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n                                                   self.module)\n                                                   ^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 207, in loadTestsFromNames\n    suites = [self.loadTestsFromName(name, module) for name in names]\n              ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-001-qwen3.5-2b-with_context\\tests\\test_context_pack.py\", line 15, in <module>\n    from local_memory_lab.knowledge.context_pack import assemble_context_pack  # noqa: E402\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-001-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\context_pack.py\", line 10\n    def assemble_context_pack(candidates: Iterable[dict], budget_tokens: int) -> dict:\n    ^^^\nIndentationError: expected an indented block after function definition on line 9\n",
+      "passed": false,
+      "elapsed_s": 20.350700200011488,
+      "eval_count": 318,
+      "tokens_per_s": 116.40238444793864,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py",
+        "src/local_memory_lab/knowledge/context_pack.py"
+      ]
+    },
+    {
+      "task_id": "self-002",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_classes_split_into_header_and_addressable_methods (test_chunking.ChunkingTests.test_classes_split_into_header_and_addressable_methods)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-002-qwen3.5-9b-without_context\\tests\\test_chunking.py\", line 44, in test_classes_split_into_header_and_addressable_methods\n    self.assertEqual([\"class_header\", \"method\", \"method\"],\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     [chunk.kind for chunk in chunks])\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['class_header', 'method', 'method'] != ['class', 'method', 'method']\n\nFirst differing element 0:\n'class_header'\n'class'\n\n- ['class_header', 'method', 'method']\n?        -------\n\n+ ['class', 'method', 'method']\n\n----------------------------------------------------------------------\nRan 1 test in 0.006s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 25.153857199999038,
+      "eval_count": 300,
+      "tokens_per_s": 57.23929062889209,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_retrieval.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-002",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 88.54072270001052,
+      "eval_count": 4096,
+      "tokens_per_s": 51.416259680380286,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_retrieval.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-002",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_classes_split_into_header_and_addressable_methods (test_chunking.ChunkingTests.test_classes_split_into_header_and_addressable_methods)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-002-qwen3.5-4b-without_context\\tests\\test_chunking.py\", line 44, in test_classes_split_into_header_and_addressable_methods\n    self.assertEqual([\"class_header\", \"method\", \"method\"],\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     [chunk.kind for chunk in chunks])\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['class_header', 'method', 'method'] != ['class', 'method', 'method']\n\nFirst differing element 0:\n'class_header'\n'class'\n\n- ['class_header', 'method', 'method']\n?        -------\n\n+ ['class', 'method', 'method']\n\n----------------------------------------------------------------------\nRan 1 test in 0.006s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 17.756513000000268,
+      "eval_count": 284,
+      "tokens_per_s": 83.22642352203792,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_retrieval.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-002",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 63.335063399979845,
+      "eval_count": 4096,
+      "tokens_per_s": 72.91625399823087,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_retrieval.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-002",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.55178129998967,
+      "eval_count": 4096,
+      "tokens_per_s": 122.13720099387119,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_retrieval.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-002",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"C:\\Python313\\Lib\\unittest\\__main__.py\", line 18, in <module>\n    main(module=None)\n    ~~~~^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 103, in __init__\n    self.parseArgs(argv)\n    ~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 142, in parseArgs\n    self.createTests()\n    ~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 153, in createTests\n    self.test = self.testLoader.loadTestsFromNames(self.testNames,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n                                                   self.module)\n                                                   ^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 207, in loadTestsFromNames\n    suites = [self.loadTestsFromName(name, module) for name in names]\n              ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-002-qwen3.5-2b-with_context\\tests\\test_chunking.py\", line 13, in <module>\n    from local_memory_lab.knowledge.chunking import chunk_file  # noqa: E402\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-002-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\chunking.py\", line 29\n    def _class_chunks(path: str, lines: list[str], node: ast.ClassDef) -> tuple[list[Chunk], list[str]]:\n    ^^^\nIndentationError: expected an indented block after function definition on line 28\n",
+      "passed": false,
+      "elapsed_s": 11.217693699989468,
+      "eval_count": 314,
+      "tokens_per_s": 118.2298669503581,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_retrieval.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-003",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_markdown_headings_and_paragraph_fallback (test_chunking.ChunkingTests.test_markdown_headings_and_paragraph_fallback)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-003-qwen3.5-9b-without_context\\tests\\test_chunking.py\", line 59, in test_markdown_headings_and_paragraph_fallback\n    self.assertEqual([\"paragraph\", \"section\", \"section\"],\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     [chunk.kind for chunk in chunks])\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['paragraph', 'section', 'section'] != []\n\nFirst list contains 3 additional elements.\nFirst extra element 0:\n'paragraph'\n\n- ['paragraph', 'section', 'section']\n+ []\n\n----------------------------------------------------------------------\nRan 1 test in 0.006s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 27.06549950002227,
+      "eval_count": 508,
+      "tokens_per_s": 56.95034128669139,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_architecture.py",
+        "docs/WORKFLOW.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-003",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 82.85398680000799,
+      "eval_count": 4096,
+      "tokens_per_s": 54.588123591664555,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_architecture.py",
+        "docs/WORKFLOW.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-003",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_markdown_headings_and_paragraph_fallback (test_chunking.ChunkingTests.test_markdown_headings_and_paragraph_fallback)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-003-qwen3.5-4b-without_context\\tests\\test_chunking.py\", line 59, in test_markdown_headings_and_paragraph_fallback\n    self.assertEqual([\"paragraph\", \"section\", \"section\"],\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     [chunk.kind for chunk in chunks])\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['paragraph', 'section', 'section'] != ['paragraph', 'paragraph', 'paragraph', 'heading', 'head[113 chars]aph']\n\nFirst differing element 1:\n'section'\n'paragraph'\n\nSecond list contains 11 additional elements.\nFirst extra element 3:\n'heading'\n\n- ['paragraph', 'section', 'section']\n+ ['paragraph',\n+  'paragraph',\n+  'paragraph',\n+  'heading',\n+  'heading',\n+  'paragraph',\n+  'paragraph',\n+  'paragraph',\n+  'paragraph',\n+  'heading',\n+  'heading',\n+  'paragraph',\n+  'paragraph',\n+  'paragraph']\n\n----------------------------------------------------------------------\nRan 1 test in 0.006s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 26.962247299961746,
+      "eval_count": 691,
+      "tokens_per_s": 83.40346587145866,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_architecture.py",
+        "docs/WORKFLOW.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-003",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.976090500014834,
+      "eval_count": 4096,
+      "tokens_per_s": 77.91311650063555,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_architecture.py",
+        "docs/WORKFLOW.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-003",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.315936399973,
+      "eval_count": 4096,
+      "tokens_per_s": 122.00053595645606,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_architecture.py",
+        "docs/WORKFLOW.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-003",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"C:\\Python313\\Lib\\unittest\\__main__.py\", line 18, in <module>\n    main(module=None)\n    ~~~~^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 103, in __init__\n    self.parseArgs(argv)\n    ~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 142, in parseArgs\n    self.createTests()\n    ~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 153, in createTests\n    self.test = self.testLoader.loadTestsFromNames(self.testNames,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n                                                   self.module)\n                                                   ^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 207, in loadTestsFromNames\n    suites = [self.loadTestsFromName(name, module) for name in names]\n              ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-003-qwen3.5-2b-with_context\\tests\\test_chunking.py\", line 13, in <module>\n    from local_memory_lab.knowledge.chunking import chunk_file  # noqa: E402\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-003-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\chunking.py\", line 101\n    def _markdown_chunks(path: str, content: str) -> tuple[list[Chunk], str]:\n    ^^^\nIndentationError: expected an indented block after function definition on line 100\n",
+      "passed": false,
+      "elapsed_s": 13.407968399988022,
+      "eval_count": 454,
+      "tokens_per_s": 119.43214068327495,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_architecture.py",
+        "docs/WORKFLOW.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-004",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_python_definitions_imports_lines_and_summary (test_chunking.ChunkingTests.test_python_definitions_imports_lines_and_summary)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-004-qwen3.5-9b-without_context\\tests\\test_chunking.py\", line 27, in test_python_definitions_imports_lines_and_summary\n    [chunk.kind for chunk in chunks])\n     ^^^^^^^^^^\nAttributeError: 'list' object has no attribute 'kind'\n\n----------------------------------------------------------------------\nRan 1 test in 0.006s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 23.20436030003475,
+      "eval_count": 396,
+      "tokens_per_s": 57.40182552010656,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py"
+      ]
+    },
+    {
+      "task_id": "self-004",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 82.25957609998295,
+      "eval_count": 4096,
+      "tokens_per_s": 54.74677282543526,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py"
+      ]
+    },
+    {
+      "task_id": "self-004",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_python_definitions_imports_lines_and_summary (test_chunking.ChunkingTests.test_python_definitions_imports_lines_and_summary)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-004-qwen3.5-4b-without_context\\tests\\test_chunking.py\", line 26, in test_python_definitions_imports_lines_and_summary\n    self.assertEqual([\"module\", \"imports\", \"function\", \"class_header\"],\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                     [chunk.kind for chunk in chunks])\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: ['module', 'imports', 'function', 'class_header'] != ['imports', 'classes', 'functions']\n\nFirst differing element 0:\n'module'\n'imports'\n\nFirst list contains 1 additional elements.\nFirst extra element 3:\n'class_header'\n\n- ['module', 'imports', 'function', 'class_header']\n+ ['imports', 'classes', 'functions']\n\n----------------------------------------------------------------------\nRan 1 test in 0.006s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 20.78229260002263,
+      "eval_count": 449,
+      "tokens_per_s": 83.52608822959294,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py"
+      ]
+    },
+    {
+      "task_id": "self-004",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.28354519995628,
+      "eval_count": 4096,
+      "tokens_per_s": 78.31036875396708,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py"
+      ]
+    },
+    {
+      "task_id": "self-004",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.322162900003605,
+      "eval_count": 4096,
+      "tokens_per_s": 122.15010438838775,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py"
+      ]
+    },
+    {
+      "task_id": "self-004",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.53125659999205,
+      "eval_count": 4096,
+      "tokens_per_s": 118.51886179797646,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_chunking.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py"
+      ]
+    },
+    {
+      "task_id": "self-005",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 15.657358299999032,
+      "eval_count": 124,
+      "tokens_per_s": 56.471075150978145,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "PROJECT.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-005",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 82.43396459997166,
+      "eval_count": 4096,
+      "tokens_per_s": 54.75260739475642,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "PROJECT.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-005",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 57.32303279999178,
+      "eval_count": 4096,
+      "tokens_per_s": 82.71318102713423,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "PROJECT.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-005",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 16.0663853000151,
+      "eval_count": 229,
+      "tokens_per_s": 79.01783522255546,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "PROJECT.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-005",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.52550920000067,
+      "eval_count": 4096,
+      "tokens_per_s": 121.75102948877705,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "PROJECT.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-005",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 9.280989399994723,
+      "eval_count": 233,
+      "tokens_per_s": 120.53826699391685,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/chunking.py",
+        "tests/test_chunking.py",
+        "tests/test_chunking.py",
+        "PROJECT.md",
+        "docs/CONTRACTS.md"
+      ]
+    },
+    {
+      "task_id": "self-006",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 13.447564999980386,
+      "eval_count": 120,
+      "tokens_per_s": 57.77442793085461,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-006",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 83.22739359998377,
+      "eval_count": 4096,
+      "tokens_per_s": 54.41854743951221,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-006",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 14.214154299988877,
+      "eval_count": 153,
+      "tokens_per_s": 84.89728371973065,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-006",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 13.184301599976607,
+      "eval_count": 142,
+      "tokens_per_s": 78.78418907850295,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-006",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.40161850000732,
+      "eval_count": 4096,
+      "tokens_per_s": 122.16088747546516,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-006",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_fts_embeddings_graph_and_file_data_restore_after_restart (test_knowledge_store.KnowledgeStoreTests.test_fts_embeddings_graph_and_file_data_restore_after_restart)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-006-qwen3.5-2b-with_context\\tests\\test_knowledge_store.py\", line 55, in test_fts_embeddings_graph_and_file_data_restore_after_restart\n    digest = store.replace_file(\"src/store.py\", source, chunks, summary)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-006-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\store.py\", line 115, in replace_file\n    node_map = {node.key: node for node in nodes}\n                ^^^^^^^^\nAttributeError: 'str' object has no attribute 'key'\n\n----------------------------------------------------------------------\nRan 1 test in 0.030s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 10.08853300003102,
+      "eval_count": 165,
+      "tokens_per_s": 117.95728859516015,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/code_graph.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-007",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 22.401518200000282,
+      "eval_count": 182,
+      "tokens_per_s": 57.15976638363788,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-007",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_project_isolation_and_database_stays_under_control_root (test_knowledge_store.KnowledgeStoreTests.test_project_isolation_and_database_stays_under_control_root)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-007-qwen3.5-9b-with_context\\tests\\test_knowledge_store.py\", line 36, in test_project_isolation_and_database_stays_under_control_root\n    self.assertEqual(1, len(stores[0].search_fts(\"LEFTTOKEN\")))\n                            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-007-qwen3.5-9b-with_context\\src\\local_memory_lab\\knowledge\\store.py\", line 169, in search_fts\n    rows = db.execute(\n           ~~~~~~~~~~^\n        \"\"\"SELECT chunk_id, path, ordinal, line_start, line_end, kind, text, score\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n           FROM chunks_fts WHERE chunks_fts MATCH ? ORDER BY score DESC LIMIT ?\"\"\",\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n        (query, limit)).fetchall()\n        ^^^^^^^^^^^^^^^\nsqlite3.OperationalError: no such column: ordinal\n\n----------------------------------------------------------------------\nRan 1 test in 0.057s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 22.41240110003855,
+      "eval_count": 265,
+      "tokens_per_s": 54.84588884737619,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-007",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"C:\\Python313\\Lib\\unittest\\__main__.py\", line 18, in <module>\n    main(module=None)\n    ~~~~^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 103, in __init__\n    self.parseArgs(argv)\n    ~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 142, in parseArgs\n    self.createTests()\n    ~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 153, in createTests\n    self.test = self.testLoader.loadTestsFromNames(self.testNames,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n                                                   self.module)\n                                                   ^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 207, in loadTestsFromNames\n    suites = [self.loadTestsFromName(name, module) for name in names]\n              ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-007-qwen3.5-4b-without_context\\tests\\test_knowledge_store.py\", line 15, in <module>\n    from local_memory_lab.knowledge.store import KnowledgeStore  # noqa: E402\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-007-qwen3.5-4b-without_context\\src\\local_memory_lab\\knowledge\\store.py\", line 168\n    def search_fts(self, query: str, limit: int = 20) -> list[dict]:\n    ^^^\nIndentationError: expected an indented block after function definition on line 167\n",
+      "passed": false,
+      "elapsed_s": 21.09714879997773,
+      "eval_count": 220,
+      "tokens_per_s": 81.54380208726188,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-007",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"C:\\Python313\\Lib\\unittest\\__main__.py\", line 18, in <module>\n    main(module=None)\n    ~~~~^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 103, in __init__\n    self.parseArgs(argv)\n    ~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 142, in parseArgs\n    self.createTests()\n    ~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 153, in createTests\n    self.test = self.testLoader.loadTestsFromNames(self.testNames,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n                                                   self.module)\n                                                   ^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 207, in loadTestsFromNames\n    suites = [self.loadTestsFromName(name, module) for name in names]\n              ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-007-qwen3.5-4b-with_context\\tests\\test_knowledge_store.py\", line 15, in <module>\n    from local_memory_lab.knowledge.store import KnowledgeStore  # noqa: E402\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-007-qwen3.5-4b-with_context\\src\\local_memory_lab\\knowledge\\store.py\", line 168\n    def search_fts(self, query: str, limit: int = 20) -> list[dict]:\n    ^^^\nIndentationError: expected an indented block after function definition on line 167\n",
+      "passed": false,
+      "elapsed_s": 30.09447499999078,
+      "eval_count": 323,
+      "tokens_per_s": 77.51768501185481,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-007",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 39.31111569999484,
+      "eval_count": 4096,
+      "tokens_per_s": 120.95705402669074,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-007",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_project_isolation_and_database_stays_under_control_root (test_knowledge_store.KnowledgeStoreTests.test_project_isolation_and_database_stays_under_control_root)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-007-qwen3.5-2b-with_context\\tests\\test_knowledge_store.py\", line 36, in test_project_isolation_and_database_stays_under_control_root\n    self.assertEqual(1, len(stores[0].search_fts(\"LEFTTOKEN\")))\n                            ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-007-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\store.py\", line 170, in search_fts\n    rows = db.execute(\n        \"\"\"\n    ...<9 lines>...\n        (f\"%{query}%\", limit)\n    )\nsqlite3.OperationalError: no such column: c.ordinal\n\n----------------------------------------------------------------------\nRan 1 test in 0.053s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 11.654632699966896,
+      "eval_count": 294,
+      "tokens_per_s": 117.35117795036827,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/service.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-008",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_replacing_file_removes_stale_fts_and_graph_rows (test_knowledge_store.KnowledgeStoreTests.test_replacing_file_removes_stale_fts_and_graph_rows)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-008-qwen3.5-9b-without_context\\tests\\test_knowledge_store.py\", line 86, in test_replacing_file_removes_stale_fts_and_graph_rows\n    store.replace_file(\"sample.py\", content, chunks, summary)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-008-qwen3.5-9b-without_context\\src\\local_memory_lab\\knowledge\\store.py\", line 94, in replace_file\n    (chunk.path, chunk.ordinal, chunk.line_start, chunk.line_end, chunk.kind, chunk.text))\n                 ^^^^^^^^^^^^^\nAttributeError: 'Chunk' object has no attribute 'ordinal'\n\n----------------------------------------------------------------------\nRan 1 test in 0.027s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 55.63969340000767,
+      "eval_count": 548,
+      "tokens_per_s": 56.6747872259911,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_store.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-008",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 82.75940819998505,
+      "eval_count": 4096,
+      "tokens_per_s": 54.60759225513424,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_store.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-008",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_replacing_file_removes_stale_fts_and_graph_rows (test_knowledge_store.KnowledgeStoreTests.test_replacing_file_removes_stale_fts_and_graph_rows)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-008-qwen3.5-4b-without_context\\tests\\test_knowledge_store.py\", line 86, in test_replacing_file_removes_stale_fts_and_graph_rows\n    store.replace_file(\"sample.py\", content, chunks, summary)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-008-qwen3.5-4b-without_context\\src\\local_memory_lab\\knowledge\\store.py\", line 105, in replace_file\n    (relative, chunk.ordinal, chunk.line_start, chunk.line_end, chunk.kind, chunk.text))\n               ^^^^^^^^^^^^^\nAttributeError: 'Chunk' object has no attribute 'ordinal'\n\n----------------------------------------------------------------------\nRan 1 test in 0.026s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 26.405706999998074,
+      "eval_count": 567,
+      "tokens_per_s": 82.89985142358198,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_store.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-008",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.922256500052754,
+      "eval_count": 4096,
+      "tokens_per_s": 77.8423370624621,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_store.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-008",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.71104220004054,
+      "eval_count": 4096,
+      "tokens_per_s": 121.6113921561798,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_store.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-008",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_replacing_file_removes_stale_fts_and_graph_rows (test_knowledge_store.KnowledgeStoreTests.test_replacing_file_removes_stale_fts_and_graph_rows)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-008-qwen3.5-2b-with_context\\tests\\test_knowledge_store.py\", line 86, in test_replacing_file_removes_stale_fts_and_graph_rows\n    store.replace_file(\"sample.py\", content, chunks, summary)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-008-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\store.py\", line 89, in replace_file\n    raise ValueError(f\"File {relative} not found in source_files\")\nValueError: File sample.py not found in source_files\n\n----------------------------------------------------------------------\nRan 1 test in 0.026s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 21.271404600003734,
+      "eval_count": 1156,
+      "tokens_per_s": 118.75569386553184,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_store.py",
+        "tests/test_knowledge_store.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/knowledge/store.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-009",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_fts_embeddings_graph_and_file_data_restore_after_restart (test_knowledge_store.KnowledgeStoreTests.test_fts_embeddings_graph_and_file_data_restore_after_restart)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-009-qwen3.5-9b-without_context\\tests\\test_knowledge_store.py\", line 72, in test_fts_embeddings_graph_and_file_data_restore_after_restart\n    self.assertEqual(3, len(restored.get_embeddings()[0][\"vector\"]))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 3 != 12\n\n----------------------------------------------------------------------\nRan 1 test in 0.037s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 26.31353460001992,
+      "eval_count": 230,
+      "tokens_per_s": 56.80647109680576,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_retrieval.py",
+        "docs/CONTRACTS.md",
+        "tests/test_knowledge_store.py",
+        "README.md",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-009",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 82.53385700000217,
+      "eval_count": 4096,
+      "tokens_per_s": 54.35828404715097,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_retrieval.py",
+        "docs/CONTRACTS.md",
+        "tests/test_knowledge_store.py",
+        "README.md",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-009",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.51838779996615,
+      "eval_count": 4096,
+      "tokens_per_s": 81.6857805643008,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_retrieval.py",
+        "docs/CONTRACTS.md",
+        "tests/test_knowledge_store.py",
+        "README.md",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-009",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"C:\\Python313\\Lib\\unittest\\__main__.py\", line 18, in <module>\n    main(module=None)\n    ~~~~^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 103, in __init__\n    self.parseArgs(argv)\n    ~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 142, in parseArgs\n    self.createTests()\n    ~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 153, in createTests\n    self.test = self.testLoader.loadTestsFromNames(self.testNames,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n                                                   self.module)\n                                                   ^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 207, in loadTestsFromNames\n    suites = [self.loadTestsFromName(name, module) for name in names]\n              ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-009-qwen3.5-4b-with_context\\tests\\test_knowledge_store.py\", line 15, in <module>\n    from local_memory_lab.knowledge.store import KnowledgeStore  # noqa: E402\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-009-qwen3.5-4b-with_context\\src\\local_memory_lab\\knowledge\\store.py\", line 199\n    def get_embeddings(self, model: str | None = None) -> list[dict]:\n    ^^^\nIndentationError: expected an indented block after function definition on line 198\n",
+      "passed": false,
+      "elapsed_s": 18.07256470003631,
+      "eval_count": 410,
+      "tokens_per_s": 78.02060432819113,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_retrieval.py",
+        "docs/CONTRACTS.md",
+        "tests/test_knowledge_store.py",
+        "README.md",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-009",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.84406269999454,
+      "eval_count": 4096,
+      "tokens_per_s": 121.7071963515986,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_retrieval.py",
+        "docs/CONTRACTS.md",
+        "tests/test_knowledge_store.py",
+        "README.md",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-009",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_fts_embeddings_graph_and_file_data_restore_after_restart (test_knowledge_store.KnowledgeStoreTests.test_fts_embeddings_graph_and_file_data_restore_after_restart)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-009-qwen3.5-2b-with_context\\tests\\test_knowledge_store.py\", line 72, in test_fts_embeddings_graph_and_file_data_restore_after_restart\n    self.assertEqual(3, len(restored.get_embeddings()[0][\"vector\"]))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 3 != 12\n\n----------------------------------------------------------------------\nRan 1 test in 0.038s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 9.02309679996688,
+      "eval_count": 164,
+      "tokens_per_s": 119.34726940724869,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_retrieval.py",
+        "docs/CONTRACTS.md",
+        "tests/test_knowledge_store.py",
+        "README.md",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-010",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_hybrid_search_combines_fts_and_cosine_scores (test_retrieval.RetrievalTests.test_hybrid_search_combines_fts_and_cosine_scores)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-010-qwen3.5-9b-without_context\\tests\\test_retrieval.py\", line 91, in test_hybrid_search_combines_fts_and_cosine_scores\n    result = HybridRetriever(store, embedder).search(\"apple fruit\", limit=3)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-010-qwen3.5-9b-without_context\\src\\local_memory_lab\\knowledge\\retrieval.py\", line 32, in search\n    keyword_results = self.store.search(query, limit=limit)\n                      ^^^^^^^^^^^^^^^^^\nAttributeError: 'KnowledgeStore' object has no attribute 'search'\n\n----------------------------------------------------------------------\nRan 1 test in 0.524s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 24.434234699991066,
+      "eval_count": 456,
+      "tokens_per_s": 57.65169329976825,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/agent/tool_router.py",
+        "src/local_memory_lab/knowledge/embedding.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-010",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 88.59902650001459,
+      "eval_count": 4096,
+      "tokens_per_s": 51.256471817825286,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/agent/tool_router.py",
+        "src/local_memory_lab/knowledge/embedding.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-010",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_hybrid_search_combines_fts_and_cosine_scores (test_retrieval.RetrievalTests.test_hybrid_search_combines_fts_and_cosine_scores)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-010-qwen3.5-4b-without_context\\tests\\test_retrieval.py\", line 91, in test_hybrid_search_combines_fts_and_cosine_scores\n    result = HybridRetriever(store, embedder).search(\"apple fruit\", limit=3)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-010-qwen3.5-4b-without_context\\src\\local_memory_lab\\knowledge\\retrieval.py\", line 33, in search\n    keyword_results = self.store.keyword_search(query, limit=limit)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'KnowledgeStore' object has no attribute 'keyword_search'\n\n----------------------------------------------------------------------\nRan 1 test in 0.513s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 20.84477289998904,
+      "eval_count": 563,
+      "tokens_per_s": 83.79985267003522,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/agent/tool_router.py",
+        "src/local_memory_lab/knowledge/embedding.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-010",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"C:\\Python313\\Lib\\unittest\\__main__.py\", line 18, in <module>\n    main(module=None)\n    ~~~~^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 103, in __init__\n    self.parseArgs(argv)\n    ~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 142, in parseArgs\n    self.createTests()\n    ~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 153, in createTests\n    self.test = self.testLoader.loadTestsFromNames(self.testNames,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n                                                   self.module)\n                                                   ^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 207, in loadTestsFromNames\n    suites = [self.loadTestsFromName(name, module) for name in names]\n              ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-010-qwen3.5-4b-with_context\\tests\\test_retrieval.py\", line 18, in <module>\n    from local_memory_lab.knowledge.retrieval import HybridRetriever  # noqa: E402\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-010-qwen3.5-4b-with_context\\src\\local_memory_lab\\knowledge\\retrieval.py\", line 32\n    def search(self, query: str, limit: int = 20) -> dict:\n    ^^^\nIndentationError: expected an indented block after function definition on line 31\n",
+      "passed": false,
+      "elapsed_s": 33.29805539996596,
+      "eval_count": 690,
+      "tokens_per_s": 77.27906201765686,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/agent/tool_router.py",
+        "src/local_memory_lab/knowledge/embedding.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-010",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.25430630001938,
+      "eval_count": 4096,
+      "tokens_per_s": 122.00961900482831,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/agent/tool_router.py",
+        "src/local_memory_lab/knowledge/embedding.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-010",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 40.80144209996797,
+      "eval_count": 4096,
+      "tokens_per_s": 112.78347676687638,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "src/local_memory_lab/agent/tool_router.py",
+        "src/local_memory_lab/knowledge/embedding.py",
+        "src/local_memory_lab/knowledge/store.py"
+      ]
+    },
+    {
+      "task_id": "self-011",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_embedder_failure_returns_visible_keyword_only_results (test_retrieval.RetrievalTests.test_embedder_failure_returns_visible_keyword_only_results)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-011-qwen3.5-9b-without_context\\tests\\test_retrieval.py\", line 138, in test_embedder_failure_returns_visible_keyword_only_results\n    self.assertEqual(\"keyword_only\", result[\"status\"])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'keyword_only' != 'keyword'\n- keyword_only\n?        -----\n+ keyword\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.598s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 20.2598950000247,
+      "eval_count": 193,
+      "tokens_per_s": 57.565987175252516,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py"
+      ]
+    },
+    {
+      "task_id": "self-011",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 22.401931900007185,
+      "eval_count": 232,
+      "tokens_per_s": 55.18827993141714,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py"
+      ]
+    },
+    {
+      "task_id": "self-011",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_embedder_failure_returns_visible_keyword_only_results (test_retrieval.RetrievalTests.test_embedder_failure_returns_visible_keyword_only_results)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-011-qwen3.5-4b-without_context\\tests\\test_retrieval.py\", line 138, in test_embedder_failure_returns_visible_keyword_only_results\n    self.assertEqual(\"keyword_only\", result[\"status\"])\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: 'keyword_only' != 'keyword'\n- keyword_only\n?        -----\n+ keyword\n\n\n----------------------------------------------------------------------\nRan 1 test in 0.595s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 19.33620120002888,
+      "eval_count": 235,
+      "tokens_per_s": 83.07943433298986,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py"
+      ]
+    },
+    {
+      "task_id": "self-011",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 14.475199099979363,
+      "eval_count": 0,
+      "tokens_per_s": 0.0,
+      "model_reply_excerpt": "{\n  \"edits\": [\n    {\n      \"path\": \"src/local_memory_lab/knowledge/retrieval.py\",\n      \"search_block\": \"        raise NotImplementedError('self-011')\\n\",\n      \"replace_block\": \"",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py"
+      ]
+    },
+    {
+      "task_id": "self-011",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.39664009999251,
+      "eval_count": 4096,
+      "tokens_per_s": 122.20783077824387,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py"
+      ]
+    },
+    {
+      "task_id": "self-011",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_embedder_failure_returns_visible_keyword_only_results (test_retrieval.RetrievalTests.test_embedder_failure_returns_visible_keyword_only_results)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-011-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 37, in embed_many\n    with urlopen(request, timeout=self.timeout) as response:\n         ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 189, in urlopen\n    return opener.open(url, data, timeout)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 495, in open\n    response = meth(req, response)\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 604, in http_response\n    response = self.parent.error(\n        'http', request, response, code, msg, hdrs)\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 533, in error\n    return self._call_chain(*args)\n           ~~~~~~~~~~~~~~~~^^^^^^^\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 466, in _call_chain\n    result = func(*args)\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 613, in http_error_default\n    raise HTTPError(req.full_url, code, msg, hdrs, fp)\nurllib.error.HTTPError: HTTP Error 503: Service Unavailable\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-011-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\retrieval.py\", line 38, in search\n    query_vector = np.asarray(self.embedder.embed(query), dtype=np.float32)\n                              ~~~~~~~~~~~~~~~~~~~^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-011-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 27, in embed\n    return self.embed_many([text])[0]\n           ~~~~~~~~~~~~~~~^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-011-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 41, in embed_many\n    raise EmbeddingUnavailable(f\"Ollama embedding request failed (HTTP {exc.code}): {detail}\") from exc\nlocal_memory_lab.knowledge.embedding.EmbeddingUnavailable: Ollama embedding request failed (HTTP 503): {\"error\":\"model unavailable\"}\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-011-qwen3.5-2b-with_context\\tests\\test_retrieval.py\", line 137, in test_embedder_failure_returns_visible_keyword_only_results\n    result = HybridRetriever(store, embedder).search(\"apple fruit\", limit=5)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-011-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\retrieval.py\", line 58, in search\n    return self._keyword_only(keyword_rows, limit, str(exc))\n           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-011-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\retrieval.py\", line 81, in _keyword_only\n    return {\"status\": \"keyword_only\", \"fallback_reason\": reason, \"results\": results[:limit]}\n                                                                            ^^^^^^^\nNameError: name 'results' is not defined\n\n----------------------------------------------------------------------\nRan 1 test in 0.608s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 11.776413600018714,
+      "eval_count": 76,
+      "tokens_per_s": 118.70216673624799,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/knowledge/retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py",
+        "tests/test_knowledge_integration.py",
+        "tests/test_retrieval.py"
+      ]
+    },
+    {
+      "task_id": "self-012",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "----------------------------------------\nException occurred during processing of request from ('127.0.0.1', 57206)\nTraceback (most recent call last):\n  File \"C:\\Python313\\Lib\\socketserver.py\", line 697, in process_request_thread\n    self.finish_request(request, client_address)\n    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\socketserver.py\", line 362, in finish_request\n    self.RequestHandlerClass(request, client_address, self)\n    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\socketserver.py\", line 766, in __init__\n    self.handle()\n    ~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\http\\server.py\", line 436, in handle\n    self.handle_one_request()\n    ~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\http\\server.py\", line 424, in handle_one_request\n    method()\n    ~~~~~~^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-9b-without_context\\tests\\test_retrieval.py\", line 32, in do_POST\n    inputs = payload[\"input\"]\n             ~~~~~~~^^^^^^^^^\nKeyError: 'input'\n----------------------------------------\nE\n======================================================================\nERROR: test_embedder_uses_api_embed_and_batches_inputs (test_retrieval.RetrievalTests.test_embedder_uses_api_embed_and_batches_inputs)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-9b-without_context\\tests\\test_retrieval.py\", line 60, in test_embedder_uses_api_embed_and_batches_inputs\n    self.assertEqual([(1.0, 0.0), (0.0, 1.0)], embedder.embed_many([\"one\", \"two\"]))\n                                               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-9b-without_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 34, in embed_many\n    with urlopen(req, timeout=self.timeout) as response:\n         ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 189, in urlopen\n    return opener.open(url, data, timeout)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 489, in open\n    response = self._open(req, data)\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 506, in _open\n    result = self._call_chain(self.handle_open, protocol, protocol +\n                              '_open', req)\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 466, in _call_chain\n    result = func(*args)\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 1348, in http_open\n    return self.do_open(http.client.HTTPConnection, req)\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\urllib\\request.py\", line 1323, in do_open\n    r = h.getresponse()\n  File \"C:\\Python313\\Lib\\http\\client.py\", line 1430, in getresponse\n    response.begin()\n    ~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\http\\client.py\", line 331, in begin\n    version, status, reason = self._read_status()\n                              ~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\http\\client.py\", line 300, in _read_status\n    raise RemoteDisconnected(\"Remote end closed connection without\"\n                             \" response\")\nhttp.client.RemoteDisconnected: Remote end closed connection without response\n\n----------------------------------------------------------------------\nRan 1 test in 0.565s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 21.047432299994398,
+      "eval_count": 246,
+      "tokens_per_s": 57.798462213174545,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_approvals.py",
+        "tests/test_command_runner.py",
+        "tests/test_job_interfaces.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/embedding.py"
+      ]
+    },
+    {
+      "task_id": "self-012",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 82.31524229998467,
+      "eval_count": 4096,
+      "tokens_per_s": 54.80070410128094,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_approvals.py",
+        "tests/test_command_runner.py",
+        "tests/test_job_interfaces.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/embedding.py"
+      ]
+    },
+    {
+      "task_id": "self-012",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_embedder_uses_api_embed_and_batches_inputs (test_retrieval.RetrievalTests.test_embedder_uses_api_embed_and_batches_inputs)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-4b-without_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 54, in embed_many\n    raise EmbeddingUnavailable(\"Invalid response format\")\nlocal_memory_lab.knowledge.embedding.EmbeddingUnavailable: Invalid response format\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-4b-without_context\\tests\\test_retrieval.py\", line 60, in test_embedder_uses_api_embed_and_batches_inputs\n    self.assertEqual([(1.0, 0.0), (0.0, 1.0)], embedder.embed_many([\"one\", \"two\"]))\n                                               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-4b-without_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 63, in embed_many\n    raise EmbeddingUnavailable(f\"Embedding error: {e}\")\nlocal_memory_lab.knowledge.embedding.EmbeddingUnavailable: Embedding error: Invalid response format\n\n----------------------------------------------------------------------\nRan 1 test in 0.558s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 19.325624499993864,
+      "eval_count": 404,
+      "tokens_per_s": 84.03823173742097,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_approvals.py",
+        "tests/test_command_runner.py",
+        "tests/test_job_interfaces.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/embedding.py"
+      ]
+    },
+    {
+      "task_id": "self-012",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_embedder_uses_api_embed_and_batches_inputs (test_retrieval.RetrievalTests.test_embedder_uses_api_embed_and_batches_inputs)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-4b-with_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 35, in embed_many\n    Request(\n    ~~~~~~~^\n        f\"{self.base_url}/api/embed\",\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    ...<3 lines>...\n        timeout=self.timeout\n        ^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\nTypeError: Request.__init__() got an unexpected keyword argument 'timeout'\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-4b-with_context\\tests\\test_retrieval.py\", line 60, in test_embedder_uses_api_embed_and_batches_inputs\n    self.assertEqual([(1.0, 0.0), (0.0, 1.0)], embedder.embed_many([\"one\", \"two\"]))\n                                               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-4b-with_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 51, in embed_many\n    raise EmbeddingUnavailable(f\"Ollama API error: {e}\")\nlocal_memory_lab.knowledge.embedding.EmbeddingUnavailable: Ollama API error: Request.__init__() got an unexpected keyword argument 'timeout'\n\n----------------------------------------------------------------------\nRan 1 test in 0.507s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 21.7157242000103,
+      "eval_count": 346,
+      "tokens_per_s": 78.51888510808102,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_approvals.py",
+        "tests/test_command_runner.py",
+        "tests/test_job_interfaces.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/embedding.py"
+      ]
+    },
+    {
+      "task_id": "self-012",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.15862889995333,
+      "eval_count": 4096,
+      "tokens_per_s": 122.56572236759679,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_approvals.py",
+        "tests/test_command_runner.py",
+        "tests/test_job_interfaces.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/embedding.py"
+      ]
+    },
+    {
+      "task_id": "self-012",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_embedder_uses_api_embed_and_batches_inputs (test_retrieval.RetrievalTests.test_embedder_uses_api_embed_and_batches_inputs)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 65, in _make_request\n    with urlopen(Request(url, data, headers=headers, timeout=self.timeout)) as response:\n                 ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: Request.__init__() got an unexpected keyword argument 'timeout'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 39, in embed_many\n    response = self._make_request(f\"{self.base_url}/api/embed\", {\n        \"model\": self.model,\n        \"input\": [text]\n    })\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 72, in _make_request\n    raise ValueError(f\"Failed to make request to {url}: {e}\") from e\nValueError: Failed to make request to http://127.0.0.1:57329http://127.0.0.1:57329/api/embed: Request.__init__() got an unexpected keyword argument 'timeout'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-2b-with_context\\tests\\test_retrieval.py\", line 60, in test_embedder_uses_api_embed_and_batches_inputs\n    self.assertEqual([(1.0, 0.0), (0.0, 1.0)], embedder.embed_many([\"one\", \"two\"]))\n                                               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-012-qwen3.5-2b-with_context\\src\\local_memory_lab\\knowledge\\embedding.py\", line 49, in embed_many\n    raise ValueError(f\"Failed to embed text: {text}\") from e\nValueError: Failed to embed text: one\n\n----------------------------------------------------------------------\nRan 1 test in 0.515s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 12.102499899978284,
+      "eval_count": 440,
+      "tokens_per_s": 118.31742828894956,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_approvals.py",
+        "tests/test_command_runner.py",
+        "tests/test_job_interfaces.py",
+        "tests/test_knowledge_integration.py",
+        "src/local_memory_lab/knowledge/embedding.py"
+      ]
+    },
+    {
+      "task_id": "self-013",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 24.133683099993505,
+      "eval_count": 226,
+      "tokens_per_s": 56.9630813699974,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-013",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 22.17130810004892,
+      "eval_count": 265,
+      "tokens_per_s": 54.76537047987814,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-013",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.07422810001299,
+      "eval_count": 4096,
+      "tokens_per_s": 81.95057461207972,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-013",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.93091599998297,
+      "eval_count": 4096,
+      "tokens_per_s": 77.81662390229022,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-013",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.64163829997415,
+      "eval_count": 4096,
+      "tokens_per_s": 121.47037120417211,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-013",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.82341469998937,
+      "eval_count": 4096,
+      "tokens_per_s": 117.79843671696287,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "src/local_memory_lab/command_runner.py"
+      ]
+    },
+    {
+      "task_id": "self-014",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 79.86855349998223,
+      "eval_count": 4096,
+      "tokens_per_s": 56.43022861485112,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-014",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 83.41221790004056,
+      "eval_count": 4096,
+      "tokens_per_s": 54.26595826697677,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-014",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.16992059996119,
+      "eval_count": 4096,
+      "tokens_per_s": 81.69795085183716,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-014",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 26.4416170999757,
+      "eval_count": 361,
+      "tokens_per_s": 77.61027431039724,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-014",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.872871199971996,
+      "eval_count": 4096,
+      "tokens_per_s": 121.02657721179467,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-014",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.987225399992894,
+      "eval_count": 4096,
+      "tokens_per_s": 117.57097200716102,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "docs/CONTRACTS.md",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-015",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 28.563233399996534,
+      "eval_count": 365,
+      "tokens_per_s": 56.9725869295926,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py"
+      ]
+    },
+    {
+      "task_id": "self-015",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 23.40200040000491,
+      "eval_count": 356,
+      "tokens_per_s": 54.933776869059265,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py"
+      ]
+    },
+    {
+      "task_id": "self-015",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 57.866719499987084,
+      "eval_count": 4096,
+      "tokens_per_s": 82.10956339306128,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py"
+      ]
+    },
+    {
+      "task_id": "self-015",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.7914463999914,
+      "eval_count": 4096,
+      "tokens_per_s": 77.91476975620579,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py"
+      ]
+    },
+    {
+      "task_id": "self-015",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 39.07590250001522,
+      "eval_count": 4096,
+      "tokens_per_s": 121.83036380001099,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py"
+      ]
+    },
+    {
+      "task_id": "self-015",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.740857299999334,
+      "eval_count": 4096,
+      "tokens_per_s": 118.41588935857635,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "src/local_memory_lab/workspace/paths.py",
+        "tests/test_workspace.py"
+      ]
+    },
+    {
+      "task_id": "self-016",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 18.05310499999905,
+      "eval_count": 234,
+      "tokens_per_s": 57.21836582391023,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/agent/tool_router.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-016",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 22.979376600007527,
+      "eval_count": 210,
+      "tokens_per_s": 54.912302960275184,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/agent/tool_router.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-016",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 57.8442676999839,
+      "eval_count": 4096,
+      "tokens_per_s": 82.15624949692835,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/agent/tool_router.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-016",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"C:\\Python313\\Lib\\unittest\\__main__.py\", line 18, in <module>\n    main(module=None)\n    ~~~~^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 103, in __init__\n    self.parseArgs(argv)\n    ~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 142, in parseArgs\n    self.createTests()\n    ~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 153, in createTests\n    self.test = self.testLoader.loadTestsFromNames(self.testNames,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n                                                   self.module)\n                                                   ^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 207, in loadTestsFromNames\n    suites = [self.loadTestsFromName(name, module) for name in names]\n              ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-016-qwen3.5-4b-with_context\\tests\\test_workspace.py\", line 15, in <module>\n    from local_memory_lab.workspace.patching import prepare, staged_apply  # noqa: E402\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-016-qwen3.5-4b-with_context\\src\\local_memory_lab\\workspace\\patching.py\", line 11, in <module>\n    from .paths import MAX_READ, Workspace\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-016-qwen3.5-4b-with_context\\src\\local_memory_lab\\workspace\\paths.py\", line 169\n    def create_project_file(self, relative: object, content: object) -> dict:\n    ^^^\nIndentationError: expected an indented block after function definition on line 168\n",
+      "passed": false,
+      "elapsed_s": 14.673431199975312,
+      "eval_count": 192,
+      "tokens_per_s": 79.1507422175342,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/agent/tool_router.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-016",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 11.414624500030186,
+      "eval_count": 130,
+      "tokens_per_s": 123.86291462396076,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/agent/tool_router.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-016",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"C:\\Python313\\Lib\\unittest\\__main__.py\", line 18, in <module>\n    main(module=None)\n    ~~~~^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 103, in __init__\n    self.parseArgs(argv)\n    ~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 142, in parseArgs\n    self.createTests()\n    ~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 153, in createTests\n    self.test = self.testLoader.loadTestsFromNames(self.testNames,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n                                                   self.module)\n                                                   ^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 207, in loadTestsFromNames\n    suites = [self.loadTestsFromName(name, module) for name in names]\n              ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-016-qwen3.5-2b-with_context\\tests\\test_workspace.py\", line 15, in <module>\n    from local_memory_lab.workspace.patching import prepare, staged_apply  # noqa: E402\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-016-qwen3.5-2b-with_context\\src\\local_memory_lab\\workspace\\patching.py\", line 11, in <module>\n    from .paths import MAX_READ, Workspace\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-016-qwen3.5-2b-with_context\\src\\local_memory_lab\\workspace\\paths.py\", line 169\n    def create_project_file(self, relative: object, content: object) -> dict:\n    ^^^\nIndentationError: expected an indented block after function definition on line 168\n",
+      "passed": false,
+      "elapsed_s": 15.71918239997467,
+      "eval_count": 148,
+      "tokens_per_s": 119.28617220184059,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/agent/tool_router.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "tests/test_patch_tools.py",
+        "src/local_memory_lab/workspace/paths.py"
+      ]
+    },
+    {
+      "task_id": "self-017",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_project_file_create_read_and_list (test_workspace.WorkspaceTests.test_project_file_create_read_and_list)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-017-qwen3.5-9b-without_context\\tests\\test_workspace.py\", line 69, in test_project_file_create_read_and_list\n    self.assertEqual([row[\"name\"] for row in self.workspace.list_project()[\"entries\"]], [\"new.txt\"])\n                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-017-qwen3.5-9b-without_context\\src\\local_memory_lab\\workspace\\paths.py\", line 132, in list_project\n    path = self.path(relative)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-017-qwen3.5-9b-without_context\\src\\local_memory_lab\\workspace\\paths.py\", line 110, in path\n    raise ValueError(\"use a relative path inside the project\")\nValueError: use a relative path inside the project\n\n----------------------------------------------------------------------\nRan 1 test in 0.006s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 24.203486899961717,
+      "eval_count": 252,
+      "tokens_per_s": 57.14535547041603,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/command_runner.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "docs/DESIGN-PRINCIPLES.md"
+      ]
+    },
+    {
+      "task_id": "self-017",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 30.20552029996179,
+      "eval_count": 556,
+      "tokens_per_s": 54.713858721259186,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/command_runner.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "docs/DESIGN-PRINCIPLES.md"
+      ]
+    },
+    {
+      "task_id": "self-017",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.01866980001796,
+      "eval_count": 4096,
+      "tokens_per_s": 82.08116439634428,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/command_runner.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "docs/DESIGN-PRINCIPLES.md"
+      ]
+    },
+    {
+      "task_id": "self-017",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.72928410000168,
+      "eval_count": 4096,
+      "tokens_per_s": 77.86722699436542,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/command_runner.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "docs/DESIGN-PRINCIPLES.md"
+      ]
+    },
+    {
+      "task_id": "self-017",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.78840379999019,
+      "eval_count": 4096,
+      "tokens_per_s": 121.6611886013577,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/command_runner.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "docs/DESIGN-PRINCIPLES.md"
+      ]
+    },
+    {
+      "task_id": "self-017",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.661789799982216,
+      "eval_count": 4096,
+      "tokens_per_s": 118.54434067277253,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/workspace/__init__.py",
+        "src/local_memory_lab/agent/project_tools.py",
+        "src/local_memory_lab/command_runner.py",
+        "src/local_memory_lab/knowledge/service.py",
+        "docs/DESIGN-PRINCIPLES.md"
+      ]
+    },
+    {
+      "task_id": "self-018",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_requires_unique_search_match (test_workspace.WorkspaceTests.test_requires_unique_search_match)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-018-qwen3.5-9b-without_context\\tests\\test_workspace.py\", line 95, in test_requires_unique_search_match\n    with self.assertRaisesRegex(ValueError, \"exactly once\"):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.005s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 18.127932100032922,
+      "eval_count": 138,
+      "tokens_per_s": 57.43558120937525,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_integration.py",
+        "tests/test_workspace.py",
+        "tests/test_patch_tools.py",
+        "tests/test_http_smoke.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-018",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 19.780099800031167,
+      "eval_count": 150,
+      "tokens_per_s": 55.347996468945425,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_integration.py",
+        "tests/test_workspace.py",
+        "tests/test_patch_tools.py",
+        "tests/test_http_smoke.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-018",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 57.32825069996761,
+      "eval_count": 4096,
+      "tokens_per_s": 82.73343864354779,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_integration.py",
+        "tests/test_workspace.py",
+        "tests/test_patch_tools.py",
+        "tests/test_http_smoke.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-018",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 22.966613300028257,
+      "eval_count": 246,
+      "tokens_per_s": 78.76158611747003,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_integration.py",
+        "tests/test_workspace.py",
+        "tests/test_patch_tools.py",
+        "tests/test_http_smoke.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-018",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.6217830000096,
+      "eval_count": 4096,
+      "tokens_per_s": 121.50975791141624,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_integration.py",
+        "tests/test_workspace.py",
+        "tests/test_patch_tools.py",
+        "tests/test_http_smoke.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-018",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "Traceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"C:\\Python313\\Lib\\unittest\\__main__.py\", line 18, in <module>\n    main(module=None)\n    ~~~~^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 103, in __init__\n    self.parseArgs(argv)\n    ~~~~~~~~~~~~~~^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 142, in parseArgs\n    self.createTests()\n    ~~~~~~~~~~~~~~~~^^\n  File \"C:\\Python313\\Lib\\unittest\\main.py\", line 153, in createTests\n    self.test = self.testLoader.loadTestsFromNames(self.testNames,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^\n                                                   self.module)\n                                                   ^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 207, in loadTestsFromNames\n    suites = [self.loadTestsFromName(name, module) for name in names]\n              ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^\n  File \"C:\\Python313\\Lib\\unittest\\loader.py\", line 137, in loadTestsFromName\n    module = __import__(module_name)\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-018-qwen3.5-2b-with_context\\tests\\test_workspace.py\", line 15, in <module>\n    from local_memory_lab.workspace.patching import prepare, staged_apply  # noqa: E402\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-018-qwen3.5-2b-with_context\\src\\local_memory_lab\\workspace\\patching.py\", line 19\n    def replace_unique(data: bytes, search: str, replacement: str) -> bytes:\n    ^^^\nIndentationError: expected an indented block after function definition on line 18\n",
+      "passed": false,
+      "elapsed_s": 18.467400699970312,
+      "eval_count": 245,
+      "tokens_per_s": 120.02605888213903,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_knowledge_integration.py",
+        "tests/test_workspace.py",
+        "tests/test_patch_tools.py",
+        "tests/test_http_smoke.py",
+        "tests/test_knowledge_integration.py"
+      ]
+    },
+    {
+      "task_id": "self-019",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_restores_earlier_files_when_a_later_replace_fails (test_workspace.WorkspaceTests.test_restores_earlier_files_when_a_later_replace_fails)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-019-qwen3.5-9b-without_context\\tests\\test_workspace.py\", line 116, in test_restores_earlier_files_when_a_later_replace_fails\n    with self.assertRaisesRegex(OSError, \"simulated\"):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: OSError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 31.76100379996933,
+      "eval_count": 204,
+      "tokens_per_s": 57.29539610427818,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "docs/WORKFLOW.md",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/workspace/backups.py"
+      ]
+    },
+    {
+      "task_id": "self-019",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 81.76412569999229,
+      "eval_count": 4096,
+      "tokens_per_s": 54.92439611283528,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "docs/WORKFLOW.md",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/workspace/backups.py"
+      ]
+    },
+    {
+      "task_id": "self-019",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 56.908250299980864,
+      "eval_count": 4096,
+      "tokens_per_s": 82.97891450679198,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "docs/WORKFLOW.md",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/workspace/backups.py"
+      ]
+    },
+    {
+      "task_id": "self-019",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "E\n======================================================================\nERROR: test_restores_earlier_files_when_a_later_replace_fails (test_workspace.WorkspaceTests.test_restores_earlier_files_when_a_later_replace_fails)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-019-qwen3.5-4b-with_context\\tests\\test_workspace.py\", line 117, in test_restores_earlier_files_when_a_later_replace_fails\n    staged_apply(changes, store, \"rollback-test\")\n    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-019-qwen3.5-4b-with_context\\src\\local_memory_lab\\workspace\\patching.py\", line 66, in staged_apply\n    backup.generate(changes, request_id)\n    ^^^^^^^^^^^^^^^\nAttributeError: 'BackupStore' object has no attribute 'generate'\n\n----------------------------------------------------------------------\nRan 1 test in 0.006s\n\nFAILED (errors=1)\n",
+      "passed": false,
+      "elapsed_s": 18.114400700025726,
+      "eval_count": 267,
+      "tokens_per_s": 79.20383944616404,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "docs/WORKFLOW.md",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/workspace/backups.py"
+      ]
+    },
+    {
+      "task_id": "self-019",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.36389739997685,
+      "eval_count": 4096,
+      "tokens_per_s": 122.28686979427317,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "docs/WORKFLOW.md",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/workspace/backups.py"
+      ]
+    },
+    {
+      "task_id": "self-019",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.4148057999555,
+      "eval_count": 4096,
+      "tokens_per_s": 118.4020463296165,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_workspace.py",
+        "docs/WORKFLOW.md",
+        "tests/test_workspace.py",
+        "src/local_memory_lab/agent/patch_tools.py",
+        "src/local_memory_lab/workspace/backups.py"
+      ]
+    },
+    {
+      "task_id": "self-020",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_task_table_limits_debugging_to_two_rounds (test_lifecycles.LifecycleTests.test_task_table_limits_debugging_to_two_rounds)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-020-qwen3.5-9b-without_context\\tests\\test_lifecycles.py\", line 62, in test_task_table_limits_debugging_to_two_rounds\n    with self.assertRaisesRegex(ValueError, \"two debugging rounds\"):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 17.644434799964074,
+      "eval_count": 123,
+      "tokens_per_s": 57.49140059521829,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "tests/test_lifecycles.py",
+        "src/local_memory_lab/lifecycles.py",
+        "tests/test_lifecycles.py",
+        "tests/test_http_smoke.py"
+      ]
+    },
+    {
+      "task_id": "self-020",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 54.027816999994684,
+      "eval_count": 127,
+      "tokens_per_s": 55.31974726803211,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "tests/test_lifecycles.py",
+        "src/local_memory_lab/lifecycles.py",
+        "tests/test_lifecycles.py",
+        "tests/test_http_smoke.py"
+      ]
+    },
+    {
+      "task_id": "self-020",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_task_table_limits_debugging_to_two_rounds (test_lifecycles.LifecycleTests.test_task_table_limits_debugging_to_two_rounds)\n----------------------------------------------------------------------\nValueError: Debug rounds limit reached.\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-020-qwen3.5-4b-without_context\\tests\\test_lifecycles.py\", line 62, in test_task_table_limits_debugging_to_two_rounds\n    with self.assertRaisesRegex(ValueError, \"two debugging rounds\"):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: \"two debugging rounds\" does not match \"Debug rounds limit reached.\"\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 16.54291750001721,
+      "eval_count": 157,
+      "tokens_per_s": 83.95675681572449,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "tests/test_lifecycles.py",
+        "src/local_memory_lab/lifecycles.py",
+        "tests/test_lifecycles.py",
+        "tests/test_http_smoke.py"
+      ]
+    },
+    {
+      "task_id": "self-020",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_task_table_limits_debugging_to_two_rounds (test_lifecycles.LifecycleTests.test_task_table_limits_debugging_to_two_rounds)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-020-qwen3.5-4b-with_context\\tests\\test_lifecycles.py\", line 62, in test_task_table_limits_debugging_to_two_rounds\n    with self.assertRaisesRegex(ValueError, \"two debugging rounds\"):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 18.20039969997015,
+      "eval_count": 226,
+      "tokens_per_s": 79.13396350579706,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "tests/test_lifecycles.py",
+        "src/local_memory_lab/lifecycles.py",
+        "tests/test_lifecycles.py",
+        "tests/test_http_smoke.py"
+      ]
+    },
+    {
+      "task_id": "self-020",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.46205730002839,
+      "eval_count": 4096,
+      "tokens_per_s": 121.87952812686265,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "tests/test_lifecycles.py",
+        "src/local_memory_lab/lifecycles.py",
+        "tests/test_lifecycles.py",
+        "tests/test_http_smoke.py"
+      ]
+    },
+    {
+      "task_id": "self-020",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_task_table_limits_debugging_to_two_rounds (test_lifecycles.LifecycleTests.test_task_table_limits_debugging_to_two_rounds)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-020-qwen3.5-2b-with_context\\tests\\test_lifecycles.py\", line 62, in test_task_table_limits_debugging_to_two_rounds\n    with self.assertRaisesRegex(ValueError, \"two debugging rounds\"):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 9.242355599999428,
+      "eval_count": 206,
+      "tokens_per_s": 119.25506110374612,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "docs/CONTRACTS.md",
+        "tests/test_lifecycles.py",
+        "src/local_memory_lab/lifecycles.py",
+        "tests/test_lifecycles.py",
+        "tests/test_http_smoke.py"
+      ]
+    },
+    {
+      "task_id": "self-021",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 25.36459559999639,
+      "eval_count": 282,
+      "tokens_per_s": 56.009113516947494,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_event_store.py",
+        "src/local_memory_lab/session_state.py",
+        "src/local_memory_lab/interfaces/client.py"
+      ]
+    },
+    {
+      "task_id": "self-021",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 82.70765140000731,
+      "eval_count": 4096,
+      "tokens_per_s": 54.27774000127171,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_event_store.py",
+        "src/local_memory_lab/session_state.py",
+        "src/local_memory_lab/interfaces/client.py"
+      ]
+    },
+    {
+      "task_id": "self-021",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 57.6721626999788,
+      "eval_count": 4096,
+      "tokens_per_s": 82.28649995648118,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_event_store.py",
+        "src/local_memory_lab/session_state.py",
+        "src/local_memory_lab/interfaces/client.py"
+      ]
+    },
+    {
+      "task_id": "self-021",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.53889390005497,
+      "eval_count": 4096,
+      "tokens_per_s": 77.67728708615786,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_event_store.py",
+        "src/local_memory_lab/session_state.py",
+        "src/local_memory_lab/interfaces/client.py"
+      ]
+    },
+    {
+      "task_id": "self-021",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.70919480000157,
+      "eval_count": 4096,
+      "tokens_per_s": 121.10624714335171,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_event_store.py",
+        "src/local_memory_lab/session_state.py",
+        "src/local_memory_lab/interfaces/client.py"
+      ]
+    },
+    {
+      "task_id": "self-021",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_append_increases_ids_and_cursor_returns_only_new_events (test_event_store.EventStoreTests.test_append_increases_ids_and_cursor_returns_only_new_events)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-021-qwen3.5-2b-with_context\\tests\\test_event_store.py\", line 26, in test_append_increases_ids_and_cursor_returns_only_new_events\n    self.assertEqual([second], self.store.read_after(first[\"id\"]))\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: Lists differ: [{'id[78 chars]ed', 'data': {'text': 'remember'}}] != [{'id[78 chars]ed', 'job': None, 'task': None, 'data': '{\"text\":\"remember\"}'}]\n\nFirst differing element 0:\n{'id'[76 chars]ded', 'data': {'text': 'remember'}}\n{'id'[76 chars]ded', 'job': None, 'task': None, 'data': '{\"text\":\"remember\"}'}\n\n  [{'actor': 'agent',\n-   'data': {'text': 'remember'},\n?            ^    ^ ^^         -\n\n+   'data': '{\"text\":\"remember\"}',\n?           + ^    ^ ^        ++\n\n    'id': 2,\n+   'job': None,\n    'kind': 'note.added',\n+   'task': None,\n    'ts': '2026-10-01T14:03:42.446562Z'}]\n\n----------------------------------------------------------------------\nRan 1 test in 0.021s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 10.65311610000208,
+      "eval_count": 122,
+      "tokens_per_s": 117.08444379610799,
+      "search_top5_recall": 0.0,
+      "search_top5_paths": [
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_event_store.py",
+        "src/local_memory_lab/session_state.py",
+        "src/local_memory_lab/interfaces/client.py"
+      ]
+    },
+    {
+      "task_id": "self-022",
+      "model": "qwen3.5:9b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_rejects_invalid_actor_and_cursor (test_event_store.EventStoreTests.test_rejects_invalid_actor_and_cursor)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-022-qwen3.5-9b-without_context\\tests\\test_event_store.py\", line 45, in test_rejects_invalid_actor_and_cursor\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.014s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 27.396779700007755,
+      "eval_count": 433,
+      "tokens_per_s": 56.79536470074431,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/event_store.py",
+        "docs/CONTRACTS.md",
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_session_state.py"
+      ]
+    },
+    {
+      "task_id": "self-022",
+      "model": "qwen3.5:9b",
+      "condition": "with_context",
+      "invalid_output": false,
+      "status": "passed",
+      "error": "",
+      "passed": true,
+      "elapsed_s": 29.150103699998,
+      "eval_count": 500,
+      "tokens_per_s": 55.033991689933295,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/event_store.py",
+        "docs/CONTRACTS.md",
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_session_state.py"
+      ]
+    },
+    {
+      "task_id": "self-022",
+      "model": "qwen3.5:4b",
+      "condition": "without_context",
+      "invalid_output": false,
+      "status": "failed",
+      "error": "F\n======================================================================\nFAIL: test_rejects_invalid_actor_and_cursor (test_event_store.EventStoreTests.test_rejects_invalid_actor_and_cursor)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\jacob\\AppData\\Local\\Temp\\lab-bench-run-yuoqo_ya\\self-022-qwen3.5-4b-without_context\\tests\\test_event_store.py\", line 45, in test_rejects_invalid_actor_and_cursor\n    with self.assertRaises(ValueError):\n         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.018s\n\nFAILED (failures=1)\n",
+      "passed": false,
+      "elapsed_s": 19.101538599992637,
+      "eval_count": 342,
+      "tokens_per_s": 83.88291563770086,
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/event_store.py",
+        "docs/CONTRACTS.md",
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_session_state.py"
+      ]
+    },
+    {
+      "task_id": "self-022",
+      "model": "qwen3.5:4b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 58.3240246999776,
+      "eval_count": 4096,
+      "tokens_per_s": 78.0822917469837,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/event_store.py",
+        "docs/CONTRACTS.md",
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_session_state.py"
+      ]
+    },
+    {
+      "task_id": "self-022",
+      "model": "qwen3.5:2b",
+      "condition": "without_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.71592819999205,
+      "eval_count": 4096,
+      "tokens_per_s": 121.2944695034462,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/event_store.py",
+        "docs/CONTRACTS.md",
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_session_state.py"
+      ]
+    },
+    {
+      "task_id": "self-022",
+      "model": "qwen3.5:2b",
+      "condition": "with_context",
+      "invalid_output": true,
+      "status": "failed",
+      "error": "builder output is not valid JSON",
+      "passed": false,
+      "elapsed_s": 38.870149500027765,
+      "eval_count": 4096,
+      "tokens_per_s": 117.47750062074353,
+      "model_reply_excerpt": "",
+      "search_top5_recall": 1.0,
+      "search_top5_paths": [
+        "src/local_memory_lab/event_store.py",
+        "docs/CONTRACTS.md",
+        "tests/test_http_smoke.py",
+        "tests/test_http_smoke.py",
+        "tests/test_session_state.py"
+      ]
+    }
+  ],
+  "metrics": {
+    "qwen3.5:9b": {
+      "attempts": 44,
+      "pass_rate": 0.36363636363636365,
+      "invalid_output_rate": 0.29545454545454547,
+      "search_top5_recall": 0.6818181818181818,
+      "conditions": {
+        "without_context": {
+          "attempts": 22,
+          "pass_rate": 0.3181818181818182,
+          "invalid_output_rate": 0.045454545454545456,
+          "mean_elapsed_s": 26.545670322724618,
+          "mean_tokens_per_s": 57.1423659727081
+        },
+        "with_context": {
+          "attempts": 22,
+          "pass_rate": 0.4090909090909091,
+          "invalid_output_rate": 0.5454545454545454,
+          "mean_elapsed_s": 57.92056087727542,
+          "mean_tokens_per_s": 54.48320607859361
+        }
+      }
+    },
+    "qwen3.5:4b": {
+      "attempts": 44,
+      "pass_rate": 0.13636363636363635,
+      "invalid_output_rate": 0.4772727272727273,
+      "search_top5_recall": 0.6818181818181818,
+      "conditions": {
+        "without_context": {
+          "attempts": 22,
+          "pass_rate": 0.045454545454545456,
+          "invalid_output_rate": 0.5,
+          "mean_elapsed_s": 38.96490264999077,
+          "mean_tokens_per_s": 82.91545780210483
+        },
+        "with_context": {
+          "attempts": 22,
+          "pass_rate": 0.22727272727272727,
+          "invalid_output_rate": 0.45454545454545453,
+          "mean_elapsed_s": 36.218798368179705,
+          "mean_tokens_per_s": 74.45392176408667
+        }
+      }
+    },
+    "qwen3.5:2b": {
+      "attempts": 44,
+      "pass_rate": 0.045454545454545456,
+      "invalid_output_rate": 0.6590909090909091,
+      "search_top5_recall": 0.6818181818181818,
+      "conditions": {
+        "without_context": {
+          "attempts": 22,
+          "pass_rate": 0.045454545454545456,
+          "invalid_output_rate": 0.9545454545454546,
+          "mean_elapsed_s": 37.380050663632574,
+          "mean_tokens_per_s": 121.89230567845264
+        },
+        "with_context": {
+          "attempts": 22,
+          "pass_rate": 0.045454545454545456,
+          "invalid_output_rate": 0.36363636363636365,
+          "mean_elapsed_s": 22.54940583180922,
+          "mean_tokens_per_s": 118.1907701897052
+        }
+      }
+    }
+  },
+  "selected_builder": "qwen3.5:9b"
+}

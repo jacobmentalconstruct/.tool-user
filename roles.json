@@ -1,0 +1,29 @@
+{
+  "planner": {
+    "model": "qwen3.5:35b",
+    "think": true,
+    "temperature": 0.2,
+    "num_ctx": 16384
+  },
+  "builder": {
+    "model": "qwen3.5:9b",
+    "think": true,
+    "temperature": 0,
+    "num_ctx": 16384
+  },
+  "debugger": {
+    "model": "qwen3.5:9b",
+    "think": false,
+    "temperature": 0,
+    "num_ctx": 16384
+  },
+  "reviewer": {
+    "model": "qwen3.5:35b",
+    "think": true,
+    "temperature": 0,
+    "num_ctx": 16384
+  },
+  "embedder": {
+    "model": "nomic-embed-text"
+  }
+}

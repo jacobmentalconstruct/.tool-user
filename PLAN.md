@@ -249,20 +249,21 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **Progress:**
 - [x] 1. Pin the snapshot and create/validate at least 15 covered hole-punch tasks (D3 fallback only if needed).
 - [x] 2. Implement isolated task validation, builder runs, context comparisons and search scoring.
-- [ ] 3. Run the named local model comparisons and record required metrics; set `roles.json` from results.
+- [x] 3. Run the named local model comparisons and record required metrics; set `roles.json` from results.
 - [ ] 4. Document reproduction, verify the full suite and park with committed evidence.
 
 **Task 1 evidence:** 22 task records pin `self@c916053`; all 22 named tests passed on the pristine snapshot and failed after their target body was punched in a separate temporary copy. `python -B -m unittest discover -s tests -p "test_bench_tasks.py" -v` — 3 helper tests passed.
 
 **Task 2 evidence:** `python lab.py bench validate --baselines --contexts` — 22 original tests passed, 22 punched tests failed as intended, and all 22 packs built from punched copies excluded their removed bodies. Focused harness and scoring tests pass.
 
+**Task 3 evidence:** after USER confirmed the GPU free, `python lab.py bench run --confirm-gpu-free` completed 132/132 attempts and `python lab.py bench record <raw-result-file>` selected `qwen3.5:9b`. `python lab.py bench validate --results` reports 1 valid run. The run is `bench/results/20261001T124335Z-a0abb772.json`, source commit `fe109793e85c5e3c03619f5aa896268602329892`, protocol `target-stub-one-edit-json-think-enabled-v5`, `think:true`, temperature 0, 4,096 output tokens, and all three named candidates available. Results: 9b pass 36.4% (31.8% without context, 40.9% with), invalid output 29.5%; 4b pass 13.6% (4.5% without, 22.7% with), invalid 47.7%; 2b pass 4.5% in each condition, invalid 65.9%. Search top-five recall is 0.682. `roles.json` assigns the measured 9b builder with thinking on and retains T6 assignments.
+
 **Review handoff (2026-09-30, reviewer AGENT → builder AGENT).** Read this block first when resuming T5.
 
-- **USER approvals given (previously unrecorded):** after the 10:04 pause, the USER freed the GPU and approved (1) test runs without code changes, then (2) limited changes to get the builder models running correctly. The GPU was free as of this handoff. **Re-confirm with the USER before any new model run.**
-- **Uncommitted Task 3 work (builder's):** `bench/runner.py` (run, resume, record, aggregate, `choose_builder`) and `tests/test_bench_runner.py` are new; `bench/harness.py`, `bench/cli.py` and `tests/test_bench_harness.py` are modified. Full suite: 90 tests pass; `git diff --check` is clean.
-- **Runs made so far:** these are raw files in `%TEMP%/local-memory-lab-bench/`, not evidence and not committed.
+- **USER approvals:** GPU availability reconfirmed by USER 2026-10-01; USER-approved model/prompt fixes completed. Task 3 implementation and protocol are committed as `fe10979` (`T5 wip: fix builder output protocol`).
+- **Exploratory runs v1–v4:** raw, uncommitted runs remain in `%TEMP%/local-memory-lab-bench/`; they are history only and do not select a role.
 
-- **T5 output-protocol probe (2026-10-01):** `self-001`, `qwen3.5:9b`, same punched target and input, temperature 0. `think:false` returned a whole-file `content` payload instead of the required one-edit schema (193 eval tokens); `think:true` returned schema-valid JSON (281 eval tokens) with a 4,096-token cap. The latter implementation did not pass the task check. Raw replies and token counts: `%TEMP%/local-memory-lab-bench/probe-20261001T123927Z-qwen35-9b-thinking.json`. Freeze T5 at `target-stub-one-edit-json-think-enabled-v5`, `think:true`, 4,096 output tokens; the full benchmark measures task success.
+- **T5 output-protocol probe (2026-10-01):** `self-001`, `qwen3.5:9b`, same punched target and input, temperature 0. `think:false` returned a whole-file `content` payload instead of the required one-edit schema (193 eval tokens); `think:true` returned schema-valid JSON (281 eval tokens) with a 4,096-token cap. The latter implementation did not pass the task check. Raw replies and token counts: `%TEMP%/local-memory-lab-bench/probe-20261001T123927Z-qwen35-9b-thinking.json`. The comparison selected `target-stub-one-edit-json-think-enabled-v5`; the full benchmark measures task success.
 
   | Run | Prompt version | `think` | Invalid output |
   |---|---|---|---|
@@ -270,17 +271,18 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   | `20260930T170215Z` | v2 | not set | 1/4 |
   | `20260930T170647Z` | v3 | false | 23/23 |
   | `20260930T171151Z` (full) | v4 | false | **132/132**: 94 wrong keys, 38 not valid JSON, 16 hit the 2,048-token output cap |
+  | `20261001T124335Z-a0abb772` (full, recorded) | v5 | true | 43/132 invalid; 132/132 attempts recorded; qwen3.5:9b selected at 36.4% pass rate |
 
-- **Diagnosis (confirmed by the 2026-10-01 probe below):** with the same `self-001` input, `think:false` produced a whole-file payload without the required edit schema; `think:true` produced schema-valid structured output. The thinking-on implementation failed the task test, so the probe only selected the output protocol; builder quality is decided by the full run.
+- **Diagnosis (confirmed by the 2026-10-01 probe below):** with the same `self-001` input, `think:false` produced a whole-file payload without the required edit schema; `think:true` produced schema-valid structured output. The thinking-on implementation failed the task test, so the probe only selected the output protocol; builder quality was decided by the full run.
 - **Approved limited fix, in order; nothing beyond this:**
   1. On invalid output, save a shortened copy of the model reply (about the first 2,000 characters) in the result row.
   2. `choose_builder` raises an error when the best pass rate is 0, rather than choosing by list order.
   3. Define the prompt version string once as a constant; `_run_identity` reads `task_source` from the tasks instead of hardcoding it.
-  4. **Completed 2026-10-01 after USER confirmed GPU availability:** the `self-001` probe saved both raw replies and `eval_count`. Thinking-on produced valid JSON while `think:false` did not. Freeze thinking-on v5 with the 4,096-token cap; D4 and `docs/CONTRACTS.md` §8 record the protocol. `roles.json` will be set only from the full benchmark.
-  5. Commit as `T5 wip: fix builder output protocol`, then do one clean full run under the frozen version, `python lab.py bench run --confirm-gpu-free`, followed by `python lab.py bench record <raw file>`. Only that run decides `roles.json`. List v1–v4 in the park record as history.
-- **Then:** Task 4 (reproduction docs, `python lab.py bench validate --results`, full suite, architecture check, `git diff --check`), then park T5 for review by the reviewer AGENT and the USER.
+  4. **Completed 2026-10-01 after USER confirmed GPU availability:** the `self-001` probe saved both raw replies and `eval_count`. Thinking-on produced valid JSON while `think:false` did not. Freeze thinking-on v5 with the 4,096-token cap; D4 and `docs/CONTRACTS.md` §8 record the protocol. `roles.json` is set from the full benchmark.
+  5. **Completed:** commit `fe10979`; clean full run `20261001T124335Z-a0abb772` completed and was recorded. It is the only run that sets `roles.json`. Keep v1–v4 listed as history in the park record.
+- **Then:** Task 4 is in progress: finish reproduction documentation, run `python lab.py bench validate --results`, the full suite, architecture check and `git diff --check`; commit Task 4, then park T5 for review by the USER.
 
-**Now:** One-task probe selected thinking-on output protocol; committing the frozen builder protocol before the clean full benchmark. The reviewer AGENT reviews the resulting commits before the full run is recorded.
+**Now:** Full run recorded and selected qwen3.5:9b. Updating reproduction/status documentation and rerunning final checks before the T5 parking commit.
 
 **Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
 
