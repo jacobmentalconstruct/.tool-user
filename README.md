@@ -6,7 +6,7 @@ The point is to move the expensive inference onto free local models, so that an 
 
 ## Status
 
-**T3 (Lifecycles and runner) is accepted on `main`; T4 (Knowledge layer) is parked on `t4-knowledge`, pending USER acceptance.** Session history persists in `live_control/events.sqlite`. To reset it, stop the hub and delete that file before restarting. See [PLAN.md](PLAN.md) for the active record and T4 evidence.
+**T4 (Knowledge layer) is accepted; T5 (Bench) is in progress on `t5-bench`.** The committed T5 run compares 22 tasks across three local builder models, with and without context. qwen3.5:9b is selected at a 36.4% pass rate. See [the recorded results](bench/results/20261001T124335Z-a0abb772.json) and [PLAN.md](PLAN.md) for details. Session history persists in `live_control/events.sqlite`. To reset it, stop the hub and delete that file before restarting.
 
 The prototype is finished when the agent can make progress on its own development in a sandboxed copy of this repo. The route there, and where we are on it, is in [PLAN.md](PLAN.md).
 
@@ -35,6 +35,26 @@ New goals wait for USER plan approval in the browser. The browser and CLI both s
 The hub listens only on `127.0.0.1`. The browser and the agent client get different random tokens, and only the browser can approve changes or choose the project. The tokens sit in a local file, so they guard against mistakes, not against other programs on your machine.
 
 When a project is selected, the hub indexes its allowed Python and Markdown files into a separate SQLite knowledge store under `live_control/`. Chat and goal turns receive a bounded context pack from that index. The hub rescans on startup and before turns to detect outside edits. Indexing waits for active turns and their commands; an approved patch queues its changed files for refresh. If Ollama embeddings are unavailable, keyword search remains available and missing vectors are retried at a later scan.
+
+## Builder benchmark
+
+The T5 corpus pins the source snapshot at `self@c916053` and contains 22 hole-punched tasks. Both benchmark conditions receive the task goal, target path, and punched file; the context condition also receives a 6,000-token knowledge pack. The run uses temperature 0, one attempt per condition, a 180-second task timeout, and the frozen `think: true` builder protocol with a 4,096-token output cap.
+
+To reproduce the task checks and result validation:
+
+```
+python lab.py bench validate --baselines --contexts
+python lab.py bench validate --results
+```
+
+To start a full 132-attempt local run, first make sure the GPU is free and no local roles are working:
+
+```
+python lab.py bench run --confirm-gpu-free
+python lab.py bench record <raw-result-file>
+```
+
+Raw checkpoints stay outside the checkout under `%TEMP%\local-memory-lab-bench\`. Resume an interrupted run with `python lab.py bench run --confirm-gpu-free --resume <checkpoint-file>`.
 
 ## Tests
 
