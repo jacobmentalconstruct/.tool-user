@@ -74,7 +74,7 @@ All recorded 2026-09-29.
   |---|---|---|
   | Builder | `qwen3.5:9b` | Fits entirely on the GPU even with a 32k context and generates 62 tokens/s. T5's controlled probe found JSON-schema output valid with thinking enabled and invalid with thinking disabled; the builder uses thinking on and a 4,096-token output cap. |
   | Debugger | `qwen3.5:9b` | Same 9B model as the builder; T6 will validate its role-specific output protocol. |
-  | Planner | `qwen3.5:35b` (MoE) | 13.4 tokens/s with part of it on the CPU; JSON schema output and thinking mode OK. T6 task 2 measures it against 9b and the 14b coder, because it can never be fully GPU-resident here (§1) |
+  | Planner | `qwen2.5-coder:14b`, thinking off | Chosen 2026-10-02 (T6 task 2). With the fixed prompt (fewest tasks; no test tasks unless asked; use the only check) it planned 15 of 22 one-function goals and 3 of 4 real two-function changes exactly, about 14 s each, with no thinking loops. qwen3.5:9b managed 10 of 22 and 1 of 4, with 8 cap-outs; qwen3.5:35b spills onto the CPU (195 s per goal) and is dropped. Temperature, retry and best-of-3 are set from the recorded experiments in `bench/experiments/` |
   | Reviewer | `qwen2.5-coder:14b`, thinking off | Chosen by the T6 role probe (2026-10-02): fully on the GPU at `OLLAMA_NUM_PARALLEL=1`, about 3 s per card, no budget loops. qwen3.5:9b with thinking passed clean cards but caught 1 of 10 plants and hit its token cap on 6 of 20 cards |
   | Embedder | `nomic-embed-text` | 768 dimensions; 32 chunks in 2.3 s including load |
   | Cheap helper jobs | `qwen3.5:2b` | 132 tokens/s. Used only if a tranche needs it |

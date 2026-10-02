@@ -20,7 +20,7 @@ class RoleConfigTests(unittest.TestCase):
                    for path in (ROOT / "bench" / "results").glob("*.json")]
         measured = {result["selected_builder"] for result in results}
         self.assertIn(roles["builder"]["model"], measured)
-        self.assertEqual("qwen3.5:35b", roles["planner"]["model"])
+        self.assertEqual("qwen2.5-coder:14b", roles["planner"]["model"])  # chosen by the T6 planner probe
         self.assertEqual("qwen3.5:9b", roles["debugger"]["model"])
         self.assertEqual("qwen2.5-coder:14b", roles["reviewer"]["model"])  # chosen by the T6 role probe
         self.assertFalse(roles["reviewer"]["think"])  # the 14b coder has no thinking mode

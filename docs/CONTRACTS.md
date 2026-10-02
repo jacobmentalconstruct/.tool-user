@@ -147,8 +147,8 @@ This is one SQLite file per project, kept on the hub side under `live_control/`,
 This is `roles.json` at the repo root, the only place models are assigned.
 
 ```json
-{"planner":  {"model": "qwen3.5:35b", "think": true, "temperature": 0.2, "num_ctx": 16384,
-              "num_predict": 4096, "timeout_s": 300, "keep_alive": "5m"},
+{"planner":  {"model": "qwen2.5-coder:14b", "think": false, "temperature": 0.2, "num_ctx": 16384,
+              "num_predict": 4096, "timeout_s": 120, "keep_alive": "5m"},
  "builder":  {"model": "qwen3.5:9b",  "think": true, "temperature": 0,   "num_ctx": 16384,
               "num_predict": 8192, "timeout_s": 180, "keep_alive": "10m"},
  "debugger": {"model": "qwen3.5:9b",  "think": true, "temperature": 0,   "num_ctx": 16384,
