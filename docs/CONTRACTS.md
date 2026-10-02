@@ -64,7 +64,7 @@ task: pending → building → testing ⇄ debugging (max 2 rounds) → reviewin
 - `cancel` is allowed from any state that isn't finished.
 - A task that fails the gate or runs out of debug rounds ends as `failed`, with the reason recorded. It is never retried silently.
 - **T6 tasks (D16):** each task names one `target` and its `files` are exactly `[target.path]`. Its candidate is built, checked, debugged and reviewed only in a disposable task workspace copied from the selected project; the selected project is unchanged until the USER approves the gated patch. Jobs fail fast: a failed, rejected or exhausted task fails the job, and later tasks do not run.
-- **Planning (T6):** the planner runs in `planning`, after one full index sync and under the single turn slot. Code validates its tasks, records each with its first `task.state` event, and only then moves the job to `awaiting_plan_approval`; the plan approval shows every task with its exact check command. A planner or validation failure ends the job as `failed` with its reason and an `error` event carrying the failure record. A job that ends closes its unfinished tasks: `cancelled` for a cancelled or rejected job, `failed` otherwise (including restart). Until T6 task 3, the existing `run_turn` still supplies the running step.
+- **Planning (T6):** the planner runs in `planning`, after one full index sync and under the single turn slot. Code validates its tasks, records each with its first `task.state` event, and only then moves the job to `awaiting_plan_approval`; the plan approval shows every task with its exact check command. A planner or validation failure ends the job as `failed` with its reason and an `error` event carrying the failure record. A job that ends closes its unfinished tasks: `cancelled` for a cancelled or rejected job, `failed` otherwise (including restart). In `running`, each task goes through the team in its task workspace (§7), and the job ends `done` when every task is applied.
 - On restart, pending approvals become `expired` without side effects, and non-finished jobs become `failed` with reason `interrupted by restart`. Neither is replayed.
 
 ## 3. Approval (T3)
@@ -76,7 +76,7 @@ task: pending → building → testing ⇄ debugging (max 2 rounds) → reviewin
 ```
 
 - Only the `user` actor resolves an approval.
-- **Who requests (D18):** `system` requests plan approvals and, after the gate, a task's patch approval, recording `task`, `originRole` and `candidate`. Until T6 retires the chat loop, `role:builder` may still request patch and command approvals for chat.
+- **Who requests (D18):** only the lifecycle: `system` requests plan approvals and, after the gate, a task's patch approval, recording `task`, `originRole` and `candidate`. Since T6 nothing requests a command approval: a task's check runs under its plan approval, in its workspace only (D19).
 - Waiting never blocks the hub: other events keep flowing, and chat keeps working.
 - An expired approval changes nothing.
 - The USER alone resolves approvals and cancels jobs. A pending approval does not stop chat or other hub events.
@@ -93,7 +93,7 @@ The file lives in the target project at `.lab/allowlist.json`. Only the USER cre
 - Roles ask for a command **by name**, never as free text.
 - The command runs with its argument list exactly as written, in the project root, with no shell.
 - The result is a `command.result` event: `name`, `exit_code`, `duration_s`, and output capped to the last `max_output_bytes`. A leading `[… N bytes trimmed]` line reports omitted bytes and counts toward the cap. The cap is at least 32 bytes (PLAN.md D15).
-- Until the separate role team arrives, the existing chat loop acts as the ROLE through `run_command(name)`. Browser and CLI callers cannot request a command directly. USER approval precedes every run; timeout and cancellation stop the process tree on Windows.
+- Since T6, commands run only as task checks: the plan approval covers each task's named check, which runs in that task's workspace with timeout, capped output and process-tree cleanup (D19). Browser and CLI callers cannot request a command, and Chat cannot run one.
 
 ## 5. Context pack (T4)
 

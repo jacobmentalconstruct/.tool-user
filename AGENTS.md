@@ -57,9 +57,10 @@ src/local_memory_lab/
   approvals.py              approval state projection
   command_runner.py         USER-approved named command execution
   locations.py              repo-relative paths
-  workspace/                 safe project paths, patches, and backups
+  workspace/                safe project paths, task workspaces, the transactional apply, and backups
   knowledge/                 source chunks, index service, retrieval, and context packs (T4)
-  agent/                    Ollama loop and bounded project tools (loop replaced in T6)
+  agent/                    Ollama transport and answer-only Chat
+  team/                     planner, builder, debugger, reviewer: planning, task pipeline, gate, job runner
   interfaces/               browser server + page, launcher, CLI client (adapters only)
 tests/                      unittest suite
 docs/                       standing framework and contracts
@@ -75,4 +76,4 @@ If a `_projectmapper/` folder exists locally, it is a stale, gitignored snapshot
 - **Agent client:** `python lab.py client status`, `python lab.py client watch`, `python lab.py client send "…" --wait`
 - **Models:** Ollama at `127.0.0.1:11434`. Role assignments are in `PLAN.md` D4.
 
-> **Current state:** T5 is accepted and merged on `main`; T6 is re-declared (amended) in `PLAN.md` §7 for USER review. Do not change product code until the USER approves T6.
+> **Current state:** T6 (Team) is approved and in progress on branch `t6-team`, under a standing authorization recorded in `PLAN.md` §8. Tasks 1–3 are done; task 4 (retirement and proof) is in progress. `PLAN.md` §7 "Now" says exactly where work stands.
