@@ -78,9 +78,11 @@ def candidate_schema(new_file: bool) -> dict:
             "properties": {field: _text(), "notes": _text()}}
 
 
-REVIEWER_SCHEMA = {"type": "object", "required": ["verdict", "reasons"], "additionalProperties": False,
+REVIEWER_SCHEMA = {"type": "object", "required": ["verdict", "reasons", "quote"],
+                   "additionalProperties": False,
                    "properties": {"verdict": _text(enum=["pass", "fail"]),
-                                  "reasons": {"type": "array", "minItems": 1, "items": _text()}}}
+                                  "reasons": {"type": "array", "minItems": 1, "items": _text()},
+                                  "quote": _text()}}
 
 
 def check_schema(value, schema: dict, where: str = "output") -> None:
@@ -109,13 +111,13 @@ class RoleOutputError(ValueError):
     """An unusable role reply, kept with what the model produced (D17 reasons)."""
 
     def __init__(self, message: str, *, reason: str, content: str = "", thinking: str = "",
-                 eval_count: int = 0, cap_hit: bool = False):
+                 eval_count: int = 0, cap_hit: bool = False, gpu_fraction: float | None = None):
         super().__init__(message)
         self.reason = reason
         self.record = {"reason": reason, "error": message,
                        "answerExcerpt": content[:EXCERPT],
                        "thinkingExcerpt": thinking[-EXCERPT:],
-                       "evalCount": eval_count, "capHit": cap_hit}
+                       "evalCount": eval_count, "capHit": cap_hit, "gpuFraction": gpu_fraction}
 
 
 @dataclass
@@ -125,11 +127,28 @@ class RoleReply:
     eval_count: int
     elapsed_s: float
     tokens_per_s: float
+    gpu_fraction: float | None = None
+
+
+def make_room(model: str, transport=ollama_json) -> None:
+    """Role steps run one at a time, so unload every other model before this one loads."""
+    for item in transport("/api/ps", None, timeout=10).get("models", []):
+        if item.get("name") != model:
+            transport("/api/generate", {"model": item["name"], "keep_alive": 0}, timeout=60)
+
+
+def gpu_fraction(model: str, transport=ollama_json) -> float | None:
+    """Share of the loaded model held in GPU memory; below 1 means it spilled onto the CPU."""
+    for item in transport("/api/ps", None, timeout=10).get("models", []):
+        if item.get("name") == model and item.get("size"):
+            return round(item.get("size_vram", 0) / item["size"], 3)
+    return None
 
 
 def call_role(config: RoleConfig, system: str, payload: dict, schema: dict, *,
               validate: Callable[[dict], None] | None = None, transport=ollama_json) -> RoleReply:
     """Make one schema-constrained role call; unusable replies raise RoleOutputError."""
+    make_room(config.model, transport)
     started = time.monotonic()
     response = transport("/api/chat", {
         "model": config.model, "think": config.think, "stream": False,
@@ -146,6 +165,7 @@ def call_role(config: RoleConfig, system: str, payload: dict, schema: dict, *,
     eval_count = int(response.get("eval_count") or 0)
     eval_ns = int(response.get("eval_duration") or 0)
     cap_hit = eval_count >= config.num_predict
+    resident = gpu_fraction(config.model, transport)
     try:
         output = json.loads(content)
         check_schema(output, schema)
@@ -155,6 +175,6 @@ def call_role(config: RoleConfig, system: str, payload: dict, schema: dict, *,
         reason = "cap_exhausted" if cap_hit else "invalid_output"
         message_text = "output cap reached before a usable reply" if cap_hit else str(exc)
         raise RoleOutputError(message_text, reason=reason, content=content, thinking=thinking,
-                              eval_count=eval_count, cap_hit=cap_hit) from exc
+                              eval_count=eval_count, cap_hit=cap_hit, gpu_fraction=resident) from exc
     return RoleReply(output, thinking, eval_count, elapsed,
-                     eval_count / (eval_ns / 1e9) if eval_ns > 0 else 0.0)
+                     eval_count / (eval_ns / 1e9) if eval_ns > 0 else 0.0, resident)

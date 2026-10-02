@@ -40,7 +40,12 @@ def reply(content: str, *, thinking: str = "", eval_count: int = 10):
     sent = []
 
     def transport(path, payload, timeout):
+        if path == "/api/ps":
+            return {"models": [{"name": "qwen3.5:9b", "size": 100, "size_vram": 80},
+                               {"name": "other:7b", "size": 50, "size_vram": 50}]}
         sent.append((path, payload, timeout))
+        if path == "/api/generate":
+            return {}
         return {"message": {"content": content, "thinking": thinking},
                 "eval_count": eval_count, "eval_duration": 1_000_000_000}
     return transport, sent
@@ -52,8 +57,11 @@ class RoleCallTests(unittest.TestCase):
         transport, sent = reply(json.dumps({"replace_block": "x", "notes": ""}))
         result = call_role(CONFIG, "system", {"goal": "g"}, schema, transport=transport)
         self.assertEqual("x", result.output["replace_block"])
-        path, payload, timeout = sent[0]
+        self.assertEqual(("/api/generate", {"model": "other:7b", "keep_alive": 0}),
+                         sent[0][:2])  # other models are unloaded first
+        path, payload, timeout = sent[1]
         self.assertEqual(("/api/chat", 30.0), (path, timeout))
+        self.assertEqual(0.8, result.gpu_fraction)  # a partly CPU-resident model is visible
         self.assertEqual((512, True, "1m", schema),
                          (payload["options"]["num_predict"], payload["think"],
                           payload["keep_alive"], payload["format"]))
@@ -117,9 +125,10 @@ class RegionAndCardTests(unittest.TestCase):
                           {"paths_ok": True, "diff_chars": 120})
         self.assertIn("INTENT: Reject negative budgets.", card)
         validate = require_citation(card)
-        validate({"verdict": "fail", "reasons": ["`return min(0, value)` inverts the clamp"]})
-        validate({"verdict": "pass", "reasons": ["Does what the task says."]})
-        transport, _ = reply(json.dumps({"verdict": "fail", "reasons": ["looks risky"]}))
+        validate({"verdict": "fail", "reasons": ["inverts the clamp"], "quote": "return min(0, value)"})
+        validate({"verdict": "pass", "reasons": ["Does what the task says."], "quote": ""})
+        transport, _ = reply(json.dumps({"verdict": "fail", "reasons": ["`return min(0, value)` is risky"],
+                                         "quote": "looks risky"}))
         with self.assertRaises(RoleOutputError) as caught:
             call_role(CONFIG, "system", {"card": card}, REVIEWER_SCHEMA,
                       validate=validate, transport=transport)

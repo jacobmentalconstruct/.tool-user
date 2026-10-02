@@ -1,0 +1,17 @@
+[
+  {"commit": "70864ae", "path": "src/local_memory_lab/knowledge/service.py",
+   "symbol": "KnowledgeService.end_activity",
+   "intent": "When the last active turn ends, schedule a full knowledge rescan so outside edits are picked up at idle boundaries."},
+  {"commit": "7ce25f7", "path": "src/local_memory_lab/command_runner.py",
+   "symbol": "CommandRunner.run.drain",
+   "intent": "Keep the last max_output_bytes of command output instead of the first, and count every byte read."},
+  {"commit": "4e678ef", "path": "src/local_memory_lab/session.py",
+   "symbol": "SharedSession.model",
+   "intent": "Prefer the default model when it is installed and none was selected; otherwise fall back to the first installed model."},
+  {"commit": "ca5287a", "path": "src/local_memory_lab/session_state.py",
+   "symbol": "ConversationState.apply",
+   "intent": "Stop keeping a copy of every displayed event in conversation state; keep only pending prompts and recent turns."},
+  {"commit": "2d2aa82", "path": "src/local_memory_lab/session.py",
+   "symbol": "SharedSession.select_model",
+   "intent": "Let only the USER select the chat model, and record the event under the caller's actor label."}
+]

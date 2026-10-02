@@ -20,9 +20,10 @@ REVIEWER_SYSTEM = (
     "You review one change card. Answer two questions: does AFTER do what INTENT asks, and does "
     "it change behaviour the task did not ask for? The CHECK line is already verified; do not "
     "re-derive it. Respond with exactly this JSON and nothing else: "
-    '{"verdict": "pass" or "fail", "reasons": ["short reason", ...]}. Use "fail" only for a '
-    "concrete problem, and quote at least one exact line from AFTER in a fail reason. Decide "
-    "briefly; the format is fixed, so do not deliberate about it.")
+    '{"verdict": "pass" or "fail", "reasons": ["short reason", ...], "quote": "..."}. Use '
+    '"fail" only for a concrete problem; then quote must be the exact line from AFTER that '
+    'shows it. For "pass", quote is "". Decide briefly; the format is fixed, so do not '
+    "deliberate about it.")
 
 CITE_MIN = 6
 
@@ -53,13 +54,14 @@ def build_card(task: dict, before: str, after: str, check: dict, gate: dict) -> 
 
 
 def require_citation(card: str):
-    """A reviewer fail counts as a verdict only if it quotes a code line from the card."""
+    """A reviewer fail counts as a verdict only if its quote is a code line from the card."""
     code = card.split("\nBEFORE:\n", 1)[-1].splitlines()
     quotable = {line.strip() for line in code
                 if len(line.strip()) >= CITE_MIN and line.strip() != "AFTER:"}
 
     def validate(output: dict) -> None:
-        if output["verdict"] == "fail" and not any(
-                line in reason for reason in output["reasons"] for line in quotable):
-            raise ValueError("reviewer fail does not cite a line from the card")
+        quote = output["quote"].strip()
+        if output["verdict"] == "fail" and (len(quote) < CITE_MIN or not any(
+                quote in line for line in quotable)):
+            raise ValueError("reviewer fail does not quote a line from the card")
     return validate

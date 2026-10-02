@@ -32,7 +32,9 @@ def main(argv: list[str] | None = None) -> int:
                        help="confirm the GPU is free and no local roles are working")
     probe.add_argument("--context-budget", type=int, default=6000,
                        help="context pack budget; trim once if the builder exceeds its threshold")
-    record = commands.add_parser("record", help="validate and import a completed raw run")
+    probe.add_argument("--reviewer-only", action="store_true",
+                       help="skip builder and debugger; compare reviewer models only")
+    record =commands.add_parser("record", help="validate and import a completed raw run")
     record.add_argument("result_file", type=Path)
     args = parser.parse_args(argv)
     repo_root = Path(__file__).resolve().parents[3]
@@ -53,10 +55,15 @@ def main(argv: list[str] | None = None) -> int:
             if not args.confirm_gpu_free:
                 raise ValueError("confirm the GPU is free and no local roles are working before running")
             raw, summary = run_role_probe(repo_root, task_dir, context_budget=args.context_budget,
+                                          reviewer_only=args.reviewer_only,
                                           on_progress=lambda message: print(message, flush=True))
             print(json.dumps(summary, indent=2))
             print(f"Raw replies, including thinking text: {raw}")
-            return 0 if summary["builder_within_threshold"] else 1
+            for name, item in summary.items():
+                if isinstance(item, dict) and item["offloaded_calls"]:
+                    print(f"WARNING: {name} ran partly on the CPU in {item['offloaded_calls']} calls "
+                          f"(lowest GPU share {item['min_gpu_fraction']}); its timings are not comparable.")
+            return 1 if summary["builder_within_threshold"] is False else 0
         if args.command == "record":
             output, selected = record_run(repo_root, args.result_file, task_dir)
             print(f"Recorded {output.relative_to(repo_root)}; selected builder: {selected}")

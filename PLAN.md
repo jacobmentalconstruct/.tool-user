@@ -52,6 +52,8 @@ One commit (`ff457af`). Its 3 unit tests passed until `.parts-bin/` moved out; t
 | `qwen3.5:35b` (MoE) | 14.5 | 13.5 (12.5 at 32k ctx) | ok | yes | 13.8 / 25.1 |
 | `nomic-embed-text` | — | 32 chunks in 2.28 s | — | — | — |
 
+**Re-measured 2026-10-02 (T6 task 1).** The USER set `OLLAMA_NUM_PARALLEL=1` as a user-level variable; the system-level value stays 8. With it, `qwen2.5-coder:14b` at a 16k context uses 12.3 GiB, all on the GPU, at 44.1 tokens/s (load 7.2 s). `qwen3.5:35b` ignores parallel slots (Ollama logs that its architecture does not support them); its weights alone are about 22 GiB, so it never fits the 16 GB GPU and ran 45%/55% CPU/GPU at about 11 tokens/s in the T6 role probe. `phi3:mini-128k` at `OLLAMA_NUM_PARALLEL=8` used 16.0 GiB at a 4k context and 30.0 GiB at 8k, spilling both times. Ollama 0.18.3 (`AppData\Local\Programs\Ollama`) remains the measured runtime; a second install at `C:\Ollama` (0.24.0) is not used.
+
 **Likely reason the qwen2 models are slow** (inferred from the numbers; not checked by changing the setting): the machine sets `OLLAMA_NUM_PARALLEL=8` and `OLLAMA_MAX_LOADED_MODELS=3`. For full-attention models (the qwen2 family), Ollama reserves conversation memory (KV cache) for 8 parallel requests, which pushes a 9 GB model to about 26 GB and half onto the CPU. The qwen3.5 models' hybrid attention keeps that memory small, so they aren't affected. This is a machine-wide setting the user may rely on elsewhere, so the plan works around it (D4) instead of changing it.
 
 ## 2. Decisions
@@ -78,6 +80,7 @@ All recorded 2026-09-29.
 
   - `qwen2.5-coder:14b` and `ms-ae:latest` stay bench candidates only. They are slow here because of the machine-wide `OLLAMA_NUM_PARALLEL=8` (§1). T5 re-measures them only if the user lowers that setting.
   - Role steps run one at a time, so the 9B and the 35B take turns in VRAM, costing about 5–15 s per swap. Jobs group steps by model where the lifecycle allows.
+  - **Amended 2026-10-02 (T6 task 1, USER):** with `OLLAMA_NUM_PARALLEL=1` (§1), `qwen2.5-coder:14b` fits fully on the GPU and joins the reviewer comparison with thinking off. `qwen3.5:35b` is dropped from the reviewer comparison because it can never be fully GPU-resident here; the planner model is measured in task 2 (9b against the 14b coder). Before each role call, code unloads other models and records the share of the model held on the GPU, so a CPU-spilled call is visible.
 
 - **D5 Names stay** as Local Memory Lab / `local_memory_lab` / repo `.tool-user` until T7. Renaming is optional at the end and never mid-build.
 - **D6 Scope guard:**
@@ -192,6 +195,7 @@ All recorded 2026-09-29.
 - Scaffold-plan tool (folders plus multiple new files as one approved plan).
 - Comparing embedders.
 - Renaming (D5).
+- Edit-task bench for the builder and debugger: real edits from history, each with a check that fails before the edit and passes after (USER, 2026-10-02; a candidate for T7's bench rerun). T6's role probe covers edits for the reviewer only.
 
 ## 5. Tranches
 
@@ -274,7 +278,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [ ] 3. Candidate execution in the workspace with reason codes and thinking capture.
 - [ ] 4. Apply with new-file support, bypass closed, knowledge refresh, Chat replaced, `run_turn` removed, real-model proof.
 
-**Now:** paused 2026-10-01. Task 1 code is committed (`9c7e6c5`, M2 fix `e15b742`). First role probe `bench/probes/roles-20261002T023003Z-fcc36f5a.json` (source `e15b742`): builder 4/5 valid (1 cap at 8,192), 1 passed; debugger 4/5 valid, 3 passed; reviewer 0/20 usable on both models (18 hit the 2,048 cap while thinking; 2 timed out while another program also loaded the 35b weights). Proposed and awaiting USER approval: the reviewer prompt states its keys, the reviewer budget rises to 6,144 with timeouts set per model, then a full probe rerun with the GPU exclusive.
+**Now:** task 1, reviewer selection. Second probe (`ed21ef7`, stopped by USER during the 35b part, so not recorded): with the keys stated and a 6,144 budget, the 9b reviewer answered 8 of 10 cards (4 of 5 clean passed, 1 of 5 seeded caught); the 35b got 1 of 4 at about 9.5 minutes per card, running partly on the CPU. USER approved: edit cards from real history (`bench/review_edits.json`) scored apart from creation cards; a required `quote` field for reviewer fails; per-call model unloading and GPU-residency recording; checkpointed probe replies; reviewer candidates qwen3.5:9b and qwen2.5-coder:14b. Next: `python lab.py bench roles --confirm-gpu-free --reviewer-only`.
 
 **USER decision recorded:** D19 (T6-amend-1): plan approval covers each task's single named check in its task workspace only; commands against the selected project still need per-run approval.
 

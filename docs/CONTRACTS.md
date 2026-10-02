@@ -132,7 +132,7 @@ This is one SQLite file per project, kept on the hub side under `live_control/`,
 | planner | `{"tasks": [{"title", "description", "target": {"path", "symbol", "new"}, "check": "<allowlist name>"}]}`, 1–5 tasks; `check` is limited to allowlisted names and `target.path` to existing project paths unless `new` is true |
 | builder | `{"replace_block", "notes"}` for an existing target, or `{"content", "notes"}` for a new file the plan lists. Code applies it to the pinned region. |
 | debugger | The same as builder. |
-| reviewer | `{"verdict": "pass" \| "fail", "reasons": [str]}`; a `fail` must quote a line from the card |
+| reviewer | `{"verdict": "pass" \| "fail", "reasons": [str], "quote": str}`; a `fail` counts only if `quote` is a code line from the card (empty for `pass`) |
 
 **Reviewer card:** task title and intent (the approved description), target file and symbol, the check result, the gate's path and size facts, then BEFORE (the pinned region) and AFTER (the candidate). The reviewer answers two questions: does the change do what the task says, and does it change behaviour the task did not ask for?
 
