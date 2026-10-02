@@ -274,7 +274,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [ ] 3. Candidate execution in the workspace with reason codes and thinking capture.
 - [ ] 4. Apply with new-file support, bypass closed, knowledge refresh, Chat replaced, `run_turn` removed, real-model proof.
 
-**Now:** task 1 code is committed: task workspace (`workspace/scratch.py`), Tasks projection (D17), approval task identity and provenance (D18), gate path rule (D16), role config with budgets, narrow role forms with a pinned region, card-shaped reviewer, one shared Ollama transport, contracts §§1–3 and 7–8 updated; 118 tests pass. Remaining for task 1: the opt-in role probe (`python lab.py bench roles --confirm-gpu-free`), which waits for the USER to confirm the GPU is free, then budgets and the reviewer model are set from it.
+**Now:** paused 2026-10-01. Task 1 code is committed (`9c7e6c5`, M2 fix `e15b742`). First role probe `bench/probes/roles-20261002T023003Z-fcc36f5a.json` (source `e15b742`): builder 4/5 valid (1 cap at 8,192), 1 passed; debugger 4/5 valid, 3 passed; reviewer 0/20 usable on both models (18 hit the 2,048 cap while thinking; 2 timed out while another program also loaded the 35b weights). Proposed and awaiting USER approval: the reviewer prompt states its keys, the reviewer budget rises to 6,144 with timeouts set per model, then a full probe rerun with the GPU exclusive.
 
 **USER decision recorded:** D19 (T6-amend-1): plan approval covers each task's single named check in its task workspace only; commands against the selected project still need per-run approval.
 
