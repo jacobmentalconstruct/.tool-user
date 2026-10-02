@@ -127,6 +127,10 @@ class RegionAndCardTests(unittest.TestCase):
         validate = require_citation(card)
         validate({"verdict": "fail", "reasons": ["inverts the clamp"], "quote": "return min(0, value)"})
         validate({"verdict": "pass", "reasons": ["Does what the task says."], "quote": ""})
+        validate({"verdict": "fail", "reasons": ["inverts it"],  # a multi-line quote of card lines
+                  "quote": "def clamp(value):\n        return min(0, value)"})
+        with self.assertRaises(ValueError):
+            validate({"verdict": "fail", "reasons": ["x"], "quote": "return min(0, value)\nimport os"})
         transport, _ = reply(json.dumps({"verdict": "fail", "reasons": ["`return min(0, value)` is risky"],
                                          "quote": "looks risky"}))
         with self.assertRaises(RoleOutputError) as caught:

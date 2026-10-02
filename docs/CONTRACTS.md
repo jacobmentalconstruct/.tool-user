@@ -153,12 +153,12 @@ This is `roles.json` at the repo root, the only place models are assigned.
               "num_predict": 8192, "timeout_s": 180, "keep_alive": "10m"},
  "debugger": {"model": "qwen3.5:9b",  "think": true, "temperature": 0,   "num_ctx": 16384,
               "num_predict": 8192, "timeout_s": 180, "keep_alive": "10m"},
- "reviewer": {"model": "qwen3.5:35b", "think": true, "temperature": 0,   "num_ctx": 16384,
-              "num_predict": 6144, "timeout_s": 900, "keep_alive": "5m"},
+ "reviewer": {"model": "qwen2.5-coder:14b", "think": false, "temperature": 0, "num_ctx": 16384,
+              "num_predict": 1024, "timeout_s": 120, "keep_alive": "5m"},
  "embedder": {"model": "nomic-embed-text"}}
 ```
 
-Every role carries its output budget (`num_predict`), `timeout_s`, `think` and `keep_alive`; callers hard-code none of them. The builder and debugger share a budget and use thinking, because T5's probe showed `think: false` breaks qwen3.5:9b's schema output. The opt-in probe `python lab.py bench roles --confirm-gpu-free` sets the budgets and chooses the reviewer model (qwen3.5:35b or qwen3.5:9b) by measurement; its summary is committed under `bench/probes/`.
+Every role carries its output budget (`num_predict`), `timeout_s`, `think` and `keep_alive`; callers hard-code none of them. The builder and debugger share a budget and use thinking, because T5's probe showed `think: false` breaks qwen3.5:9b's schema output. The opt-in probe `python lab.py bench roles --confirm-gpu-free` (`--reviewer-only` for the reviewer comparison) sets the budgets and chose the reviewer by measurement: qwen2.5-coder:14b with thinking off, which needs `OLLAMA_NUM_PARALLEL=1` to fit on the GPU (`PLAN.md` §1, D4). Its summaries are committed under `bench/probes/`.
 
 ## 9. Bench task (T5)
 

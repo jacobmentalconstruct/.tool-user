@@ -27,12 +27,12 @@
     "keep_alive": "10m"
   },
   "reviewer": {
-    "model": "qwen3.5:35b",
-    "think": true,
+    "model": "qwen2.5-coder:14b",
+    "think": false,
     "temperature": 0,
     "num_ctx": 16384,
-    "num_predict": 6144,
-    "timeout_s": 900,
+    "num_predict": 1024,
+    "timeout_s": 120,
     "keep_alive": "5m"
   },
   "embedder": {

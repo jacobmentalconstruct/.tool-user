@@ -35,8 +35,8 @@ TASK = {"id": "fix-001", "source": "self@0000000", "goal": "Add two numbers.",
 def fake_call(config, system, payload, schema, validate=None):
     if "card" in payload:
         output = {"verdict": "pass", "reasons": ["Does what the task says."], "quote": ""}
-        if config.model == "qwen2.5-coder:14b" and "lab-probe" in payload["card"]:
-            line = next(line.strip() for line in payload["card"].splitlines() if "lab-probe" in line)
+        if config.model == "qwen2.5-coder:14b" and "debug" in payload["card"]:
+            line = next(line.strip() for line in payload["card"].splitlines() if "debug" in line and "AFTER" not in line)
             output = {"verdict": "fail", "reasons": ["unrequested side effect"], "quote": line}
         validate(output)
         return RoleReply(output, "thought", 50, 1.0, 40.0, 1.0 if config.model == "qwen3.5:9b" else 0.5)
@@ -48,8 +48,8 @@ def fake_call(config, system, payload, schema, validate=None):
 
 class RoleProbeTests(unittest.TestCase):
     def test_seeded_bad_candidate_adds_one_statement_after_the_docstring(self):
-        seeded = roles_probe.seed_bad(SOURCE, "f", 'print("lab-probe")')
-        self.assertEqual('def f(x):\n    """Doc."""\n    print("lab-probe")\n    return x + 1\n', seeded)
+        seeded = roles_probe.seed_bad(SOURCE, "f", 'print("debug output")')
+        self.assertEqual('def f(x):\n    """Doc."""\n    print("debug output")\n    return x + 1\n', seeded)
         ast.parse(seeded)
 
     def test_dry_run_records_roles_reviewer_accuracy_and_threshold(self):
@@ -66,7 +66,7 @@ class RoleProbeTests(unittest.TestCase):
             edit = {"kind": "edit", "task_id": "edit-1", "expected": "fail",
                     "task": roles_probe._team_task("edit-1", "Double it.", "calc.py", "add"),
                     "before": "def add(a, b):\n    return a + b\n",
-                    "after": 'def add(a, b):\n    print("lab-probe: debug output")\n    return 2 * (a + b)\n'}
+                    "after": 'def add(a, b):\n    print("debug output")\n    return 2 * (a + b)\n'}
             checkpoint = base / "partial.json"
             rows = roles_probe.probe_roles(roles, [TASK], snapshot, base / "work", extra_cards=[edit],
                                            checkpoint=checkpoint, on_progress=lambda message: None)

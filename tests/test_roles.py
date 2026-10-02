@@ -22,7 +22,8 @@ class RoleConfigTests(unittest.TestCase):
         self.assertIn(roles["builder"]["model"], measured)
         self.assertEqual("qwen3.5:35b", roles["planner"]["model"])
         self.assertEqual("qwen3.5:9b", roles["debugger"]["model"])
-        self.assertIn(roles["reviewer"]["model"], {"qwen3.5:35b", "qwen3.5:9b"})
+        self.assertEqual("qwen2.5-coder:14b", roles["reviewer"]["model"])  # chosen by the T6 role probe
+        self.assertFalse(roles["reviewer"]["think"])  # the 14b coder has no thinking mode
         self.assertEqual("nomic-embed-text", roles["embedder"]["model"])
 
     def test_every_role_carries_its_budget_timeout_thinking_and_keep_alive(self):
