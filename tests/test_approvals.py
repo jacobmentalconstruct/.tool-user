@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from local_memory_lab.session import SharedSession  # noqa: E402
 from local_memory_lab.event_store import EventStore  # noqa: E402
-from team_fixtures import make_project, planner, wait_for  # noqa: E402
+from team_fixtures import make_project, pending_patch, planner, team_roles, wait_for  # noqa: E402
 
 
 class FakeEmbedder:
@@ -185,19 +185,15 @@ class ApprovalTests(unittest.TestCase):
     def test_running_goal_holds_turn_slot_until_it_parks(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
-            goal_started = threading.Event()
             release_goal = threading.Event()
             chat_started = threading.Event()
+            calls = []
 
             def fake_turn(prompt, model, turns, notes, tools, on_tool, **kwargs):
-                if prompt == "goal":
-                    goal_started.set()
-                    self.assertTrue(release_goal.wait(2))
-                else:
-                    chat_started.set()
+                chat_started.set()
                 return "done", []
 
-            with patch("local_memory_lab.team.jobs.run_turn", side_effect=fake_turn), \
+            with team_roles(hold=release_goal, calls=calls), \
                     patch("local_memory_lab.session.run_turn", side_effect=fake_turn), planner():
                 session = SharedSession(root / "events.sqlite", load_models=False,
                                         start_worker=True, knowledge_embedder=FakeEmbedder())
@@ -206,11 +202,16 @@ class ApprovalTests(unittest.TestCase):
                 wait_for(session, job_id, "awaiting_plan_approval")
                 pending = session.state.approvals.pending()[0]
                 session.approve(pending.id, True)
-                self.assertTrue(goal_started.wait(2))
+                deadline = time.monotonic() + 10
+                while not calls and time.monotonic() < deadline:  # the goal's builder call is running
+                    time.sleep(0.02)
                 session.submit("chat", "USER")
-                self.assertFalse(chat_started.wait(0.1))
+                self.assertFalse(chat_started.wait(0.1))  # chat waits for the running role step
                 release_goal.set()
-                self.assertTrue(chat_started.wait(2))
+                patch_approval = pending_patch(session, job_id)  # the goal parks at its patch approval...
+                self.assertTrue(chat_started.wait(5))  # ...which frees the turn slot for chat
+                session.approve(patch_approval.id, True)
+                wait_for(session, job_id, "done", timeout=10)
                 deadline = time.monotonic() + 2
                 while session.busy and time.monotonic() < deadline:
                     time.sleep(0.01)

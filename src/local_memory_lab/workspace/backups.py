@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 from dataclasses import dataclass
@@ -19,6 +20,12 @@ class Generation:
 class BackupStore:
     def __init__(self, folder: Path):
         self.folder = Path(folder)
+
+    @classmethod
+    def for_project(cls, control: Path, project_root: Path) -> "BackupStore":
+        """One backup folder per selected project, under the runtime control folder."""
+        scope = hashlib.sha256(str(Path(project_root)).casefold().encode("utf-8")).hexdigest()[:16]
+        return cls(Path(control) / "backups" / scope)
 
     def create(self, kind: str, source: str, request_id: str, files: list[tuple[str, bytes | None]]) -> Generation:
         generation_id = uuid4().hex

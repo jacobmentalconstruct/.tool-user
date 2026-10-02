@@ -1,17 +1,24 @@
-"""Shared test helpers: a tiny project with an allowlist, and a stubbed planner (no model)."""
+"""Shared test helpers: a tiny project whose check fails until `add` is fixed, and stubbed roles (no model)."""
 
 from __future__ import annotations
 
 import json
+import threading
 import time
 from pathlib import Path
 from unittest.mock import patch
 
 from local_memory_lab.team.roles import RoleReply
 
+# The default suite must never reach a model: any test that imports these fixtures has Ollama blocked.
+patch("local_memory_lab.agent.ollama.urlopen",
+      side_effect=AssertionError("the default test suite must never call a model")).start()
+
 SUITE = ["python", "-B", "-m", "unittest", "discover", "-s", "tests"]
+BROKEN_ADD = 'def add(a, b):\n    """Add two numbers."""\n    return a - b\n'
+FIXED_ADD = 'def add(a, b):\n    """Add two numbers."""\n    return a + b\n'
 PROJECT = {
-    "calc.py": 'def add(a, b):\n    """Add two numbers."""\n    return a + b\n',
+    "calc.py": BROKEN_ADD,
     "tests/test_calc.py": ("import sys\nimport unittest\nfrom pathlib import Path\n\n"
                            "sys.path.insert(0, str(Path(__file__).resolve().parents[1]))\n"
                            "from calc import add  # noqa: E402\n\n\n"
@@ -56,3 +63,36 @@ def wait_for(session, job_id: str, state: str, timeout: float = 3.0) -> None:
     job = session.state.jobs.records.get(job_id)
     raise AssertionError(f"job did not reach {state}; it is {job.state if job else None} "
                          f"({job.reason if job else ''})")
+
+
+def team_roles(builder_text: str | None = None, verdict: str = "pass", hold: threading.Event | None = None,
+               calls: list | None = None):
+    """Patch the team's role calls: the builder (and debugger) reply with `builder_text`, the reviewer with
+    `verdict`. If `hold` is given, builder calls wait on it so a test can act while a model call runs."""
+    def fake(config, system, payload, schema, validate=None):
+        if calls is not None:
+            calls.append(config.role)
+        if "verdict" in schema.get("properties", {}):
+            out = {"verdict": verdict, "reasons": ["checked"], "quote": "return a + b" if verdict == "fail" else ""}
+            if validate:
+                validate(out)
+            return RoleReply(out, "", 5, 0.1, 50.0, 1.0)
+        if hold is not None:
+            hold.wait(5)
+        return RoleReply({"replace_block": builder_text or FIXED_ADD, "notes": ""}, "", 5, 0.1, 50.0, 1.0)
+    return patch("local_memory_lab.team.pipeline.call_role", side_effect=fake)
+
+
+def pending_patch(session, job_id: str, timeout: float = 10.0):
+    """Wait for the job's gated patch approval and return it."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        with session.lock:
+            for item in session.state.approvals.pending():
+                if item.job == job_id and item.kind == "patch":
+                    return item
+            job = session.state.jobs.records[job_id]
+            if job.state in {"done", "failed", "cancelled", "rejected"}:
+                raise AssertionError(f"job ended as {job.state} ({job.reason}) before a patch approval")
+        time.sleep(0.02)
+    raise AssertionError("no patch approval appeared")

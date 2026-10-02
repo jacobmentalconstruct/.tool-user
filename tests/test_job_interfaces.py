@@ -22,7 +22,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from local_memory_lab.interfaces import client  # noqa: E402
 from local_memory_lab.interfaces.web import make_handler  # noqa: E402
 from local_memory_lab.session import SharedSession  # noqa: E402
-from team_fixtures import make_project, planner, wait_for  # noqa: E402
+from team_fixtures import FIXED_ADD, make_project, pending_patch, planner, team_roles, wait_for  # noqa: E402
 
 
 class FakeEmbedder:
@@ -39,7 +39,7 @@ class JobInterfaceTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         root = Path(self.temporary.name)
-        project = make_project(root / "project")
+        project = self.project = make_project(root / "project")
         self.planner = planner()
         self.planner.start()
         self.addCleanup(self.planner.stop)
@@ -72,7 +72,7 @@ class JobInterfaceTests(unittest.TestCase):
         return self.request("/api/state")["pendingApproval"]
 
     def wait_for(self, job_id, state):
-        deadline = time.monotonic() + 2
+        deadline = time.monotonic() + 10
         while time.monotonic() < deadline:
             jobs = self.request("/api/state")["jobs"]
             if next(job for job in jobs if job["id"] == job_id)["state"] == state:
@@ -81,7 +81,8 @@ class JobInterfaceTests(unittest.TestCase):
         self.fail(f"Job {job_id} did not reach {state}.")
 
     def test_goal_from_agent_waits_for_user_plan_approval_then_runs(self):
-        with patch("local_memory_lab.team.jobs.run_turn", return_value=("finished", [])) as run:
+        calls = []
+        with team_roles(calls=calls):
             job_id = self.request("/api/goals", {"text": "repair project"},
                                   token="agent-token")["jobId"]
             self.pending_plan(job_id)
@@ -90,8 +91,13 @@ class JobInterfaceTests(unittest.TestCase):
             self.assertEqual("plan", state["pendingApproval"]["kind"])
             self.assertNotIn("detail", self.request("/api/state", token="agent-token")["pendingApproval"])
             self.request("/api/approval", {"id": state["pendingApproval"]["id"], "approved": True})
+            patch_approval = pending_patch(self.session, job_id)
+            self.assertEqual(("system", "role:builder"), ("system", patch_approval.origin_role))
+            self.assertNotEqual(FIXED_ADD, (self.project / "calc.py").read_text(encoding="utf-8"))
+            self.request("/api/approval", {"id": patch_approval.id, "approved": True})
             self.wait_for(job_id, "done")
-            self.assertEqual("repair project", run.call_args.args[0])
+            self.assertEqual(["builder", "reviewer"], calls)
+            self.assertEqual(FIXED_ADD, (self.project / "calc.py").read_text(encoding="utf-8"))
             events = [e for e in self.session.events_after(0) if e.get("job") == job_id
                       and e["kind"] == "job.state"]
             self.assertEqual(["queued", "planning", "awaiting_plan_approval", "running", "done"],
@@ -113,30 +119,27 @@ class JobInterfaceTests(unittest.TestCase):
         self.wait_for(job_id, "cancelled")
 
     def test_expired_plan_approval_fails_without_running(self):
-        with patch("local_memory_lab.team.jobs.run_turn") as run:
+        calls = []
+        with team_roles(calls=calls):
             job_id = self.request("/api/goals", {"text": "waited goal"})["jobId"]
             approval_id = self.pending_plan(job_id)["id"]
             self.session._resolve_approval(approval_id, "expired", "system")
             self.wait_for(job_id, "failed")
             self.assertEqual("plan approval expired", self.session.state.jobs.records[job_id].reason)
-            run.assert_not_called()
+            self.assertEqual([], calls)
 
     def test_user_can_cancel_a_running_goal_without_done_event(self):
-        entered = threading.Event()
         release = threading.Event()
+        calls = []
 
-        def fake_turn(*args, **kwargs):
-            entered.set()
-            release.wait(2)
-            if kwargs["cancelled"]():
-                raise RuntimeError("Job cancelled.")
-            return "finished", []
-
-        with patch("local_memory_lab.team.jobs.run_turn", side_effect=fake_turn):
+        with team_roles(hold=release, calls=calls):
             job_id = self.request("/api/goals", {"text": "running goal"})["jobId"]
             approval_id = self.pending_plan(job_id)["id"]
             self.request("/api/approval", {"id": approval_id, "approved": True})
-            self.assertTrue(entered.wait(2))
+            deadline = time.monotonic() + 10
+            while not calls and time.monotonic() < deadline:  # the builder call is now running
+                time.sleep(0.02)
+            self.assertEqual(["builder"], calls)
             self.request("/api/jobs/cancel", {"id": job_id})
             release.set()
             self.wait_for(job_id, "cancelled")
@@ -147,6 +150,8 @@ class JobInterfaceTests(unittest.TestCase):
             states = [e["data"]["state"] for e in self.session.events_after(0)
                       if e["kind"] == "job.state" and e.get("job") == job_id]
             self.assertNotIn("done", states)
+            self.assertEqual(["builder"], calls)  # nothing ran after the cancel
+            self.assertNotEqual(FIXED_ADD, (self.project / "calc.py").read_text(encoding="utf-8"))
 
     def test_browser_and_cli_show_goal_entrance_and_stage(self):
         job_id = self.request("/api/goals", {"text": "visible goal"})["jobId"]

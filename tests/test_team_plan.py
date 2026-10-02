@@ -16,7 +16,7 @@ from local_memory_lab.session import SharedSession  # noqa: E402
 from local_memory_lab.team.plan import PlanError, plan_detail, plan_goal, validate_plan  # noqa: E402
 from local_memory_lab.team.roles import RoleOutputError, RoleReply, load_roles  # noqa: E402
 from local_memory_lab.workspace.paths import Workspace  # noqa: E402
-from team_fixtures import ONE_TASK, SUITE, make_project, planner, wait_for  # noqa: E402
+from team_fixtures import ONE_TASK, SUITE, make_project, pending_patch, planner, team_roles, wait_for  # noqa: E402
 
 CHECKS = {"tests": tuple(SUITE)}
 
@@ -126,9 +126,10 @@ class PlanningJobTests(unittest.TestCase):
         self.assertNotEqual("make add correct", approval.detail)
         (task,) = self.session.state.tasks.for_job(job_id)
         self.assertEqual(("pending", ["calc.py"]), (task.state, task.spec["files"]))
-        with patch("local_memory_lab.team.jobs.run_turn", return_value=("done", [])):
+        with team_roles():
             self.session.approve(approval.id, True)
-            wait_for(self.session, job_id, "done")
+            self.session.approve(pending_patch(self.session, job_id).id, True)
+            wait_for(self.session, job_id, "done", timeout=10)
         with self.assertRaises(ValueError):
             self.session.state.tasks.transition_data(task.id, "building", spec={**task.spec, "files": ["x.py"]})
 

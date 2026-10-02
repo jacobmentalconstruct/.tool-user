@@ -13,8 +13,9 @@ from ..agent.ollama import ollama_json
 from ..locations import ROOT
 
 ROLES = ("planner", "builder", "debugger", "reviewer")
-REASONS = ("invalid_output", "cap_exhausted", "invalid_plan", "check_not_exercising", "check_failed",
-           "debug_exhausted", "review_failed", "path_outside_task", "patch_too_large")
+REASONS = ("invalid_output", "cap_exhausted", "role_timeout", "model_unavailable", "invalid_plan",
+           "check_not_exercising", "check_failed", "debug_exhausted", "review_failed", "path_outside_task",
+           "patch_too_large", "stale_candidate", "patch_rejected", "approval_expired")
 MAX_TASKS = 5
 EXCERPT = 2000
 
