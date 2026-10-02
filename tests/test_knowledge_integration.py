@@ -121,6 +121,28 @@ class KnowledgeIntegrationTests(unittest.TestCase):
             finally:
                 second.close()
 
+    def test_an_applied_change_is_retrievable_by_the_next_task_without_a_full_rescan(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            project = base / "project"
+            project.mkdir()
+            source = project / "guide.md"
+            source.write_text("# Guide\nfirst task text\n", encoding="utf-8")
+            service = KnowledgeService(project, control_root=base / "control", embedder=_Embedder())
+            try:
+                self.assertTrue(service.wait_idle())
+                service.begin_activity()  # a job is running: the worker must not index
+                try:
+                    source.write_text("# Guide\napplied by task one\n", encoding="utf-8")
+                    service.index_paths_now(["guide.md"])  # what the job does right after an apply
+                    self.assertTrue(service.store.search_fts("applied"))
+                    self.assertIn("applied by task one", service.context_for("applied"))
+                finally:
+                    service.end_activity()
+                self.assertFalse(service._pending_full)  # ending activity no longer queues a full rescan
+            finally:
+                service.close()
+
     def test_next_idle_scan_refreshes_external_changes_before_turn(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)

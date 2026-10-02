@@ -119,7 +119,7 @@ def _run_one(session, job_id: str, task, project_root, roles: dict) -> bool:
             session._record("system", "tool.result", {"display": {"speaker": "Tool", "text":
                             f"Applied task {task.spec['order']} to {', '.join(applied)}; backup {backup}"},
                             "paths": applied, "backup": backup}, job=job_id, task=task.id)
-        session.knowledge.refresh_paths(applied)
+        session.knowledge.index_paths_now(applied)  # the next task's context sees this change
         return True
     finally:
         result.workspace.discard()

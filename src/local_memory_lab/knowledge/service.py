@@ -72,11 +72,26 @@ class KnowledgeService:
             self._active += 1
 
     def end_activity(self) -> None:
+        # No full rescan here: the next begin_activity from idle syncs the whole project anyway.
         with self._condition:
             self._active = max(0, self._active - 1)
-            if self._active == 0 and self.store is not None and self._worker is not None:
-                self._pending_full = True
             self._condition.notify_all()
+
+    def index_paths_now(self, paths: list[str]) -> None:
+        """Re-index applied files immediately, between role calls, so the next task's context sees them."""
+        with self._condition:
+            while self._indexing:
+                self._condition.wait()
+            if self.store is None or self.workspace is None:
+                return
+            self._indexing = True
+            workspace, store = self.workspace, self.store
+        try:
+            self._index_project(workspace, store, False, {str(path) for path in paths})
+        finally:
+            with self._condition:
+                self._indexing = False
+                self._condition.notify_all()
 
     def wait_idle(self, timeout: float = 10.0) -> bool:
         deadline = time.monotonic() + timeout
