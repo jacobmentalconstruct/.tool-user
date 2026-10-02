@@ -1,4 +1,4 @@
-"""HTTP smoke coverage for project selection and reviewed patch approval."""
+"""HTTP smoke coverage for project selection, approval resolution and event reads."""
 
 from __future__ import annotations
 
@@ -10,15 +10,13 @@ import unittest
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 from urllib.request import Request, urlopen
-from unittest.mock import patch
 from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from local_memory_lab.agent.patch_tools import PatchTools  # noqa: E402
-from local_memory_lab.agent.project_tools import ProjectTools  # noqa: E402
 from local_memory_lab.interfaces.web import make_handler  # noqa: E402
+from local_memory_lab.workspace.paths import choose_root  # noqa: E402
 
 
 class SessionStub:
@@ -28,7 +26,7 @@ class SessionStub:
         self.log_events = []
 
     def set_project_root(self, path, actor):
-        self.project_root = ProjectTools.choose_root(path)
+        self.project_root = choose_root(path)
 
     def snapshot(self, actor):
         approval = None
@@ -66,8 +64,6 @@ class HttpSmokeTests(unittest.TestCase):
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
         self.api = f"http://127.0.0.1:{self.server.server_port}"
-        self.control_patch = patch("local_memory_lab.agent.patch_tools.CONTROL", self.control)
-        self.control_patch.start()
         self.assertIsNone(self.request("/api/state")["projectRoot"])
         self.select_project()
 
@@ -75,7 +71,6 @@ class HttpSmokeTests(unittest.TestCase):
         self.server.shutdown()
         self.server.server_close()
         self.thread.join(timeout=2)
-        self.control_patch.stop()
         self.temporary.cleanup()
 
     def request(self, path, body=None, token=None):
@@ -91,27 +86,15 @@ class HttpSmokeTests(unittest.TestCase):
         self.request("/api/project", {"path": str(self.project)})
         self.assertEqual(Path(self.request("/api/state")["projectRoot"]), self.project)
 
-    def approve_through_api(self, decision):
-        def approve(proposal):
-            self.session.pending = {"id": str(uuid4()), **proposal}
-            pending = self.request("/api/state")["pendingApproval"]
-            self.assertEqual(pending["diff"], proposal["diff"])
-            self.request("/api/approval", {"id": pending["id"], "approved": decision})
-            return self.session.pending["approved"]
-        return approve
-
-    def test_cancel_then_approve_via_http(self):
-        patch_tool = PatchTools(ProjectTools(self.project), self.approve_through_api(False), "cancel-request")
-        change = {"path": "sample.txt", "search_block": "before", "replace_block": "after"}
-        cancelled = patch_tool.call("patch_project_file", change)
-        self.assertEqual(cancelled["status"], "cancelled")
-        self.assertEqual(self.target.read_text(encoding="utf-8"), "before\n")
-
-        patch_tool = PatchTools(ProjectTools(self.project), self.approve_through_api(True), "approve-request")
-        applied = patch_tool.call("patch_project_file", change)
-        self.assertEqual(applied["status"], "patched")
-        self.assertEqual(self.target.read_text(encoding="utf-8"), "after\n")
-        self.assertTrue(next((self.control / "backups").rglob("manifest.json")).is_file())
+    def test_browser_sees_the_pending_patch_and_resolves_it_over_http(self):
+        for decision in (False, True):
+            with self.subTest(decision=decision):
+                self.session.pending = {"id": str(uuid4()), "name": "Task 1: Fix", "diff": "+after"}
+                pending = self.request("/api/state")["pendingApproval"]
+                self.assertEqual("+after", pending["diff"])
+                self.request("/api/approval", {"id": pending["id"], "approved": decision})
+                self.assertIs(decision, self.session.pending["approved"])
+        self.assertEqual("before\n", self.target.read_text(encoding="utf-8"))  # applying is the job runner's
 
     def test_agent_cannot_select_model_project_or_approval(self):
         from urllib.error import HTTPError

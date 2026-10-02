@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .agent.engine import MAX_RECENT_TURNS
+from .agent.chat import MAX_RECENT_TURNS
 from .event_store import EventStore
 from .lifecycles import Jobs, Tasks
 from .approvals import Approvals

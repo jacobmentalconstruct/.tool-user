@@ -14,7 +14,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from local_memory_lab.agent.engine import DEFAULT_MODEL, MAX_RECENT_TURNS  # noqa: E402
+from local_memory_lab.agent.chat import DEFAULT_MODEL, MAX_RECENT_TURNS  # noqa: E402
 from local_memory_lab.session import SharedSession  # noqa: E402
 from local_memory_lab.interfaces.web import make_handler  # noqa: E402
 from local_memory_lab.session_state import ConversationState  # noqa: E402
@@ -140,7 +140,8 @@ class SessionRestoreTests(unittest.TestCase):
             queued_event = session.store.get(session.prompts.get_nowait())
             self.assertEqual("agent may chat", queued_event["data"]["display"]["text"])
             approval_id = session.request_approval(
-                "patch", "Patch", "file", actor="role:builder", request_id="request-1")
+                "patch", "Patch", "file", actor="system", origin_role="role:builder", candidate="c-1",
+                request_id="request-1")
 
             with self.assertRaisesRegex(ValueError, "Only the USER"):
                 session.set_project_root(str(project), "AGENT")

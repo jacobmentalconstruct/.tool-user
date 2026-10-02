@@ -1,4 +1,4 @@
-"""Path, exclusion, patch validation, and rollback checks for workspace operations."""
+"""Path, exclusion, file walk, apply and rollback checks for workspace operations."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WORKSPACE_ROOT / "src"))
 
 from local_memory_lab.workspace.backups import BackupStore  # noqa: E402
-from local_memory_lab.workspace.patching import prepare, staged_apply  # noqa: E402
+from local_memory_lab.workspace.patching import staged_apply  # noqa: E402
 from local_memory_lab.workspace.paths import Workspace  # noqa: E402
 
 
@@ -59,16 +59,13 @@ class WorkspaceTests(unittest.TestCase):
         (self.root / "private" / "data.txt").write_text("x", encoding="utf-8")
         (self.root / "token.secret").write_text("x", encoding="utf-8")
         self.workspace = Workspace(self.root)
-        self.assertEqual([item["name"] for item in self.workspace.list_project()["entries"]], [".gitignore"])
+        self.assertEqual([relative for relative, _path in self.workspace.files()], [".gitignore"])
 
-    def test_project_file_create_read_and_list(self):
-        created = self.workspace.create_project_file("new.txt", "created text")
-        self.assertEqual(created["status"], "created")
-        read = self.workspace.read_project_file("new.txt")
-        self.assertEqual(read["content"], "created text")
-        self.assertEqual([row["name"] for row in self.workspace.list_project()["entries"]], ["new.txt"])
-        with self.assertRaisesRegex(ValueError, "already exists"):
-            self.workspace.create_project_file("new.txt", "replacement")
+    def test_reads_project_text_files(self):
+        (self.root / "notes.txt").write_text("project text", encoding="utf-8")
+        self.assertEqual("project text", self.workspace.read_project_file("notes.txt")["content"])
+        with self.assertRaises(ValueError):
+            self.workspace.read_project_file("missing.txt")
 
     def test_honors_rooted_and_reincluded_gitignore_patterns(self):
         (self.root / ".gitignore").write_text(
@@ -90,10 +87,16 @@ class WorkspaceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.workspace.path("folder/inside.txt")
 
-    def test_requires_unique_search_match(self):
-        (self.root / "sample.txt").write_text("same same", encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "exactly once"):
-            prepare(self.workspace, [{"path": "sample.txt", "search_block": "same", "replace_block": "new"}])
+    def test_a_multi_file_apply_makes_one_backup_generation(self):
+        a, b = self.root / "a.txt", self.root / "b.txt"
+        a.write_text("old-a", encoding="utf-8")
+        b.write_text("old-b", encoding="utf-8")
+        store = BackupStore(Path(self.temporary.name) / "backups")
+        applied, generation = staged_apply({"a.txt": (a, b"old-a", b"new-a"), "b.txt": (b, b"old-b", b"new-b")},
+                                           store, "one-generation")
+        self.assertEqual(["a.txt", "b.txt"], applied)
+        self.assertEqual([generation], [item.id for item in store.list()])
+        self.assertEqual(b"old-a", store.read(generation, "a.txt"))
 
     def test_restores_earlier_files_when_a_later_replace_fails(self):
         a, b = self.root / "a.txt", self.root / "b.txt"

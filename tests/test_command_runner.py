@@ -1,4 +1,4 @@
-"""Allowlisted execution and Windows process-tree cleanup."""
+"""Allowlisted execution and Windows process-tree cleanup. Since T6 commands run only as task checks."""
 
 from __future__ import annotations
 
@@ -11,28 +11,16 @@ import time
 import unittest
 from http.server import ThreadingHTTPServer
 from pathlib import Path
-from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from local_memory_lab.agent.tool_router import SharedTools  # noqa: E402
 from local_memory_lab.command_runner import CommandRunner  # noqa: E402
 from local_memory_lab.interfaces.web import make_handler  # noqa: E402
 from local_memory_lab.session import SharedSession  # noqa: E402
 import team_fixtures  # noqa: E402,F401  (blocks every model call in the default suite)
-
-
-class FakeEmbedder:
-    model = "test-embedder"
-
-    def embed(self, text):
-        return (1.0, 0.0)
-
-    def embed_many(self, texts):
-        return [(1.0, 0.0) for _ in texts]
 
 
 class CommandRunnerTests(unittest.TestCase):
@@ -78,39 +66,6 @@ class CommandRunnerTests(unittest.TestCase):
         self.allow({"bad": "python -c print(1)"})
         with self.assertRaises(ValueError):
             runner.resolve("bad")
-        schema = next(item for item in SharedTools.schemas
-                      if item["function"]["name"] == "run_command")
-        self.assertEqual(["name"], schema["function"]["parameters"]["required"])
-        self.assertEqual(["name"], list(schema["function"]["parameters"]["properties"]))
-
-    def test_command_waits_for_user_approval_and_logs_result(self):
-        marker = self.root / "ran.txt"
-        self.allow({"write": [sys.executable, "-c",
-                              "from pathlib import Path;Path('ran.txt').write_text('yes')"]})
-        session = SharedSession(self.root / "events.sqlite", load_models=False, start_worker=False)
-        results = []
-        worker = threading.Thread(target=lambda: results.append(
-            session._run_named_command("write", self.root, "request-1")))
-        worker.start()
-        deadline = time.monotonic() + 2
-        while not session.state.approvals.pending() and time.monotonic() < deadline:
-            time.sleep(0.01)
-        self.assertFalse(marker.exists())
-        pending = session.state.approvals.pending()[0]
-        self.assertEqual("command", pending.kind)
-        self.assertIn("ran.txt", pending.detail)
-        with self.assertRaisesRegex(ValueError, "Only the USER"):
-            session.approve(pending.id, True, "AGENT")
-        session.approve(pending.id, True, "USER")
-        worker.join(timeout=3)
-        self.assertFalse(worker.is_alive())
-        self.assertEqual("yes", marker.read_text(encoding="utf-8"))
-        self.assertEqual("ok", results[0]["status"])
-        events = [event for event in session.events_after(0) if event["kind"] == "command.result"]
-        self.assertEqual(1, len(events))
-        self.assertEqual(("write", "ok", 0),
-                         (events[0]["data"]["name"], events[0]["data"]["status"],
-                          events[0]["data"]["exit_code"]))
 
     def test_direct_browser_and_agent_command_requests_are_refused(self):
         session = SharedSession(self.root / "events.sqlite", load_models=False, start_worker=False)
@@ -137,74 +92,6 @@ class CommandRunnerTests(unittest.TestCase):
             server.shutdown()
             server.server_close()
             thread.join(timeout=2)
-
-    def test_chat_loop_requests_command_as_role(self):
-        marker = self.root / "ran.txt"
-        self.allow({"write": [sys.executable, "-c",
-                              "from pathlib import Path;Path('ran.txt').write_text('yes')"]})
-        calls = 0
-
-        def fake_ollama(path, payload):
-            nonlocal calls
-            calls += 1
-            if calls == 1:
-                return {"message": {"role": "assistant", "tool_calls": [{"function": {
-                    "name": "run_command", "arguments": {"name": "write"},
-                }}]}}
-            return {"message": {"role": "assistant", "content": "done"}}
-
-        with patch("local_memory_lab.agent.engine.ollama_json", side_effect=fake_ollama):
-            session = SharedSession(self.root / "events.sqlite", load_models=False,
-                                    start_worker=True, knowledge_embedder=FakeEmbedder())
-            session.set_project_root(str(self.root))
-            session.submit("run the named check", "AGENT")
-            deadline = time.monotonic() + 2
-            while not session.state.approvals.pending() and time.monotonic() < deadline:
-                time.sleep(0.01)
-            pending = session.state.approvals.pending()[0]
-            requested = [e for e in session.events_after(0) if e["kind"] == "approval.requested"]
-            self.assertEqual("role:builder", requested[-1]["actor"])
-            self.assertFalse(marker.exists())
-            session.approve(pending.id, True, "USER")
-            deadline = time.monotonic() + 3
-            while session.busy and time.monotonic() < deadline:
-                time.sleep(0.01)
-            self.assertFalse(session.busy)
-            self.assertEqual("yes", marker.read_text(encoding="utf-8"))
-            self.assertTrue(any(e["kind"] == "command.result" for e in session.events_after(0)))
-
-    def test_unlisted_chat_command_is_refused_and_logged(self):
-        self.allow({"write": [sys.executable, "-c", "print('ok')"]})
-        calls = 0
-
-        def fake_ollama(path, payload):
-            nonlocal calls
-            calls += 1
-            if calls == 1:
-                return {"message": {"role": "assistant", "tool_calls": [{"function": {
-                    "name": "run_command", "arguments": {"name": "unknown"},
-                }}]}}
-            return {"message": {"role": "assistant", "content": "refused"}}
-
-        with patch("local_memory_lab.agent.engine.ollama_json", side_effect=fake_ollama):
-            session = SharedSession(self.root / "events.sqlite", load_models=False,
-                                    start_worker=True, knowledge_embedder=FakeEmbedder())
-            session.set_project_root(str(self.root))
-            session.submit("try unknown", "AGENT")
-            deadline = time.monotonic() + 2
-            while time.monotonic() < deadline:
-                events = session.events_after(0)
-                if any(e["kind"] == "chat.reply" for e in events):
-                    break
-                time.sleep(0.01)
-            else:
-                self.fail("Chat did not complete after the command refusal.")
-            refused = [e for e in events if e["kind"] == "tool.result"]
-            self.assertEqual("error", refused[-1]["data"]["toolStatus"])
-            self.assertFalse(any(e["kind"] == "command.result" for e in events))
-            while session.busy and time.monotonic() < deadline:
-                time.sleep(0.01)
-            self.assertFalse(session.busy)
 
     @unittest.skipUnless(sys.platform == "win32", "Windows process-tree contract")
     def test_timeout_and_cancel_remove_child_processes(self):

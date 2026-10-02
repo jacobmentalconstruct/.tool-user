@@ -38,13 +38,13 @@ class ContextPackTests(unittest.TestCase):
             session = SharedSession(Path(temp) / "events.sqlite", load_models=False)
             received = []
 
-            def fake_turn(prompt, model, turns, notes, tools, on_tool, **kwargs):
+            def fake_answer(prompt, model, turns, notes):
                 received.extend(notes)
                 return "finished", [{"role": "user", "content": prompt}]
 
             with patch("local_memory_lab.session.KnowledgeService.context_for",
                        return_value="[guide.md:1-2]\nUseful context"), \
-                 patch("local_memory_lab.session.run_turn", side_effect=fake_turn):
+                 patch("local_memory_lab.session.answer", side_effect=fake_answer):
                 session.submit("use the guide", "USER")
                 deadline = time.monotonic() + 3
                 while not any(event["kind"] == "chat.reply" for event in session.events_after(0)):

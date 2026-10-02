@@ -1,4 +1,4 @@
-"""Project path validation, exclusions, and bounded text file operations."""
+"""Project path validation, exclusions, the project file walk, and bounded text reads."""
 
 from __future__ import annotations
 
@@ -8,10 +8,8 @@ import re
 import stat
 from pathlib import Path
 
-MAX_CONTENT = 100_000
 MAX_READ = 100_000
 MAX_NAME = 120
-MAX_ENTRIES = 200
 EXCLUDED_NAMES = {".git", ".hg", ".svn", "live_control", ".lab", "shared.json"}
 BUILTIN_EXCLUSIONS = {
     "node_modules", ".venv", "venv", "__pycache__", "dist", "build", "bin", "obj", "target",
@@ -134,34 +132,6 @@ class Workspace:
                 if not is_link(path) and not excluded(self.root, path, False, self.rules):
                     yield path.relative_to(self.root).as_posix(), path
 
-    def list_project(self, relative: object = "") -> dict:
-        folder = self.path(relative, allow_root=True)
-        if not folder.is_dir():
-            raise ValueError("project folder does not exist")
-        entries, truncated = [], False
-        with os.scandir(folder) as iterator:
-            for entry in iterator:
-                child = folder / entry.name
-                if is_link(child):
-                    continue
-                info = entry.stat(follow_symlinks=False)
-                is_dir = stat.S_ISDIR(info.st_mode)
-                if not is_dir and not stat.S_ISREG(info.st_mode):
-                    continue
-                try:
-                    self.path(child.relative_to(self.root).as_posix())
-                except ValueError:
-                    continue
-                if len(entries) == MAX_ENTRIES:
-                    truncated = True
-                    break
-                entries.append({"name": entry.name, "type": "folder" if is_dir else "file",
-                                "size": None if is_dir else info.st_size})
-        entries.sort(key=lambda item: (item["type"] != "folder", item["name"].casefold(), item["name"]))
-        shown = relative or "."
-        return {"status": "listed", "message": f"Listed {shown}", "path": shown,
-                "entries": entries, "truncated": truncated}
-
     def read_project_file(self, relative: object) -> dict:
         path = self.path(relative)
         if not path.is_file():
@@ -175,16 +145,3 @@ class Workspace:
         if "\x00" in content:
             raise ValueError("project file appears to be binary")
         return {"status": "read", "message": f"Read {relative}", "path": relative, "content": content}
-
-    def create_project_file(self, relative: object, content: object) -> dict:
-        path = self.path(relative)
-        if not isinstance(content, str) or len(content) > MAX_CONTENT:
-            raise ValueError(f"content must be text of at most {MAX_CONTENT:,} characters")
-        if not path.parent.is_dir():
-            raise ValueError("create the destination folder first")
-        try:
-            with path.open("x", encoding="utf-8", newline="") as stream:
-                stream.write(content)
-        except FileExistsError as exc:
-            raise ValueError("project file already exists; no changes were made") from exc
-        return {"status": "created", "message": f"Created {relative} in the selected project", "path": relative}

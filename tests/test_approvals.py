@@ -35,14 +35,14 @@ class ApprovalTests(unittest.TestCase):
             release_first = threading.Event()
             calls = []
 
-            def fake_turn(prompt, model, turns, notes, tools, on_tool):
+            def fake_answer(prompt, model, turns, notes):
                 calls.append((prompt, list(turns)))
                 if prompt == "first":
                     first_started.set()
                     self.assertTrue(release_first.wait(2))
                 return "reply to " + prompt, [{"role": "user", "content": prompt}]
 
-            with patch("local_memory_lab.session.run_turn", side_effect=fake_turn):
+            with patch("local_memory_lab.session.answer", side_effect=fake_answer):
                 session = SharedSession(Path(temp) / "events.sqlite", load_models=False,
                                         start_worker=True)
                 session.submit("first", "USER")
@@ -101,37 +101,30 @@ class ApprovalTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             session = SharedSession(Path(temp) / "events.sqlite", load_models=False,
                                     start_worker=False)
-            approval_id = session.request_approval(
-                "command", "Run tests", "tests", actor="role:builder")
+            request = dict(actor="system", origin_role="role:builder", candidate="c-1")
+            approval_id = session.request_approval("patch", "Patch", "diff", **request)
             self.assertFalse(session.wait_for_approval(approval_id, timeout=0))
             self.assertEqual("expired", session.state.approvals.records[approval_id].state)
-            approval_id = session.request_approval(
-                "command", "Run tests", "tests", actor="role:builder")
+            approval_id = session.request_approval("patch", "Patch", "diff", **request)
             session.approve(approval_id, False)
             self.assertFalse(session.wait_for_approval(approval_id))
             self.assertEqual("rejected", session.state.approvals.records[approval_id].state)
-            self.assertFalse(any(e["kind"] == "command.result" for e in session.events_after(0)))
+            self.assertFalse(any(e["kind"] in {"command.result", "tool.result"} for e in session.events_after(0)))
+
+    def test_since_t6_only_the_lifecycle_requests_approvals(self):
+        with tempfile.TemporaryDirectory() as temp:
+            session = SharedSession(Path(temp) / "events.sqlite", load_models=False,
+                                    start_worker=False)
+            for kind, actor in (("patch", "role:builder"), ("command", "role:builder"), ("command", "system")):
+                with self.subTest(kind=kind, actor=actor), self.assertRaises(ValueError):
+                    session.request_approval(kind, "x", "y", actor=actor)
 
     def test_pending_approval_does_not_block_chat(self):
         with tempfile.TemporaryDirectory() as temp:
-            ready = threading.Event()
-            holder: dict[str, SharedSession] = {}
-
-            def fake_turn(prompt, model, turns, notes, tools, on_tool):
-                if prompt == "blocked":
-                    session = holder["session"]
-                    approval_id = session.request_approval(
-                        "patch", "Patch", "diff", actor="role:builder")
-                    ready.set()
-                    session.wait_for_approval(approval_id)
-                return "reply to " + prompt, []
-
-            with patch("local_memory_lab.session.run_turn", side_effect=fake_turn):
+            with patch("local_memory_lab.session.answer", return_value=("reply to free", [])):
                 session = SharedSession(Path(temp) / "events.sqlite", load_models=False,
                                         start_worker=True)
-                holder["session"] = session
-                session.submit("blocked", "USER")
-                self.assertTrue(ready.wait(2))
+                session.request_approval("plan", "Approve plan", "tasks", actor="system")
                 session.submit("free", "AGENT")
                 deadline = time.monotonic() + 2
                 while time.monotonic() < deadline:
@@ -141,46 +134,7 @@ class ApprovalTests(unittest.TestCase):
                     time.sleep(0.01)
                 else:
                     self.fail("Chat stayed blocked behind an approval.")
-                pending_id = session.state.approvals.pending()[0].id
-                session.approve(pending_id, True)
-                deadline = time.monotonic() + 2
-                while session.busy and time.monotonic() < deadline:
-                    time.sleep(0.01)
-                self.assertFalse(session.busy)
-
-    def test_four_parked_approvals_do_not_block_chat(self):
-        with tempfile.TemporaryDirectory() as temp:
-            holder: dict[str, SharedSession] = {}
-            free_done = threading.Event()
-
-            def fake_turn(prompt, model, turns, notes, tools, on_tool):
-                if prompt.startswith("blocked"):
-                    session = holder["session"]
-                    approval_id = session.request_approval(
-                        "patch", "Patch", "diff", actor="role:builder")
-                    session.wait_for_approval(approval_id)
-                else:
-                    free_done.set()
-                return "reply to " + prompt, []
-
-            with patch("local_memory_lab.session.run_turn", side_effect=fake_turn):
-                session = SharedSession(Path(temp) / "events.sqlite", load_models=False,
-                                        start_worker=True)
-                holder["session"] = session
-                for index in range(4):
-                    session.submit(f"blocked {index}", "USER")
-                    deadline = time.monotonic() + 2
-                    while len(session.state.approvals.pending()) < index + 1 and time.monotonic() < deadline:
-                        time.sleep(0.01)
-                    self.assertEqual(index + 1, len(session.state.approvals.pending()))
-                session.submit("free", "USER")
-                self.assertTrue(free_done.wait(2), "Four parked turns blocked chat.")
-                for pending in list(session.state.approvals.pending()):
-                    session.approve(pending.id, True)
-                deadline = time.monotonic() + 2
-                while session.busy and time.monotonic() < deadline:
-                    time.sleep(0.01)
-                self.assertFalse(session.busy)
+                self.assertEqual(1, len(session.state.approvals.pending()))
 
     def test_running_goal_holds_turn_slot_until_it_parks(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -189,12 +143,12 @@ class ApprovalTests(unittest.TestCase):
             chat_started = threading.Event()
             calls = []
 
-            def fake_turn(prompt, model, turns, notes, tools, on_tool, **kwargs):
+            def fake_answer(prompt, model, turns, notes):
                 chat_started.set()
                 return "done", []
 
             with team_roles(hold=release_goal, calls=calls), \
-                    patch("local_memory_lab.session.run_turn", side_effect=fake_turn), planner():
+                    patch("local_memory_lab.session.answer", side_effect=fake_answer), planner():
                 session = SharedSession(root / "events.sqlite", load_models=False,
                                         start_worker=True, knowledge_embedder=FakeEmbedder())
                 session.set_project_root(str(make_project(root / "project")))

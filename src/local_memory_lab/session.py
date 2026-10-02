@@ -3,21 +3,18 @@
 from __future__ import annotations
 
 import queue
-import json
 import threading
 from pathlib import Path
 from uuid import uuid4
 
-from .agent.engine import DEFAULT_MODEL, installed_chat_models, run_turn
-from .agent.project_tools import ProjectTools
-from .agent.tool_router import SharedTools
+from .agent.chat import DEFAULT_MODEL, answer, installed_chat_models
 from .event_store import EventStore
 from .approvals import request_data
-from .command_runner import CommandRunner
 from .lifecycles import JOB_TERMINAL, TASK_TERMINAL
 from .locations import CONTROL
 from .knowledge.service import KnowledgeService
 from .session_state import SessionState
+from .workspace.paths import choose_root
 from .team.jobs import run_goal
 
 
@@ -108,11 +105,6 @@ class SharedSession:
             raise ValueError("Only the USER may perform this action.")
         return label
 
-    def _event(self, speaker: str, text: str, **extra):
-        kind = {"Assistant": "chat.reply", "Tool": "tool.result", "Error": "error"}.get(speaker, "error")
-        data = {"display": {"speaker": speaker, "text": text}, **extra}
-        self._record("system", kind, data)
-
     def submit(self, prompt: str, actor: str):
         if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 8000:
             raise ValueError("Prompt must contain 1 to 8,000 characters.")
@@ -163,7 +155,7 @@ class SharedSession:
 
     def set_project_root(self, raw_path: object, actor: str = "USER"):
         actor_label = self._require_user(actor)
-        root = ProjectTools.choose_root(raw_path)
+        root = choose_root(raw_path)
         with self.lock:
             if self.busy or not self.prompts.empty() or self.state.jobs.active_ids():
                 raise ValueError("Wait for the current conversation to finish before changing projects.")
@@ -264,38 +256,6 @@ class SharedSession:
                 if pending.job == job_id:
                     self._resolve_approval(pending.id, "superseded", "system")
 
-    def _confirm_patch(self, request_id: str, proposal: dict,
-                       job_id: str | None = None) -> bool:
-        approval_id = self.request_approval("patch", proposal["name"], proposal["diff"],
-                                            actor="role:builder", request_id=request_id,
-                                            job=job_id)
-        return self.wait_for_approval(approval_id)
-    def _tools_for(self, project_root: Path | None, request_id: str, job_id: str | None = None) -> SharedTools:
-        return SharedTools(project_root, lambda proposal: self._confirm_patch(request_id, proposal, job_id), request_id,
-                           lambda name: self._run_named_command(name, project_root, request_id, job_id),
-                           self.knowledge.refresh_paths)
-
-    def _run_named_command(self, name: str, project_root: Path | None,
-                           request_id: str, job_id: str | None = None) -> dict:
-        if project_root is None:
-            raise ValueError("Choose a project before running commands.")
-        runner = CommandRunner(project_root)
-        spec = runner.resolve(name)
-        detail = json.dumps({"argv": list(spec.argv), "cwd": str(spec.root)}, indent=2)
-        approval_id = self.request_approval(
-            "command", f"Run {name}?", detail, actor="role:builder",
-            request_id=request_id, job=job_id)
-        if not self.wait_for_approval(approval_id):
-            return {"status": "cancelled", "message": f"Command {name} was not approved."}
-        cancelled = (lambda: self.state.jobs.records[job_id].state == "cancelled") if job_id else None
-        result = runner.run(spec, cancelled=cancelled)
-        self._record("system", "command.result", result, job=job_id)
-        message = f"Command {name}: {result['status']} (exit {result['exit_code']})."
-        if result["output"]:
-            message += "\n" + result["output"]
-        return {"status": "ok" if result["status"] == "ok" else result["status"],
-                "message": message, **result}
-
     def _work(self):
         while True:
             prompt_event_id = self.prompts.get()
@@ -319,19 +279,16 @@ class SharedSession:
                 model = self.model
                 notes = list(self.notes)
                 turns = list(self.turns)
-                project_root = self.project_root
             notes.extend([context] if (context := self.knowledge.context_for(prompt)) else [])
-            answer, turn = run_turn(prompt, model, turns, notes,
-                                    self._tools_for(project_root, request_id),
-                                    lambda result: self._event("Tool", result["message"],
-                                                               toolStatus=result["status"], requestId=request_id))
+            reply, turn = answer(prompt, model, turns, notes)  # answer-only: Chat never writes or runs commands
             with self.lock:
                 self._record("system", "chat.reply", {
-                    "display": {"speaker": "Assistant", "text": answer},
+                    "display": {"speaker": "Assistant", "text": reply},
                     "requestId": request_id, "turn": turn,
                 })
         except Exception as exc:
-            self._event("Error", str(exc), requestId=request_id)
+            self._record("system", "error", {"display": {"speaker": "Error", "text": str(exc)},
+                                             "requestId": request_id})
         finally:
             with self.lock:
                 self._active_turns -= 1; self.busy = self._active_turns > 0

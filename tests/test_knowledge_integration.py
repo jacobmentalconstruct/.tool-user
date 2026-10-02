@@ -1,4 +1,4 @@
-"""Selected-project indexing, patch refresh, idle scheduling, and restart checks."""
+"""Selected-project indexing, applied-change refresh, idle scheduling, and restart checks."""
 
 from __future__ import annotations
 
@@ -165,42 +165,7 @@ class KnowledgeIntegrationTests(unittest.TestCase):
             finally:
                 service.close()
 
-    def test_only_applied_patch_queues_and_completes_index_refresh(self):
-        with tempfile.TemporaryDirectory() as temp:
-            base = Path(temp)
-            project = base / "project"
-            project.mkdir()
-            (project / "guide.md").write_text("# Guide\nold phrase\n", encoding="utf-8")
-            service = KnowledgeService(project, control_root=base / "control", embedder=_Embedder())
-            session = SharedSession(base / "events.sqlite", load_models=False, start_worker=False)
-            session.knowledge.close()
-            session.knowledge = service
-            try:
-                self.assertTrue(service.wait_idle())
-                self.assertTrue(service.store.search_fts("old"))
-                with patch("local_memory_lab.agent.patch_tools.CONTROL", base / "patch_control"):
-                    with patch.object(session, "_confirm_patch", return_value=False):
-                        denied = session._tools_for(project, "denied")
-                        result = denied.call("patch_project_file", {
-                            "path": "guide.md", "search_block": "old phrase",
-                            "replace_block": "new phrase"})
-                        self.assertEqual("cancelled", result["status"])
-                        self.assertTrue(service.wait_idle(0.1))
-                        self.assertTrue(service.store.search_fts("old"))
-
-                    with patch.object(session, "_confirm_patch", return_value=True):
-                        approved = session._tools_for(project, "approved")
-                        result = approved.call("patch_project_file", {
-                            "path": "guide.md", "search_block": "old phrase",
-                            "replace_block": "new phrase"})
-                        self.assertEqual("patched", result["status"])
-                self.assertTrue(service.wait_idle())
-                self.assertFalse(service.store.search_fts("old"))
-                self.assertTrue(service.store.search_fts("new"))
-            finally:
-                service.close()
-
-    def test_refresh_waits_for_active_turn_and_command(self):
+    def test_refresh_waits_for_an_active_chat_turn(self):
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
             project = base / "project"
@@ -212,49 +177,28 @@ class KnowledgeIntegrationTests(unittest.TestCase):
             session.knowledge.close()
             session.knowledge = service
             turn_started = threading.Event()
-            enter_command = threading.Event()
-            command_started = threading.Event()
-            release_command = threading.Event()
-            command_finished = threading.Event()
+            release_turn = threading.Event()
 
-            def fake_turn(prompt, model, turns, notes, tools, on_tool, **kwargs):
+            def fake_answer(prompt, model, turns, notes):
                 turn_started.set()
-                self.assertTrue(enter_command.wait(3))
-                tools.request_command("hold")
+                self.assertTrue(release_turn.wait(3))
                 return "finished", [{"role": "user", "content": prompt}]
-
-            def blocked_command(_name, _root, _request_id, _job_id=None):
-                command_started.set()
-                self.assertTrue(release_command.wait(3))
-                command_finished.set()
-                return {"status": "ok", "message": "command finished"}
 
             try:
                 self.assertTrue(service.wait_idle())
                 original_hash = service.store.file_record("guide.md")["sha256"]
-                with patch("local_memory_lab.session.run_turn", side_effect=fake_turn), \
-                     patch.object(session, "_run_named_command", side_effect=blocked_command):
+                with patch("local_memory_lab.session.answer", side_effect=fake_answer):
                     session.submit("inspect the guide", "USER")
                     self.assertTrue(turn_started.wait(3))
                     source.write_text("# Guide\nturn change\n", encoding="utf-8")
                     service.refresh_paths(["guide.md"])
-                    self.assertFalse(service.wait_idle(0.15))
+                    self.assertFalse(service.wait_idle(0.15))  # no indexing while the turn runs
                     self.assertEqual(original_hash, service.store.file_record("guide.md")["sha256"])
-
-                    enter_command.set()
-                    self.assertTrue(command_started.wait(3))
-                    source.write_text("# Guide\ncommand change\n", encoding="utf-8")
-                    service.refresh_paths(["guide.md"])
-                    self.assertFalse(service.wait_idle(0.15))
-                    self.assertEqual(original_hash, service.store.file_record("guide.md")["sha256"])
-
-                    release_command.set()
-                    self.assertTrue(command_finished.wait(3))
+                    release_turn.set()
                     self.assertTrue(service.wait_idle(3))
-                    self.assertNotEqual(original_hash, service.store.file_record("guide.md")["sha256"])
-                    self.assertTrue(service.store.search_fts("command"))
+                    self.assertTrue(service.store.search_fts("turn"))
             finally:
-                release_command.set()
+                release_turn.set()
                 service.close()
                 session.knowledge.close()
 

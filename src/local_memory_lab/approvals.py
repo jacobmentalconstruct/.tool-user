@@ -18,8 +18,9 @@ def request_data(approval_id: str, kind: str, summary: str, detail: str, *, acto
     gated_patch = kind == "patch" and actor == "system"
     if gated_patch and (origin_role not in CANDIDATE_ROLES or not candidate):
         raise ValueError("A gated patch approval names its originating role and candidate.")
-    allowed = {"plan": {"system"}, "patch": {"system", "role:builder"},
-               "command": {"role:builder"}}[kind]
+    # Since T6 only the lifecycle asks: plan approvals, and patch approvals after the gate (reviewer L1).
+    # Nothing requests a command approval: task checks run under plan approval in their workspace (D19).
+    allowed = {"plan": {"system"}, "patch": {"system"}, "command": set()}[kind]
     if actor not in allowed:
         raise ValueError("Only the lifecycle or a ROLE may request this approval.")
     data = {"id": approval_id, "kind": kind, "summary": summary, "detail": detail,
