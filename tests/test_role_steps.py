@@ -18,6 +18,7 @@ from local_memory_lab.team.roles import (REVIEWER_SCHEMA, RoleConfig, RoleOutput
                                          call_role, candidate_schema, check_schema,
                                          planner_schema)
 from local_memory_lab.team.steps import build_card, candidate_input, require_citation  # noqa: E402
+import team_fixtures  # noqa: E402,F401  (blocks every model call in the default suite)
 
 CONFIG = RoleConfig("builder", "qwen3.5:9b", True, 0.0, 16384, 512, 30.0, "1m", 0.95, 20, 1.5, 1.1, 42)
 TASK = {"title": "Clamp budgets", "description": "Reject negative budgets.",

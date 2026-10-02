@@ -12,6 +12,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from local_memory_lab.lifecycles import Jobs, validate_task_transition  # noqa: E402
 from local_memory_lab.session import SharedSession  # noqa: E402
+import team_fixtures  # noqa: E402,F401  (blocks every model call in the default suite)
 
 
 class LifecycleTests(unittest.TestCase):

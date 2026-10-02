@@ -18,6 +18,7 @@ from local_memory_lab.agent.engine import DEFAULT_MODEL, MAX_RECENT_TURNS  # noq
 from local_memory_lab.session import SharedSession  # noqa: E402
 from local_memory_lab.interfaces.web import make_handler  # noqa: E402
 from local_memory_lab.session_state import ConversationState  # noqa: E402
+import team_fixtures  # noqa: E402,F401  (blocks every model call in the default suite)
 
 
 class SessionRestoreTests(unittest.TestCase):

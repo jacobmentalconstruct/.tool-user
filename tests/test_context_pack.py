@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from local_memory_lab.knowledge.context_pack import assemble_context_pack  # noqa: E402
 from local_memory_lab.session import SharedSession  # noqa: E402
+import team_fixtures  # noqa: E402,F401  (blocks every model call in the default suite)
 
 
 class ContextPackTests(unittest.TestCase):

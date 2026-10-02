@@ -8,11 +8,31 @@ import time
 from pathlib import Path
 from unittest.mock import patch
 
+from local_memory_lab.knowledge.embedding import EmbeddingUnavailable
 from local_memory_lab.team.roles import RoleReply
 
+
+class _NoModelEmbedder:
+    """Replaces the default embedder a session builds when a test passes none (keyword search only)."""
+
+    model = "blocked-in-tests"
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def embed(self, text):
+        raise EmbeddingUnavailable("embedding is blocked in the default test suite")
+
+    def embed_many(self, texts):
+        raise EmbeddingUnavailable("embedding is blocked in the default test suite")
+
+
 # The default suite must never reach a model: any test that imports these fixtures has Ollama blocked.
+# Role calls fail loudly; a session's default embedder is unavailable, so indexing uses keywords only.
+# Tests that pass their own embedder or point one at a fake server are unaffected.
 patch("local_memory_lab.agent.ollama.urlopen",
       side_effect=AssertionError("the default test suite must never call a model")).start()
+patch("local_memory_lab.knowledge.service.OllamaEmbedder", _NoModelEmbedder).start()
 
 SUITE = ["python", "-B", "-m", "unittest", "discover", "-s", "tests"]
 BROKEN_ADD = 'def add(a, b):\n    """Add two numbers."""\n    return a - b\n'
