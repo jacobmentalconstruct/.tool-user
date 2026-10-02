@@ -1,0 +1,107 @@
+{
+  "run_id": "20261002T172029Z-22830cfd",
+  "job": "done",
+  "error": null,
+  "debugger_ran": true,
+  "origin_role": "role:debugger",
+  "project_unchanged_while_pending": true,
+  "live_tests_pass": true,
+  "indexed_after_apply": true,
+  "reviewer": {
+    "verdict": "pass",
+    "reasons": [
+      "The function now increases stock levels as intended.",
+      "No unintended behavior changes were introduced."
+    ],
+    "correct": true
+  },
+  "total_seconds": 49.2,
+  "per_role": [
+    {
+      "role": "planner",
+      "model": "qwen2.5-coder:14b",
+      "ok": true,
+      "seconds": 4.5,
+      "loadSeconds": 0.1,
+      "gpuFraction": 1.0
+    },
+    {
+      "role": "builder",
+      "model": "qwen3.5:9b",
+      "ok": true,
+      "seconds": 15.5,
+      "loadSeconds": 5.4,
+      "gpuFraction": 1.0
+    },
+    {
+      "role": "debugger",
+      "model": "qwen3.5:9b",
+      "ok": true,
+      "seconds": 13.6,
+      "loadSeconds": 0.19,
+      "gpuFraction": 1.0
+    },
+    {
+      "role": "debugger",
+      "model": "qwen3.5:9b",
+      "ok": true,
+      "seconds": 6.5,
+      "loadSeconds": 0.18,
+      "gpuFraction": 1.0
+    },
+    {
+      "role": "reviewer",
+      "model": "qwen2.5-coder:14b",
+      "ok": true,
+      "seconds": 5.2,
+      "loadSeconds": 3.05,
+      "gpuFraction": 1.0
+    }
+  ],
+  "approvals_by": "probe, standing in for the USER on a throwaway project",
+  "plan": "Task 1: Implement restock in inventory.py\n  Target: inventory.py :: restock\n  Check: tests -> [\"python\", \"-B\", \"-m\", \"unittest\", \"discover\", \"-s\", \"tests\"] (runs in the task workspace)\n  Modify the existing restock function to increase stock levels.\n",
+  "patch": "--- a/inventory.py\n+++ b/inventory.py\n@@ -1,3 +1,8 @@\n def restock(levels: dict, item: str, amount: int) -> int:\n     \"\"\"Add amount to levels[item] and return the new level.\"\"\"\n-    raise NotImplementedError\n+    if amount < 1:\n+        raise ValueError(\"amount must be at least 1\")\n+    if item not in levels:\n+        levels[item] = 0\n+    levels[item] += amount\n+    return levels[item]",
+  "task_states": [
+    "pending",
+    "building",
+    "testing",
+    "debugging",
+    "testing",
+    "debugging",
+    "testing",
+    "reviewing",
+    "gated",
+    "awaiting_approval",
+    "applied"
+  ],
+  "job_states": [
+    "queued",
+    "planning",
+    "awaiting_plan_approval",
+    "running",
+    "done"
+  ],
+  "commands": [
+    {
+      "status": "failed",
+      "exit_code": 1,
+      "duration_s": 0.106
+    },
+    {
+      "status": "failed",
+      "exit_code": 1,
+      "duration_s": 0.102
+    },
+    {
+      "status": "failed",
+      "exit_code": 1,
+      "duration_s": 0.102
+    },
+    {
+      "status": "ok",
+      "exit_code": 0,
+      "duration_s": 0.102
+    }
+  ],
+  "raw_file": "live_control/work/team-20261002T172029Z-22830cfd/result.json"
+}
