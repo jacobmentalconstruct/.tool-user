@@ -15,6 +15,7 @@ from .locations import CONTROL
 from .knowledge.service import KnowledgeService
 from .session_state import SessionState
 from .workspace.paths import choose_root
+from .workspace.scratch import discard_job_scratch
 from .team.jobs import run_goal
 
 
@@ -45,6 +46,7 @@ class SharedSession:
             self._resolve_approval(pending.id, "expired", "system")
         for job_id in self.state.jobs.active_ids():
             self.transition_job(job_id, "failed", reason="interrupted by restart")
+            discard_job_scratch(CONTROL / "scratch", job_id)
         if start_worker:
             threading.Thread(target=self._work, daemon=True, name="shared-ollama-session").start()
 

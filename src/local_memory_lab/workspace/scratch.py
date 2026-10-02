@@ -47,6 +47,12 @@ class TaskWorkspace:
             raise ValueError("path is outside the task's files")
         return self.copy.path(relative)
 
+    def write(self, relative: str, text: str) -> None:
+        """Write one planned file in the copy; the selected project is never written here."""
+        path = self.path(relative)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8", newline="")
+
     def changes(self) -> dict[str, tuple[Path, bytes | None, bytes | None]]:
         """Changed planned files as (live path, bytes at copy time, candidate bytes)."""
         result = {}
@@ -72,3 +78,9 @@ def _copy_tree(project: Workspace, destination: Path) -> None:
         target = destination / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
+
+
+def discard_job_scratch(scratch_root: Path, job_id: str) -> None:
+    """Remove one job's leftover task workspaces, e.g. after a restart interrupted it."""
+    if job_id and Path(job_id).name == job_id:
+        shutil.rmtree(Path(scratch_root) / job_id, ignore_errors=True)

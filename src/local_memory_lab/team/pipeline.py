@@ -91,8 +91,7 @@ def run_task(task, project_root: Path, scratch: Path, roles: dict, knowledge, *,
                           schema, call=call).output[field]
         origin = "role:builder"
         for round_number in range(MAX_DEBUG_ROUNDS + 1):
-            workspace.path(path).parent.mkdir(parents=True, exist_ok=True)
-            workspace.path(path).write_text(updated_source(source, target, text), encoding="utf-8", newline="")
+            workspace.write(path, updated_source(source, target, text))
             step("testing")
             result = check()
             if result["status"] == "ok":

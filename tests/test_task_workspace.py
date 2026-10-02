@@ -15,7 +15,9 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from local_memory_lab.workspace.backups import BackupStore  # noqa: E402
 from local_memory_lab.workspace.patching import staged_apply  # noqa: E402
-from local_memory_lab.workspace.scratch import TaskWorkspace  # noqa: E402
+from local_memory_lab.session import SharedSession  # noqa: E402
+from local_memory_lab.workspace.scratch import TaskWorkspace, discard_job_scratch  # noqa: E402
+import team_fixtures  # noqa: E402,F401  (blocks every model call in the default suite)
 
 
 def fingerprint(root: Path) -> dict[str, str]:
@@ -71,6 +73,30 @@ class TaskWorkspaceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             TaskWorkspace.create(self.project, self.project / "scratch", ["pkg/a.py"])
         self.assertFalse((self.project / "scratch").exists())
+
+
+class RestartCleanupTests(unittest.TestCase):
+    def test_restart_removes_only_the_interrupted_jobs_workspaces(self):
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temp:
+            base = Path(temp)
+            control = base / "control"
+            session = SharedSession(base / "events.sqlite", load_models=False, start_worker=False)
+            for state in ("queued", "planning"):
+                session.transition_job("j-1", state, goal="fix" if state == "queued" else "")
+            (control / "scratch" / "j-1" / "t-1").mkdir(parents=True)
+            (control / "scratch" / "other-job").mkdir(parents=True)
+            with patch("local_memory_lab.session.CONTROL", control):
+                SharedSession(base / "events.sqlite", load_models=False, start_worker=False)
+            self.assertFalse((control / "scratch" / "j-1").exists())
+            self.assertTrue((control / "scratch" / "other-job").exists())
+
+    def test_cleanup_refuses_anything_but_a_plain_job_id(self):
+        with tempfile.TemporaryDirectory() as temp:
+            keep = Path(temp) / "keep"
+            keep.mkdir()
+            for job_id in ("", "../keep", "a/b"):
+                discard_job_scratch(Path(temp) / "scratch", job_id)
+            self.assertTrue(keep.exists())
 
 
 class NewFileApplyTests(unittest.TestCase):
