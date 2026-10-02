@@ -24,22 +24,30 @@ PROJECT = {
     "inventory.py": ('def restock(levels: dict, item: str, amount: int) -> int:\n'
                      '    """Add amount to levels[item] and return the new level."""\n'
                      '    raise NotImplementedError\n'),
-    # The last test holds a rule the goal does not state, so the first build most likely fails its check
-    # and the debugger runs on the failing output.
+    # Data-driven tests: the rule for amounts below 1 lives only in cases.json, which is not indexed, so
+    # the goal and the context pack do not reveal it. The first build most likely fails its check and the
+    # debugger runs on the failing output (a first run with the rule in the test code needed no debugger).
     "tests/test_inventory.py": (
-        "import sys\nimport unittest\nfrom pathlib import Path\n\n"
+        "import json\nimport sys\nimport unittest\nfrom pathlib import Path\n\n"
         "sys.path.insert(0, str(Path(__file__).resolve().parents[1]))\n"
-        "from inventory import restock  # noqa: E402\n\n\n"
+        "from inventory import restock  # noqa: E402\n\n"
+        "CASES = json.loads((Path(__file__).parent / 'cases.json').read_text(encoding='utf-8'))\n\n\n"
         "class RestockTests(unittest.TestCase):\n"
-        "    def test_adds_to_an_existing_item(self):\n"
-        "        levels = {'apples': 3}\n"
-        "        self.assertEqual(5, restock(levels, 'apples', 2))\n"
-        "        self.assertEqual(5, levels['apples'])\n\n"
-        "    def test_new_items_start_from_zero(self):\n"
-        "        self.assertEqual(4, restock({}, 'pears', 4))\n\n"
-        "    def test_rejects_amounts_below_one(self):\n"
-        "        with self.assertRaisesRegex(ValueError, 'amount must be at least 1'):\n"
-        "            restock({}, 'plums', 0)\n"),
+        "    def test_cases(self):\n"
+        "        for case in CASES:\n"
+        "            with self.subTest(case=case['name']):\n"
+        "                levels = dict(case['levels'])\n"
+        "                if 'error' in case:\n"
+        "                    with self.assertRaisesRegex(ValueError, case['error']):\n"
+        "                        restock(levels, case['item'], case['amount'])\n"
+        "                else:\n"
+        "                    self.assertEqual(case['expected'], restock(levels, case['item'], case['amount']))\n"
+        "                    self.assertEqual(case['expected'], levels[case['item']])\n"),
+    "tests/cases.json": json.dumps([
+        {"name": "adds to an existing item", "levels": {"apples": 3}, "item": "apples", "amount": 2, "expected": 5},
+        {"name": "new items start from zero", "levels": {}, "item": "pears", "amount": 4, "expected": 4},
+        {"name": "rejects amounts below one", "levels": {}, "item": "plums", "amount": 0,
+         "error": "amount must be at least 1"}], indent=2),
     ".lab/allowlist.json": json.dumps({"commands": {"tests": ["python", "-B", "-m", "unittest", "discover",
                                                               "-s", "tests"]}}),
 }
