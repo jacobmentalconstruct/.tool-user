@@ -277,11 +277,11 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Progress:**
 - [x] 1. Contracts and execution substrate (workspace, task records, approvals, gate rule, role config and probe, narrow forms, one transport).
-- [ ] 2. Real planning before plan approval, with code validation and immutable tasks.
+- [x] 2. Real planning before plan approval, with code validation and immutable tasks.
 - [ ] 3. Candidate execution in the workspace with reason codes and thinking capture.
 - [ ] 4. Apply with new-file support, bypass closed, knowledge refresh, Chat replaced, `run_turn` removed, real-model proof.
 
-**Now:** task 2 in progress. Planning-before-approval code: `09e4d53`. Planner chosen: qwen2.5-coder:14b with the fixed prompt (`a1afcfc`; D4 has the evidence). Every role call now sends all sampling settings and records a trace (`95a2853`). Running: recorded experiments (scratchpad `experiments.py`, rows appended to `bench/experiments/2026-10-02-planner-and-builder.jsonl`, every third goal held back): planner variants A@0.2, A@0.0, A+retry and best-of-3@0.7 on the 14b, and builder presence_penalty 1.5 against 0 on the 9b. Then: apply the winning settings, record the evidence, tick task 2, start task 3. USER decided (2026-10-02): tasks may add a new method to an existing class (`Class.name`, `new: true`); validation is in place, insertion comes with task 3.
+**Now:** task 2 is done (evidence below). Task 3 (candidate execution in the task workspace) is in progress, alongside recorded builder and debugger tuning under the standing authorization. While the USER is away (2026-10-02): every file stays inside the project; throwaway tools live in the git-ignored `live_control/work/` (experiment toolkit `lab_exp.py`, which caches prepared goals); results go to `bench/experiments/`.
 
 **Task 1 evidence (2026-10-02):**
 - Substrate: task workspace, D17 task records, D18 approvals, D16 gate, role config, narrow forms, card reviewer with a required `quote`, one Ollama transport, per-call model unloading and GPU-residency recording. `python -B -m unittest discover -s tests -v`: 119 tests pass. `test_role_steps.py`, `test_gate.py`, `test_task_workspace.py`, `test_role_probe.py` and `test_roles.py` cover them.
@@ -290,6 +290,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - Transient comparisons on the 14b, run outside the repo and not adopted: with plain plants, the single pass caught 10 of 10 side-effect plants and passed 9 of 10 clean cards. Two narrow passes on a stripped card passed only 3 of 10 clean cards with 31 false claims. A progressive two-pass (full card each time, pass 1 feeding pass 2) passed 9 of 10 clean and caught 9 of 10 plants, but made 6 false intent claims. Code-computed effect facts on the card lowered catches (side effects 10 to 5, logic 7 to 3).
 - Logic mutants that still pass the tests (16 across 10 functions): the single-pass 14b caught 6 of 7 on edits but only 1 of 9 inside new functions, where BEFORE is a stub. Limitation carried into task 2: a new-function task needs a check that exercises its behaviour, because review cannot stand in for it.
 - Measurement note: Ollama's `eval_count` omits thinking tokens on completed replies but reports the full count when the cap is hit; tokens/s stays correct, and elapsed time is the true cost.
+
+**Task 2 evidence (2026-10-02):**
+- Planning before approval (`09e4d53`): the planner runs in `planning`, code validates its tasks (team/plan.py), tasks are recorded, then the plan approval shows each task with its exact check. Planner or plan failures fail the job with a reason; a finished job closes its tasks; restart fails unfinished tasks. `test_team_plan.py` covers validation (paths, allowlist file, case collisions, repeats, symbol resolution, new functions, methods and files), the live-allowlist rule, approval text, failures, rejection and restart. The default suite makes no model calls.
+- Targets (D17 amended by the USER): an existing symbol, a new top-level function, a new method of exactly one existing class, or a new file.
+- Planner choice (D4): qwen2.5-coder:14b, thinking off, temperature 0, with the fixed prompt (fewest tasks, no unrequested test tasks, use the only check). Planner probe (`bench/probes/planner-20261002T120743Z-555dc2ae.json`): with the old prompt the 14b got 4/22 and the 9b 7/22; the 35b spills onto the CPU and is dropped. Transient comparison: with the fixed prompt the 14b got 15/22 and 3/4 two-function goals, against the 9b's 10/22 and 1/4; a narrowed step-by-step planner was worse for both (0/4 on two-function goals). Recorded experiments (`bench/experiments/2026-10-02-planner-and-builder.jsonl`): temperature 0 gave 14/18 tune and 6/8 holdout; retry and best-of-3 brought no holdout gain.
+- Every role call sends all sampling settings and records a trace (`95a2853`). Ollama 0.18.3 appears to ignore `presence_penalty` for qwen3.5 (builder results and timings were identical at 1.5 and 0).
 
 **USER decision recorded:** D19 (T6-amend-1): plan approval covers each task's single named check in its task workspace only; commands against the selected project still need per-run approval.
 
