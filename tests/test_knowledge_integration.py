@@ -165,43 +165,6 @@ class KnowledgeIntegrationTests(unittest.TestCase):
             finally:
                 service.close()
 
-    def test_refresh_waits_for_an_active_chat_turn(self):
-        with tempfile.TemporaryDirectory() as temp:
-            base = Path(temp)
-            project = base / "project"
-            project.mkdir()
-            source = project / "guide.md"
-            source.write_text("# Guide\ninitial phrase\n", encoding="utf-8")
-            service = KnowledgeService(project, control_root=base / "control", embedder=_Embedder())
-            session = SharedSession(base / "events.sqlite", load_models=False)
-            session.knowledge.close()
-            session.knowledge = service
-            turn_started = threading.Event()
-            release_turn = threading.Event()
-
-            def fake_answer(prompt, model, turns, notes):
-                turn_started.set()
-                self.assertTrue(release_turn.wait(3))
-                return "finished", [{"role": "user", "content": prompt}]
-
-            try:
-                self.assertTrue(service.wait_idle())
-                original_hash = service.store.file_record("guide.md")["sha256"]
-                with patch("local_memory_lab.session.answer", side_effect=fake_answer):
-                    session.submit("inspect the guide", "USER")
-                    self.assertTrue(turn_started.wait(3))
-                    source.write_text("# Guide\nturn change\n", encoding="utf-8")
-                    service.refresh_paths(["guide.md"])
-                    self.assertFalse(service.wait_idle(0.15))  # no indexing while the turn runs
-                    self.assertEqual(original_hash, service.store.file_record("guide.md")["sha256"])
-                    release_turn.set()
-                    self.assertTrue(service.wait_idle(3))
-                    self.assertTrue(service.store.search_fts("turn"))
-            finally:
-                release_turn.set()
-                service.close()
-                session.knowledge.close()
-
 
 if __name__ == "__main__":
     unittest.main()

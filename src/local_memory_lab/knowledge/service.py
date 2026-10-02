@@ -30,7 +30,6 @@ class KnowledgeService:
         self._active = 0
         self._indexing = False
         self._pending_full = False
-        self._pending_paths: set[str] = set()
         self._stopping = False
         self._worker = None
         self.last_error = ""
@@ -50,14 +49,6 @@ class KnowledgeService:
                                                 name="knowledge-indexer")
                 self._worker.start()
             self._pending_full = self._worker is not None
-            self._pending_paths.clear()
-            self._condition.notify_all()
-
-    def refresh_paths(self, paths: list[str]) -> None:
-        with self._condition:
-            if self.store is None:
-                return
-            self._pending_paths.update(str(path) for path in paths)
             self._condition.notify_all()
 
     def begin_activity(self) -> None:
@@ -67,7 +58,7 @@ class KnowledgeService:
                 self._condition.notify_all()
             while self._indexing:
                 self._condition.wait()
-            while self._active == 0 and (self._pending_full or self._pending_paths):
+            while self._active == 0 and self._pending_full:
                 self._condition.wait()
             self._active += 1
 
@@ -96,7 +87,7 @@ class KnowledgeService:
     def wait_idle(self, timeout: float = 10.0) -> bool:
         deadline = time.monotonic() + timeout
         with self._condition:
-            while self._indexing or self._pending_full or self._pending_paths:
+            while self._indexing or self._pending_full:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     return False
@@ -113,21 +104,17 @@ class KnowledgeService:
     def _work(self) -> None:
         while True:
             with self._condition:
-                while not self._stopping and (self._active or
-                       (not self._pending_full and not self._pending_paths)):
+                while not self._stopping and (self._active or not self._pending_full):
                     self._condition.wait()
                 if self._stopping:
                     return
-                full = self._pending_full
-                paths = set(self._pending_paths)
                 self._pending_full = False
-                self._pending_paths.clear()
                 workspace, store = self.workspace, self.store
                 self._indexing = True
             try:
                 self.last_error = ""
                 if workspace is not None and store is not None:
-                    self._index_project(workspace, store, full, paths)
+                    self._index_project(workspace, store, True, set())
             except Exception as exc:
                 self.last_error = str(exc)
             finally:
