@@ -191,7 +191,7 @@ def call_role(config: RoleConfig, system: str, payload: dict, schema: dict, *,
     trace = {"model": config.model, "digest": digest, "think": config.think, "options": config.options(),
              "promptHash": hashlib.sha256((system + user + json.dumps(schema, sort_keys=True))
                                           .encode("utf-8")).hexdigest()[:12],
-             "promptTokens": prompt_tokens,
+             "promptTokens": prompt_tokens, "loadSeconds": round(int(response.get("load_duration") or 0) / 1e9, 2),
              "nearContextLimit": prompt_tokens >= config.num_ctx - 64}  # Ollama may have cut the prompt
     try:
         output = json.loads(content)

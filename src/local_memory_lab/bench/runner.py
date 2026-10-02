@@ -29,6 +29,12 @@ OLLAMA = "http://127.0.0.1:11434"
 RESULT_SCHEMA = 1
 
 
+def committable(path: Path, repo_root: Path) -> bool:
+    """True if a raw-output path would land in git: inside the repo but outside the ignored live_control/."""
+    path, repo_root = Path(path).resolve(), Path(repo_root).resolve()
+    return path.is_relative_to(repo_root) and not path.is_relative_to(repo_root / "live_control")
+
+
 def _get_json(path: str) -> dict:
     request = Request(OLLAMA + path, headers={"Accept": "application/json"})
     with urlopen(request, timeout=10) as response:
@@ -195,8 +201,8 @@ def run_benchmark(repo_root: Path, task_dir: Path, *, output_dir: Path | None = 
                      for condition in ("without_context", "with_context")}
     if resume_path:
         resume_path = resume_path.resolve()
-        if resume_path.is_relative_to(repo_root):
-            raise ValueError("raw run checkpoints must remain outside the repository")
+        if committable(resume_path, repo_root):
+            raise ValueError("raw run checkpoints must stay out of git: outside the repo or under live_control/")
         document = json.loads(resume_path.read_text(encoding="utf-8"))
         if (document.get("task_source") != tasks[0]["source"] or
                 document.get("available_models") != available or
@@ -215,8 +221,8 @@ def run_benchmark(repo_root: Path, task_dir: Path, *, output_dir: Path | None = 
     else:
         output_dir = output_dir or Path(tempfile.gettempdir()) / "local-memory-lab-bench"
         output_dir = output_dir.resolve()
-        if output_dir.is_relative_to(repo_root):
-            raise ValueError("raw run checkpoints must remain outside the repository")
+        if committable(output_dir, repo_root):
+            raise ValueError("raw run checkpoints must stay out of git: outside the repo or under live_control/")
         output_dir.mkdir(parents=True, exist_ok=True)
         resume_path = output_dir / f"{document['run_id']}.json"
         _write_checkpoint(resume_path, document)

@@ -21,6 +21,7 @@ from ..team.roles import (REVIEWER_SCHEMA, RoleOutputError, call_role, candidate
 from ..team.steps import (BUILDER_SYSTEM, DEBUGGER_SYSTEM, REVIEWER_SYSTEM, build_card,
                           candidate_input, require_citation)
 from .harness import CONTEXT_BUDGET, build_context
+from .runner import committable
 from .tasks import _run_check, archive_snapshot, load_tasks, prepare_punched_copy
 
 PROBE_TASKS = 5
@@ -198,8 +199,8 @@ def probe_roles(roles: dict, tasks: list[dict], snapshot: Path, root: Path, *,
 
 def _raw_dir(repo_root: Path, output_dir: Path | None) -> Path:
     output_dir = (output_dir or Path(tempfile.gettempdir()) / "local-memory-lab-bench").resolve()
-    if output_dir.is_relative_to(repo_root.resolve()):
-        raise ValueError("raw probe replies must remain outside the repository")
+    if committable(output_dir, repo_root):
+        raise ValueError("raw probe replies must stay out of git: outside the repo or under live_control/")
     output_dir.mkdir(parents=True, exist_ok=True)
     return output_dir
 

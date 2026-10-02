@@ -10,6 +10,7 @@ from .harness import validate_context_packs
 from .planner_probe import run_planner_probe
 from .roles_probe import run_role_probe
 from .runner import (record_run, run_benchmark, validate_recorded_result, validate_results)
+from .team_probe import run_team_probe
 from .tasks import load_tasks, validate_baselines
 
 
@@ -38,6 +39,9 @@ def main(argv: list[str] | None = None) -> int:
     planner = commands.add_parser("planner", help="compare planner models on the bench goals")
     planner.add_argument("--confirm-gpu-free", action="store_true",
                          help="confirm the GPU is free and no local roles are working")
+    team = commands.add_parser("team", help="one real-model goal through the whole team on a throwaway project")
+    team.add_argument("--confirm-gpu-free", action="store_true",
+                      help="confirm the GPU is free and no local roles are working")
     record = commands.add_parser("record", help="validate and import a completed raw run")
     record.add_argument("result_file", type=Path)
     args = parser.parse_args(argv)
@@ -76,6 +80,13 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(summary, indent=2))
             print(f"Raw replies, including thinking text: {raw}")
             return 0
+        if args.command == "team":
+            if not args.confirm_gpu_free:
+                raise ValueError("confirm the GPU is free and no local roles are working before running")
+            raw, summary = run_team_probe(repo_root, on_progress=lambda message: print(message, flush=True))
+            print(json.dumps(summary, indent=2))
+            print(f"Full record: {raw}")
+            return 0 if summary.get("job") == "done" else 1
         if args.command == "record":
             output, selected = record_run(repo_root, args.result_file, task_dir)
             print(f"Recorded {output.relative_to(repo_root)}; selected builder: {selected}")

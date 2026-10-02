@@ -160,5 +160,14 @@ class BenchRunnerTests(unittest.TestCase):
             self.assertEqual([], runner.validate_results(complete, tasks))
 
 
+
+class RawOutputLocationTests(unittest.TestCase):
+    def test_raw_output_may_live_outside_git_only(self):
+        repo = Path(tempfile.gettempdir()).resolve() / "a-repo"
+        self.assertTrue(runner.committable(repo / "bench" / "raw.json", repo))
+        self.assertFalse(runner.committable(repo / "live_control" / "tmp" / "raw.json", repo))
+        self.assertFalse(runner.committable(repo.parent / "elsewhere" / "raw.json", repo))
+
+
 if __name__ == "__main__":
     unittest.main()
