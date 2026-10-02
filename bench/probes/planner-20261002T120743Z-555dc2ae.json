@@ -1,0 +1,763 @@
+{
+  "run_id": "20261002T120743Z-555dc2ae",
+  "source_commit": "9371900731bf94cab284c3ee1203024b2f3ddab3",
+  "source_dirty": false,
+  "planners": {
+    "qwen3.5:9b": {
+      "think": true,
+      "timeout_s": 300.0,
+      "goals": null
+    },
+    "qwen2.5-coder:14b": {
+      "think": false,
+      "timeout_s": 120.0,
+      "goals": null
+    },
+    "qwen3.5:35b": {
+      "think": true,
+      "timeout_s": 600.0,
+      "goals": 5
+    }
+  },
+  "planner_role": {
+    "role": "planner",
+    "model": "qwen3.5:35b",
+    "think": true,
+    "temperature": 0.2,
+    "num_ctx": 16384,
+    "num_predict": 4096,
+    "timeout_s": 300.0,
+    "keep_alive": "5m"
+  },
+  "summary": {
+    "qwen3.5:9b": {
+      "goals": 22,
+      "valid": 10,
+      "invalid_by_reason": {
+        "cap_exhausted": 8,
+        "invalid_plan": 4
+      },
+      "target_hit": 7,
+      "first_task_hit": 7,
+      "mean_tasks": 1.3,
+      "mean_elapsed_s": 42.63,
+      "min_gpu_fraction": 1.0,
+      "offloaded_calls": 0
+    },
+    "qwen2.5-coder:14b": {
+      "goals": 22,
+      "valid": 6,
+      "invalid_by_reason": {
+        "invalid_plan": 16
+      },
+      "target_hit": 4,
+      "first_task_hit": 4,
+      "mean_tasks": 1.0,
+      "mean_elapsed_s": 26.87,
+      "min_gpu_fraction": 1.0,
+      "offloaded_calls": 0
+    },
+    "qwen3.5:35b": {
+      "goals": 5,
+      "valid": 2,
+      "invalid_by_reason": {
+        "invalid_plan": 2,
+        "cap_exhausted": 1
+      },
+      "target_hit": 2,
+      "first_task_hit": 2,
+      "mean_tasks": 1.0,
+      "mean_elapsed_s": 195.25,
+      "min_gpu_fraction": 0.551,
+      "offloaded_calls": 5
+    }
+  },
+  "raw_file": "planner-20261002T120743Z-555dc2ae.json",
+  "rows": [
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-001",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 2,
+      "elapsed_s": 53.02,
+      "gpuFraction": 1.0,
+      "evalCount": 221,
+      "targets": [
+        "src/local_memory_lab/knowledge/context_pack.py::assemble_context_pack",
+        "tests/test_context_pack.py::ContextPackTests"
+      ]
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-002",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 1,
+      "elapsed_s": 21.31,
+      "gpuFraction": 1.0,
+      "evalCount": 117,
+      "targets": [
+        "src/local_memory_lab/knowledge/chunking.py::_class_chunks"
+      ]
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-003",
+      "valid": false,
+      "reason": "cap_exhausted",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "error": "output cap reached before a usable reply",
+      "evalCount": 4096,
+      "capHit": true,
+      "gpuFraction": 1.0,
+      "elapsed_s": 80.84
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-004",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 24.17,
+      "gpuFraction": 1.0,
+      "evalCount": 524,
+      "error": "task 5 repeats the target src/local_memory_lab/knowledge/chunking.py _python_chunks"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-005",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 22.1,
+      "gpuFraction": 1.0,
+      "evalCount": 435,
+      "error": "task 4 repeats the target src/local_memory_lab/knowledge/chunking.py chunk_file"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-006",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 2,
+      "elapsed_s": 25.14,
+      "gpuFraction": 1.0,
+      "evalCount": 237,
+      "targets": [
+        "src/local_memory_lab/knowledge/code_graph.py::build_graph",
+        "tests/test_knowledge_store.py::test_build_graph"
+      ]
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-007",
+      "valid": false,
+      "reason": "cap_exhausted",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "error": "output cap reached before a usable reply",
+      "evalCount": 4096,
+      "capHit": true,
+      "gpuFraction": 1.0,
+      "elapsed_s": 78.92
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-008",
+      "valid": false,
+      "reason": "cap_exhausted",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "error": "output cap reached before a usable reply",
+      "evalCount": 4096,
+      "capHit": true,
+      "gpuFraction": 1.0,
+      "elapsed_s": 78.56
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-009",
+      "valid": false,
+      "reason": "cap_exhausted",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "error": "output cap reached before a usable reply",
+      "evalCount": 4096,
+      "capHit": true,
+      "gpuFraction": 1.0,
+      "elapsed_s": 78.66
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-010",
+      "valid": false,
+      "reason": "cap_exhausted",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "error": "output cap reached before a usable reply",
+      "evalCount": 4096,
+      "capHit": true,
+      "gpuFraction": 1.0,
+      "elapsed_s": 85.14
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-011",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 1,
+      "elapsed_s": 17.56,
+      "gpuFraction": 1.0,
+      "evalCount": 129,
+      "targets": [
+        "src/local_memory_lab/knowledge/retrieval.py::HybridRetriever._keyword_only"
+      ]
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-012",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 20.09,
+      "gpuFraction": 1.0,
+      "evalCount": 307,
+      "error": "task 2 repeats the target src/local_memory_lab/knowledge/embedding.py OllamaEmbedder"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-013",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 22.6,
+      "gpuFraction": 1.0,
+      "evalCount": 521,
+      "error": "task 2: symbol 'test_rejects_escape_and_excluded_paths' must resolve to exactly one definition (found 0)"
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-014",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 1,
+      "elapsed_s": 13.19,
+      "gpuFraction": 1.0,
+      "evalCount": 168,
+      "targets": [
+        "src/local_memory_lab/workspace/paths.py::excluded"
+      ]
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-015",
+      "valid": false,
+      "reason": "cap_exhausted",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "error": "output cap reached before a usable reply",
+      "evalCount": 4096,
+      "capHit": true,
+      "gpuFraction": 1.0,
+      "elapsed_s": 78.34
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-016",
+      "valid": true,
+      "reason": null,
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 1,
+      "elapsed_s": 17.98,
+      "gpuFraction": 1.0,
+      "evalCount": 94,
+      "targets": [
+        "tests/test_file_creation.py::"
+      ]
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-017",
+      "valid": true,
+      "reason": null,
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 2,
+      "elapsed_s": 17.56,
+      "gpuFraction": 1.0,
+      "evalCount": 236,
+      "targets": [
+        "src/local_memory_lab/workspace/paths.py::list_visible_entries",
+        "tests/test_workspace.py::test_list_visible_entries"
+      ]
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-018",
+      "valid": true,
+      "reason": null,
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 1,
+      "elapsed_s": 12.54,
+      "gpuFraction": 1.0,
+      "evalCount": 117,
+      "targets": [
+        "src/local_memory_lab/workspace/patching.py::prepare"
+      ]
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-019",
+      "valid": false,
+      "reason": "cap_exhausted",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "error": "output cap reached before a usable reply",
+      "evalCount": 4096,
+      "capHit": true,
+      "gpuFraction": 1.0,
+      "elapsed_s": 79.29
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-020",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 1,
+      "elapsed_s": 14.62,
+      "gpuFraction": 1.0,
+      "evalCount": 113,
+      "targets": [
+        "src/local_memory_lab/lifecycles.py::validate_task_transition"
+      ]
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-021",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 1,
+      "elapsed_s": 17.4,
+      "gpuFraction": 1.0,
+      "evalCount": 154,
+      "targets": [
+        "src/local_memory_lab/event_store.py::EventStore.read_after"
+      ]
+    },
+    {
+      "model": "qwen3.5:9b",
+      "task_id": "self-022",
+      "valid": false,
+      "reason": "cap_exhausted",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "error": "output cap reached before a usable reply",
+      "evalCount": 4096,
+      "capHit": true,
+      "gpuFraction": 1.0,
+      "elapsed_s": 78.78
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-001",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 40.35,
+      "gpuFraction": 1.0,
+      "evalCount": 442,
+      "error": "task 3: tests/test_context_pack.py already exists"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-002",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 34.02,
+      "gpuFraction": 1.0,
+      "evalCount": 453,
+      "error": "task 3: tests/test_chunking.py already exists"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-003",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 27.66,
+      "gpuFraction": 1.0,
+      "evalCount": 377,
+      "error": "task 2: symbol '' must resolve to exactly one definition (found 0)"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-004",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 31.6,
+      "gpuFraction": 1.0,
+      "evalCount": 458,
+      "error": "task 2 repeats the target src/local_memory_lab/knowledge/chunking.py _python_chunks"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-005",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 33.23,
+      "gpuFraction": 1.0,
+      "evalCount": 489,
+      "error": "task 3 repeats the target src/local_memory_lab/knowledge/chunking.py chunk_file"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-006",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 34.42,
+      "gpuFraction": 1.0,
+      "evalCount": 479,
+      "error": "task 3: tests/test_chunking.py already exists"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-007",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 30.68,
+      "gpuFraction": 1.0,
+      "evalCount": 441,
+      "error": "task 1: symbol '_index_project' must resolve to exactly one definition (found 0)"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-008",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 1,
+      "elapsed_s": 11.36,
+      "gpuFraction": 1.0,
+      "evalCount": 101,
+      "targets": [
+        "src/local_memory_lab/knowledge/store.py::KnowledgeStore.replace_file"
+      ]
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-009",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 31.03,
+      "gpuFraction": 1.0,
+      "evalCount": 452,
+      "error": "task 5: tests/test_knowledge_store.py already exists"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-010",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 35.46,
+      "gpuFraction": 1.0,
+      "evalCount": 465,
+      "error": "task 3: tests/test_retrieval.py already exists"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-011",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 29.9,
+      "gpuFraction": 1.0,
+      "evalCount": 435,
+      "error": "task 2: symbol '' must resolve to exactly one definition (found 0)"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-012",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 44.18,
+      "gpuFraction": 1.0,
+      "evalCount": 661,
+      "error": "task 4: tests/test_retrieval.py already exists"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-013",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 1,
+      "elapsed_s": 11.55,
+      "gpuFraction": 1.0,
+      "evalCount": 103,
+      "targets": [
+        "src/local_memory_lab/workspace/paths.py::Workspace.path"
+      ]
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-014",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 33.81,
+      "gpuFraction": 1.0,
+      "evalCount": 494,
+      "error": "task 3: tests/test_workspace.py already exists"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-015",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 27.32,
+      "gpuFraction": 1.0,
+      "evalCount": 388,
+      "error": "task 3: symbol '__init__' must resolve to exactly one definition (found 0)"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-016",
+      "valid": true,
+      "reason": null,
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 1,
+      "elapsed_s": 11.5,
+      "gpuFraction": 1.0,
+      "evalCount": 97,
+      "targets": [
+        "src/local_memory_lab/new_module.py::"
+      ]
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-017",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 29.45,
+      "gpuFraction": 1.0,
+      "evalCount": 431,
+      "error": "task 1: symbol '' must resolve to exactly one definition (found 0)"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-018",
+      "valid": true,
+      "reason": null,
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 1,
+      "elapsed_s": 11.05,
+      "gpuFraction": 1.0,
+      "evalCount": 105,
+      "targets": [
+        "src/local_memory_lab/workspace/patching.py::prepare"
+      ]
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-019",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 1,
+      "elapsed_s": 10.76,
+      "gpuFraction": 1.0,
+      "evalCount": 91,
+      "targets": [
+        "src/local_memory_lab/workspace/patching.py::staged_apply"
+      ]
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-020",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 29.12,
+      "gpuFraction": 1.0,
+      "evalCount": 434,
+      "error": "task 2: symbol '' must resolve to exactly one definition (found 0)"
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-021",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 1,
+      "elapsed_s": 11.31,
+      "gpuFraction": 1.0,
+      "evalCount": 102,
+      "targets": [
+        "src/local_memory_lab/event_store.py::EventStore.read_after"
+      ]
+    },
+    {
+      "model": "qwen2.5-coder:14b",
+      "task_id": "self-022",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 31.29,
+      "gpuFraction": 1.0,
+      "evalCount": 451,
+      "error": "task 3: symbol 'test_append_increases_ids_and_cursor_returns_only_new_events' must resolve to exactly one definition (found 0)"
+    },
+    {
+      "model": "qwen3.5:35b",
+      "task_id": "self-001",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 1,
+      "elapsed_s": 128.27,
+      "gpuFraction": 0.551,
+      "evalCount": 127,
+      "targets": [
+        "src/local_memory_lab/knowledge/context_pack.py::assemble_context_pack"
+      ]
+    },
+    {
+      "model": "qwen3.5:35b",
+      "task_id": "self-002",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 150.16,
+      "gpuFraction": 0.551,
+      "evalCount": 529,
+      "error": "task 2 repeats the target src/local_memory_lab/knowledge/chunking.py _class_chunks"
+    },
+    {
+      "model": "qwen3.5:35b",
+      "task_id": "self-003",
+      "valid": true,
+      "reason": null,
+      "hit": true,
+      "first_task_hit": true,
+      "tasks": 1,
+      "elapsed_s": 132.65,
+      "gpuFraction": 0.551,
+      "evalCount": 117,
+      "targets": [
+        "src/local_memory_lab/knowledge/chunking.py::_markdown_chunks"
+      ]
+    },
+    {
+      "model": "qwen3.5:35b",
+      "task_id": "self-004",
+      "valid": false,
+      "reason": "cap_exhausted",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "error": "output cap reached before a usable reply",
+      "evalCount": 4096,
+      "capHit": true,
+      "gpuFraction": 0.551,
+      "elapsed_s": 439.88
+    },
+    {
+      "model": "qwen3.5:35b",
+      "task_id": "self-005",
+      "valid": false,
+      "reason": "invalid_plan",
+      "hit": false,
+      "first_task_hit": false,
+      "tasks": 0,
+      "elapsed_s": 125.27,
+      "gpuFraction": 0.551,
+      "evalCount": 334,
+      "error": "task 2 repeats the target src/local_memory_lab/knowledge/chunking.py chunk_file"
+    }
+  ]
+}
