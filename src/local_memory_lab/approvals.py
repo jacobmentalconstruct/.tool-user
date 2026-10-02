@@ -6,6 +6,28 @@ from dataclasses import dataclass, field
 
 
 RESOLUTIONS = {"approved", "rejected", "expired", "superseded"}
+CANDIDATE_ROLES = {"role:builder", "role:debugger"}
+
+
+def request_data(approval_id: str, kind: str, summary: str, detail: str, *, actor: str,
+                 request_id: str | None = None, origin_role: str | None = None,
+                 candidate: str | None = None) -> dict:
+    """Validate who may request an approval and build its requested-event data (D18)."""
+    if kind not in {"plan", "patch", "command"}:
+        raise ValueError("Choose a contract approval kind.")
+    gated_patch = kind == "patch" and actor == "system"
+    if gated_patch and (origin_role not in CANDIDATE_ROLES or not candidate):
+        raise ValueError("A gated patch approval names its originating role and candidate.")
+    allowed = {"plan": {"system"}, "patch": {"system", "role:builder"},
+               "command": {"role:builder"}}[kind]
+    if actor not in allowed:
+        raise ValueError("Only the lifecycle or a ROLE may request this approval.")
+    data = {"id": approval_id, "kind": kind, "summary": summary, "detail": detail,
+            "state": "pending", "requestId": request_id,
+            "display": {"speaker": "Approval", "text": f"Review {summary.lower()} in the browser."}}
+    if gated_patch:
+        data.update({"originRole": origin_role, "candidate": candidate})
+    return data
 
 
 @dataclass
@@ -18,6 +40,8 @@ class ApprovalRecord:
     job: str | None = None
     task: str | None = None
     request_id: str | None = None
+    origin_role: str | None = None
+    candidate: str | None = None
 
     def public(self, include_detail: bool) -> dict:
         title = "Apply project patch?" if self.kind == "patch" else self.summary
@@ -27,6 +51,10 @@ class ApprovalRecord:
             result["requestId"] = self.request_id
         if self.job:
             result["job"] = self.job
+        if self.task:
+            result["task"] = self.task
+        if self.origin_role:
+            result.update({"originRole": self.origin_role, "candidate": self.candidate})
         if include_detail:
             result["detail"] = self.detail
             result["diff"] = self.detail if self.kind == "patch" else ""
@@ -49,7 +77,8 @@ class Approvals:
                 approval_id, data["kind"], data.get("summary", data.get("name", data.get("title", "Approval"))),
                 data.get("detail", data.get("name", "")),
                 job=event.get("job") or data.get("job"), task=event.get("task") or data.get("task"),
-                request_id=data.get("requestId"),
+                request_id=data.get("requestId"), origin_role=data.get("originRole"),
+                candidate=data.get("candidate"),
             )
         elif event["kind"] == "approval.resolved":
             approval = self.records.get(data["id"])

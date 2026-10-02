@@ -3,33 +3,13 @@
 from __future__ import annotations
 
 import json
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 
+from .ollama import ollama_json
 from .tool_router import SharedTools
 
 
-OLLAMA_URL = "http://127.0.0.1:11434"
 DEFAULT_MODEL = "qwen3.5:4b"
 MAX_RECENT_TURNS = 8
-
-
-def ollama_json(path: str, payload: dict | None = None) -> dict:
-    data = None if payload is None else json.dumps(payload).encode("utf-8")
-    request = Request(
-        OLLAMA_URL + path,
-        data=data,
-        headers={"Content-Type": "application/json"},
-        method="GET" if data is None else "POST",
-    )
-    try:
-        with urlopen(request, timeout=180) as response:
-            return json.load(response)
-    except HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"Ollama returned HTTP {exc.code}: {detail}") from exc
-    except URLError as exc:
-        raise RuntimeError("Cannot reach Ollama. Start Ollama and try again.") from exc
 
 
 def installed_chat_models() -> list[str]:

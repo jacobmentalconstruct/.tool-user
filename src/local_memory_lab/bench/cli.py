@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from .harness import validate_context_packs
+from .roles_probe import run_role_probe
 from .runner import (record_run, run_benchmark, validate_recorded_result, validate_results)
 from .tasks import load_tasks, validate_baselines
 
@@ -26,6 +27,11 @@ def main(argv: list[str] | None = None) -> int:
                      help="confirm the GPU is free and no local roles are working")
     run.add_argument("--resume", type=Path,
                      help="resume an incomplete raw results file outside the repository")
+    probe = commands.add_parser("roles", help="probe role budgets and compare reviewer models")
+    probe.add_argument("--confirm-gpu-free", action="store_true",
+                       help="confirm the GPU is free and no local roles are working")
+    probe.add_argument("--context-budget", type=int, default=6000,
+                       help="context pack budget; trim once if the builder exceeds its threshold")
     record = commands.add_parser("record", help="validate and import a completed raw run")
     record.add_argument("result_file", type=Path)
     args = parser.parse_args(argv)
@@ -43,6 +49,14 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Raw results checkpointed at {output}")
             print("Use `python lab.py bench record <path>` after the run completes to validate and import it.")
             return 0
+        if args.command == "roles":
+            if not args.confirm_gpu_free:
+                raise ValueError("confirm the GPU is free and no local roles are working before running")
+            raw, summary = run_role_probe(repo_root, task_dir, context_budget=args.context_budget,
+                                          on_progress=lambda message: print(message, flush=True))
+            print(json.dumps(summary, indent=2))
+            print(f"Raw replies, including thinking text: {raw}")
+            return 0 if summary["builder_within_threshold"] else 1
         if args.command == "record":
             output, selected = record_run(repo_root, args.result_file, task_dir)
             print(f"Recorded {output.relative_to(repo_root)}; selected builder: {selected}")

@@ -13,20 +13,14 @@ from io import BytesIO
 from pathlib import Path
 from pathlib import PurePosixPath
 
-
-def _functions(body: list[ast.stmt], scope: tuple[str, ...] = ()):
-    for node in body:
-        if isinstance(node, ast.ClassDef):
-            yield from _functions(node.body, (*scope, node.name))
-        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            yield ".".join((*scope, node.name)), node
-            yield from _functions(node.body, (*scope, node.name))
+from ..team.regions import definitions
 
 
 def punch_function(source: str, qualified_name: str, marker: str = "bench task") -> tuple[str, str]:
     """Replace one Python function implementation while retaining its interface."""
     tree = ast.parse(source)
-    matches = [node for name, node in _functions(tree.body) if name == qualified_name]
+    matches = [node for name, node in definitions(tree.body) if name == qualified_name
+               and not isinstance(node, ast.ClassDef)]
     if len(matches) != 1:
         raise ValueError(f"expected one function named {qualified_name!r}")
     node = matches[0]

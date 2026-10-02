@@ -296,20 +296,7 @@ def record_run(repo_root: Path, result_path: Path, task_dir: Path) -> tuple[Path
         stream.write("\n")
 
     roles_path = repo_root / "roles.json"
-    if roles_path.exists():
-        roles = json.loads(roles_path.read_text(encoding="utf-8"))
-    else:
-        roles = {
-            "planner": {"model": "qwen3.5:35b", "think": True, "temperature": 0.2,
-                        "num_ctx": 16384},
-            "builder": {"model": selected, "think": THINK_ENABLED, "temperature": 0,
-                        "num_ctx": 16384},
-            "debugger": {"model": "qwen3.5:9b", "think": False, "temperature": 0,
-                         "num_ctx": 16384},
-            "reviewer": {"model": "qwen3.5:35b", "think": True, "temperature": 0,
-                         "num_ctx": 16384},
-            "embedder": {"model": "nomic-embed-text"},
-        }
+    roles = json.loads(roles_path.read_text(encoding="utf-8"))
     roles["builder"]["model"] = selected
     roles["builder"]["think"] = THINK_ENABLED
     roles_path.write_text(json.dumps(roles, indent=2) + "\n", encoding="utf-8")

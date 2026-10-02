@@ -12,6 +12,7 @@ from .agent.engine import DEFAULT_MODEL, installed_chat_models, run_turn
 from .agent.project_tools import ProjectTools
 from .agent.tool_router import SharedTools
 from .event_store import EventStore
+from .approvals import request_data
 from .command_runner import CommandRunner
 from .lifecycles import JOB_TERMINAL
 from .locations import CONTROL
@@ -149,7 +150,7 @@ class SharedSession:
                 "model": self.model, "models": list(self.models),
                 "modelError": self.model_error, "notes": self.notes,
                 "projectRoot": str(self.project_root) if self.project_root else None,
-                "jobs": self.state.jobs.public(),
+                "jobs": self.state.jobs.public(), "tasks": self.state.tasks.public(),
             }
 
     def events_after(self, event_id: int) -> list[dict]:
@@ -208,20 +209,15 @@ class SharedSession:
             self._resolve_approval(approval_id, "approved" if approved else "rejected", actor_label)
 
     def request_approval(self, kind: str, summary: str, detail: str, *,
-                         actor: str, job: str | None = None,
-                         request_id: str | None = None) -> str:
-        if kind not in {"plan", "patch", "command"}:
-            raise ValueError("Choose a contract approval kind.")
-        if (kind == "plan" and actor != "system") or (kind != "plan" and actor != "role:builder"):
-            raise ValueError("Only the lifecycle or a ROLE may request this approval.")
+                         actor: str, job: str | None = None, task: str | None = None,
+                         request_id: str | None = None, origin_role: str | None = None,
+                         candidate: str | None = None) -> str:
         approval_id = str(uuid4())
+        data = request_data(approval_id, kind, summary, detail, actor=actor, request_id=request_id,
+                            origin_role=origin_role, candidate=candidate)
         with self.lock:
             self._approval_waiters[approval_id] = threading.Event()
-            self._record(actor, "approval.requested", {
-                "id": approval_id, "kind": kind, "summary": summary, "detail": detail,
-                "state": "pending", "requestId": request_id,
-                "display": {"speaker": "Approval", "text": f"Review {summary.lower()} in the browser."},
-            }, job=job)
+            self._record(actor, "approval.requested", data, job=job, task=task)
         return approval_id
 
     def _resolve_approval(self, approval_id: str, state: str, actor: str) -> None:
@@ -230,7 +226,7 @@ class SharedSession:
             self._record(actor, "approval.resolved", {
                 "id": approval_id, "state": state, "approved": state == "approved",
                 "requestId": pending.request_id,
-            }, job=pending.job)
+            }, job=pending.job, task=pending.task)
             waiter = self._approval_waiters.get(approval_id)
             if waiter:
                 waiter.set()

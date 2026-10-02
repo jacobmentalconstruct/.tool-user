@@ -40,6 +40,7 @@ This is the append-only log and the single source of truth (S2). Every other kin
 - **`actor`:** one of `user`, `agent`, `role:<planner|builder|debugger|reviewer>`, or `system` (§0).
 - **`data.display` (optional):** interface presentation metadata stored inside `data`, with string fields `speaker` and `text`. Domain data remains alongside it in `data`; clients may render this hint as a message, but it does not change the event's actor or kind.
 - **T3 event data (D12–D14):** `job.state` carries `state`, initial `goal` and `submittedBy`, and a `reason` when failed or cancelled. `approval.requested` carries the §3 identity, kind, summary, detail and pending state; `approval.resolved` carries the identity and resolution. T2 patch-approval events with an `approved` boolean remain readable. `command.result` carries the §4 fields plus `status` (`ok`, `failed`, `timeout`, `cancelled`); its `exit_code` is `-1` if stopped before an exit code was returned.
+- **T6 event data (D17–D18):** the first `task.state` event fixes the task's immutable specification: `title`, `description`, `target`, `files`, `check` and `order`, with `state: "pending"`. Later events carry `state`, a `reason` code when a task fails, `debugRound` when debugging starts, and a `failure` record for an unusable role reply (`reason`, `error`, `answerExcerpt` (first 2,000 characters), `thinkingExcerpt` (last 2,000), `evalCount`, `capHit`). Reason codes: `invalid_output`, `cap_exhausted`, `check_failed`, `debug_exhausted`, `review_failed`, `path_outside_task`, `patch_too_large`. Approval events carry the event-level `task` when they belong to one; a gated patch approval requested by `system` also carries `originRole` (`role:builder` or `role:debugger`) and `candidate`.
 - **`kind`, v0 set:**
   - `chat.prompt`, `chat.reply`
   - `note.added`, `note.removed`
@@ -62,6 +63,7 @@ task: pending → building → testing ⇄ debugging (max 2 rounds) → reviewin
 - Only the lifecycle's owner changes its state, and each change is recorded as a `job.state` or `task.state` event.
 - `cancel` is allowed from any state that isn't finished.
 - A task that fails the gate or runs out of debug rounds ends as `failed`, with the reason recorded. It is never retried silently.
+- **T6 tasks (D16):** each task names one `target` and its `files` are exactly `[target.path]`. Its candidate is built, checked, debugged and reviewed only in a disposable task workspace copied from the selected project; the selected project is unchanged until the USER approves the gated patch. Jobs fail fast: a failed, rejected or exhausted task fails the job, and later tasks do not run.
 - In T3, a New goal goes `queued → planning → awaiting_plan_approval → running → done / failed / cancelled`; planning passes through the goal text as the plan, and USER rejection ends the job as `rejected`. The existing `run_turn` supplies the running step. T3 validates the task transition table but creates no task instances; role tasks arrive in T6.
 - On restart, pending approvals become `expired` without side effects, and non-finished jobs become `failed` with reason `interrupted by restart`. Neither is replayed.
 
@@ -74,6 +76,7 @@ task: pending → building → testing ⇄ debugging (max 2 rounds) → reviewin
 ```
 
 - Only the `user` actor resolves an approval.
+- **Who requests (D18):** `system` requests plan approvals and, after the gate, a task's patch approval, recording `task`, `originRole` and `candidate`. Until T6 retires the chat loop, `role:builder` may still request patch and command approvals for chat.
 - Waiting never blocks the hub: other events keep flowing, and chat keeps working.
 - An expired approval changes nothing.
 - The USER alone resolves approvals and cancels jobs. A pending approval does not stop chat or other hub events.
@@ -120,36 +123,42 @@ This is one SQLite file per project, kept on the hub side under `live_control/`,
 
 ## 7. Role steps (T5 builder; T6 the rest)
 
-**Input** to every role: `{"role", "goal", "task", "context_pack", "feedback"}`. `feedback` carries earlier test output or reviewer reasons.
+**Input:** code builds each role's input; a model never chooses what it edits. Builder and debugger receive the task, its target, the pinned `region` (the exact source of the target definition, found by code), the target file and the task's context pack; the debugger's `feedback` adds the failing check output and the previous attempt. The reviewer receives one card (below).
 
-**Output:** each role must answer in JSON matching its schema. The schema is enforced through Ollama's `format` option. Invalid output counts as a failed step and is recorded in the bench.
+**Output:** each role answers in JSON matching its schema, enforced through Ollama's `format` option and checked again in code. An unusable reply is recorded with its `failure` record (§1) and never counted as a verdict.
 
-| Role | Output schema (v0) |
+| Role | Output schema (T6) |
 |---|---|
-| planner | `{"tasks": [{"id", "title", "description", "files": [path], "check": "<allowlist name>"}]}`, 1–5 tasks |
-| builder | `{"edits": [{"path", "search_block", "replace_block"}], "new_files": [{"path", "content"}], "notes"}` |
-| debugger | The same as builder. Its input `feedback` holds the failing output. |
-| reviewer | `{"verdict": "pass" \| "fail", "reasons": [str]}` |
+| planner | `{"tasks": [{"title", "description", "target": {"path", "symbol", "new"}, "check": "<allowlist name>"}]}`, 1–5 tasks; `check` is limited to allowlisted names and `target.path` to existing project paths unless `new` is true |
+| builder | `{"replace_block", "notes"}` for an existing target, or `{"content", "notes"}` for a new file the plan lists. Code applies it to the pinned region. |
+| debugger | The same as builder. |
+| reviewer | `{"verdict": "pass" \| "fail", "reasons": [str]}`; a `fail` must quote a line from the card |
 
-**Gate** (deterministic, T6): the gate passes only if all of these hold:
-- the task's `check` command exits with 0;
+**Reviewer card:** task title and intent (the approved description), target file and symbol, the check result, the gate's path and size facts, then BEFORE (the pinned region) and AFTER (the candidate). The reviewer answers two questions: does the change do what the task says, and does it change behaviour the task did not ask for?
+
+**Gate** (deterministic, D16): the gate passes only if all of these hold:
+- the task's `check` command exits with 0 in the task workspace (D19);
 - the reviewer's verdict is `pass`;
-- every edited or created path is in the task's `files` (or declared in `new_files`);
-- the patch limits hold (at most 8 files, 20 edits, and 40,000 characters of diff).
+- every edited or created path is already in the USER-approved task's `files`; a listed path that does not exist yet allows creation only for a `new` target;
+- the patch limits hold (at most 8 files and 40,000 characters of diff).
 
 ## 8. Role config (T6)
 
 This is `roles.json` at the repo root, the only place models are assigned.
 
 ```json
-{"planner":  {"model": "qwen3.5:35b", "think": true,  "temperature": 0.2, "num_ctx": 16384},
- "builder":  {"model": "qwen3.5:9b",  "think": true,  "temperature": 0,   "num_ctx": 16384},
- "debugger": {"model": "qwen3.5:9b",  "think": false, "temperature": 0,   "num_ctx": 16384},
- "reviewer": {"model": "qwen3.5:35b", "think": true,  "temperature": 0,   "num_ctx": 16384},
+{"planner":  {"model": "qwen3.5:35b", "think": true, "temperature": 0.2, "num_ctx": 16384,
+              "num_predict": 4096, "timeout_s": 300, "keep_alive": "5m"},
+ "builder":  {"model": "qwen3.5:9b",  "think": true, "temperature": 0,   "num_ctx": 16384,
+              "num_predict": 8192, "timeout_s": 180, "keep_alive": "10m"},
+ "debugger": {"model": "qwen3.5:9b",  "think": true, "temperature": 0,   "num_ctx": 16384,
+              "num_predict": 8192, "timeout_s": 180, "keep_alive": "10m"},
+ "reviewer": {"model": "qwen3.5:35b", "think": true, "temperature": 0,   "num_ctx": 16384,
+              "num_predict": 2048, "timeout_s": 240, "keep_alive": "5m"},
  "embedder": {"model": "nomic-embed-text"}}
 ```
 
-The values shown are `PLAN.md` D4, set from T0's measurements. T5's controlled probe found the builder's schema-valid output requires thinking enabled; its benchmark uses a 4,096-token output cap. T5's full bench confirms or changes the builder model assignment.
+Every role carries its output budget (`num_predict`), `timeout_s`, `think` and `keep_alive`; callers hard-code none of them. The builder and debugger share a budget and use thinking, because T5's probe showed `think: false` breaks qwen3.5:9b's schema output. The opt-in probe `python lab.py bench roles --confirm-gpu-free` sets the budgets and chooses the reviewer model (qwen3.5:35b or qwen3.5:9b) by measurement; its summary is committed under `bench/probes/`.
 
 ## 9. Bench task (T5)
 

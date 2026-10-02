@@ -7,7 +7,7 @@ from pathlib import Path
 
 from .agent.engine import MAX_RECENT_TURNS
 from .event_store import EventStore
-from .lifecycles import Jobs
+from .lifecycles import Jobs, Tasks
 from .approvals import Approvals
 
 
@@ -67,6 +67,7 @@ class SessionState:
     notes: NotesState = field(default_factory=NotesState)
     workspace: WorkspaceState = field(default_factory=WorkspaceState)
     jobs: Jobs = field(default_factory=Jobs)
+    tasks: Tasks = field(default_factory=Tasks)
     approvals: Approvals = field(default_factory=Approvals)
 
     @classmethod
@@ -86,4 +87,5 @@ class SessionState:
         self.notes.apply(event)
         self.workspace.apply(event)
         self.jobs.apply(event)
+        self.tasks.apply(event)
         self.approvals.apply(event)

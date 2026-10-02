@@ -96,14 +96,15 @@ class _BenchEmbedder:
 
 
 def build_context(checkout: Path, task: dict, control_root: Path, *,
-                  embedder: OllamaEmbedder | None = None) -> tuple[dict, list[str]]:
+                  embedder: OllamaEmbedder | None = None,
+                  budget: int = CONTEXT_BUDGET) -> tuple[dict, list[str]]:
     """Index the supplied task copy, then retrieve its T4 pack and top-five paths."""
     service = KnowledgeService(checkout, control_root=control_root,
                                embedder=embedder or _BenchEmbedder(), start_worker=False)
     try:
         service._index_project(service.workspace, service.store, True, set())
         retrieval = service.retriever.search(task["goal"], limit=5)
-        pack = service.context_pack(task["goal"], CONTEXT_BUDGET)
+        pack = service.context_pack(task["goal"], budget)
         return pack, [row["path"] for row in retrieval["results"]]
     finally:
         service.close()

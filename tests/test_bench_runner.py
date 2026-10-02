@@ -99,6 +99,8 @@ class BenchRunnerTests(unittest.TestCase):
             task_dir.mkdir()
             raw_path = root / "raw.json"
             raw_path.write_text(json.dumps(raw), encoding="utf-8")
+            (root / "roles.json").write_text(json.dumps({"builder": {"model": "old", "think": False}}),
+                                             encoding="utf-8")
             with patch.object(runner, "load_tasks", return_value=tasks):
                 recorded, selected = runner.record_run(root, raw_path, task_dir)
             self.assertEqual("qwen3.5:9b", selected)
