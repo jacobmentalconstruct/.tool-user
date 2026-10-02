@@ -33,6 +33,8 @@ class RoleConfigTests(unittest.TestCase):
             self.assertGreater(config.num_predict, 0)
             self.assertGreater(config.timeout_s, 0)
             self.assertTrue(config.keep_alive)
+            self.assertEqual({"temperature", "top_p", "top_k", "presence_penalty", "repeat_penalty",
+                              "seed", "num_ctx", "num_predict"}, set(config.options()))
 
     def test_builder_and_debugger_think_with_the_same_budget(self):
         # T5's probe showed think:false breaks qwen3.5:9b's schema output (D4).

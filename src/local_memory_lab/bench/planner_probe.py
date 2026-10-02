@@ -48,7 +48,7 @@ def plan_once(config, task: dict, copy: Path, knowledge) -> dict:
         project, checks, payload = planner_request(task["goal"], copy, knowledge)
         reply = call_role(config, PLANNER_SYSTEM, payload, planner_schema(list(checks)))
         row.update({"elapsed_s": round(reply.elapsed_s, 2), "gpuFraction": reply.gpu_fraction,
-                    "evalCount": reply.eval_count, "output": reply.output})
+                    "trace": reply.trace, "evalCount": reply.eval_count, "output": reply.output})
         specs = validate_plan(reply.output, project, checks)
     except RoleOutputError as exc:
         row.update(exc.record)

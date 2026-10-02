@@ -70,6 +70,7 @@ def _attempt(role: str, config, task_id: str, run: Callable[[], dict]) -> dict:
         return row
     row.update({"valid": True, "evalCount": reply.eval_count, "elapsed_s": round(reply.elapsed_s, 2),
                 "tokens_per_s": round(reply.tokens_per_s, 2), "gpuFraction": reply.gpu_fraction,
+                "trace": reply.trace,
                 "output": reply.output, "thinkingExcerpt": reply.thinking[-2000:]})
     return row
 

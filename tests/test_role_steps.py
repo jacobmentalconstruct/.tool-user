@@ -19,7 +19,7 @@ from local_memory_lab.team.roles import (REVIEWER_SCHEMA, RoleConfig, RoleOutput
                                          planner_schema)
 from local_memory_lab.team.steps import build_card, candidate_input, require_citation  # noqa: E402
 
-CONFIG = RoleConfig("builder", "qwen3.5:9b", True, 0.0, 16384, 512, 30.0, "1m")
+CONFIG = RoleConfig("builder", "qwen3.5:9b", True, 0.0, 16384, 512, 30.0, "1m", 0.95, 20, 1.5, 1.1, 42)
 TASK = {"title": "Clamp budgets", "description": "Reject negative budgets.",
         "target": {"path": "pkg/budget.py", "symbol": "Budget.clamp", "new": False},
         "files": ["pkg/budget.py"], "check": "tests", "order": 1}
@@ -41,12 +41,12 @@ def reply(content: str, *, thinking: str = "", eval_count: int = 10):
 
     def transport(path, payload, timeout):
         if path == "/api/ps":
-            return {"models": [{"name": "qwen3.5:9b", "size": 100, "size_vram": 80},
+            return {"models": [{"name": "qwen3.5:9b", "size": 100, "size_vram": 80, "digest": "abcdef0123456789"},
                                {"name": "other:7b", "size": 50, "size_vram": 50}]}
         sent.append((path, payload, timeout))
         if path == "/api/generate":
             return {}
-        return {"message": {"content": content, "thinking": thinking},
+        return {"message": {"content": content, "thinking": thinking}, "prompt_eval_count": 16330,
                 "eval_count": eval_count, "eval_duration": 1_000_000_000}
     return transport, sent
 
@@ -65,6 +65,14 @@ class RoleCallTests(unittest.TestCase):
         self.assertEqual((512, True, "1m", schema),
                          (payload["options"]["num_predict"], payload["think"],
                           payload["keep_alive"], payload["format"]))
+        # every sampling lever is sent, so no model default applies silently
+        self.assertEqual({"temperature": 0.0, "top_p": 0.95, "top_k": 20, "presence_penalty": 1.5,
+                          "repeat_penalty": 1.1, "seed": 42, "num_ctx": 16384, "num_predict": 512},
+                         payload["options"])
+        trace = result.trace
+        self.assertEqual(("abcdef012345", 16330, True, payload["options"]),
+                         (trace["digest"], trace["promptTokens"], trace["nearContextLimit"], trace["options"]))
+        self.assertEqual(12, len(trace["promptHash"]))
 
     def test_empty_reply_at_the_cap_is_cap_exhausted_with_thinking_kept(self):
         thinking = "early " + "x" * 3000 + " late reasoning"
