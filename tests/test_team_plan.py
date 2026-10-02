@@ -31,16 +31,19 @@ class PlanValidationTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
         self.root = make_project(Path(self.temporary.name) / "project")
         (self.root / "dup.py").write_text("def f():\n    return 1\n\n\ndef f():\n    return 2\n", encoding="utf-8")
+        (self.root / "shapes.py").write_text("class Box:\n    def area(self):\n        return 1\n\n\n"
+                                             "class Twin:\n    pass\n\n\nclass Twin:\n    pass\n", encoding="utf-8")
         self.project = Workspace(self.root)
 
     def tearDown(self):
         self.temporary.cleanup()
 
-    def test_accepts_an_existing_symbol_a_new_function_and_a_new_file(self):
+    def test_accepts_an_existing_symbol_a_new_function_a_new_method_and_a_new_file(self):
         specs = validate_plan({"tasks": [task(), task(symbol="subtract", new=True),
+                                         task(path="shapes.py", symbol="Box.volume", new=True),
                                          task(path="tests/test_more.py", symbol="", new=True)]},
                               self.project, CHECKS)
-        self.assertEqual([1, 2, 3], [spec["order"] for spec in specs])
+        self.assertEqual([1, 2, 3, 4], [spec["order"] for spec in specs])
         self.assertEqual(["calc.py"], specs[0]["files"])
         self.assertEqual({"path": "calc.py", "symbol": "subtract", "new": True}, specs[1]["target"])
 
@@ -56,7 +59,11 @@ class PlanValidationTests(unittest.TestCase):
             "missing symbol": [task(symbol="absent")],
             "ambiguous symbol": [task(path="dup.py", symbol="f")],
             "new name already defined": [task(symbol="add", new=True)],
-            "new name not plain": [task(symbol="Calc.add", new=True)],
+            "new method of a missing class": [task(symbol="Calc.add", new=True)],
+            "new method of a function": [task(symbol="add.inner", new=True)],
+            "new method of an ambiguous class": [task(path="shapes.py", symbol="Twin.extra", new=True)],
+            "new method already defined": [task(path="shapes.py", symbol="Box.area", new=True)],
+            "new name not plain": [task(path="shapes.py", symbol="Box.9x", new=True)],
             "new file exists": [task(symbol="", new=True)],
             "new file folder missing": [task(path="pkg/new.py", symbol="", new=True)],
             "missing description": [task(description=" ")],

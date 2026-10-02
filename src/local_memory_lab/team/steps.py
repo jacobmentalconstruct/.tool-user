@@ -7,6 +7,7 @@ PLANNER_SYSTEM = (
     "one JSON object matching the schema. Each task changes exactly one target: an existing "
     "function, class or method (an existing path plus its dotted symbol, new=false); a new "
     "top-level function in an existing Python file (that path plus the new plain name, new=true); "
+    "a new method of an existing class (that path plus Class.name, new=true); "
     "or one new file (its path, symbol \"\", new=true). Decompose up front; never put two "
     "definitions in one task. Choose a check from checks whose tests exercise the task's new "
     "behaviour, so it fails before the change and passes after. Use only listed files and check "

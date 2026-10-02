@@ -67,7 +67,9 @@ def _check_target(where: str, file: Path, path: str, symbol: str, new: bool) -> 
         raise PlanError(f"{where}: {path} does not exist")
     try:
         source = file.read_text(encoding="utf-8")
-        names = {name for name, _node in definitions(ast.parse(source).body)}
+        found: dict[str, list[ast.AST]] = {}
+        for qualified, node in definitions(ast.parse(source).body):
+            found.setdefault(qualified, []).append(node)
     except (UnicodeError, SyntaxError) as exc:
         raise PlanError(f"{where}: {path} is not readable Python") from exc
     if not new:
@@ -75,9 +77,14 @@ def _check_target(where: str, file: Path, path: str, symbol: str, new: bool) -> 
             find_region(source, symbol)
         except ValueError as exc:
             raise PlanError(f"{where}: {exc}") from exc
-    elif not path.endswith(".py") or not symbol.isidentifier() or keyword.iskeyword(symbol):
-        raise PlanError(f"{where}: a new function needs a plain name in a Python file")
-    elif symbol in names:
+        return
+    owner, _, name = symbol.rpartition(".")  # a new top-level function, or a new method of one class
+    if not path.endswith(".py") or not name.isidentifier() or keyword.iskeyword(name):
+        raise PlanError(f"{where}: a new function or method needs a plain name in a Python file")
+    owners = found.get(owner, [])
+    if owner and (len(owners) != 1 or not isinstance(owners[0], ast.ClassDef)):
+        raise PlanError(f"{where}: {owner} must be exactly one class in {path}")
+    if symbol in found:
         raise PlanError(f"{where}: {symbol} is already defined in {path}")
 
 
@@ -86,7 +93,8 @@ def plan_detail(specs: list[dict], checks: dict[str, tuple[str, ...]]) -> str:
     lines = []
     for spec in specs:
         target = spec["target"]
-        kind = ("new file" if not target["symbol"] else f"new function {target['symbol']}") \
+        kind = ("new file" if not target["symbol"] else
+                f"new {'method' if '.' in target['symbol'] else 'function'} {target['symbol']}") \
             if target["new"] else target["symbol"]
         lines += [f"Task {spec['order']}: {spec['title']}", f"  Target: {target['path']} :: {kind}",
                   f"  Check: {spec['check']} -> {json.dumps(list(checks[spec['check']]))} "
