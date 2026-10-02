@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import os
 import shutil
 from pathlib import Path
 
-from .paths import Workspace, excluded, is_link
+from .paths import Workspace
 
 MAX_COPY_FILES = 20_000
 MAX_COPY_BYTES = 500_000_000
@@ -62,18 +61,11 @@ class TaskWorkspace:
 def _copy_tree(project: Workspace, destination: Path) -> None:
     files = size = 0
     destination.mkdir(parents=True)
-    for folder, names, filenames in os.walk(project.root):
-        here = Path(folder)
-        names[:] = [name for name in names if not is_link(here / name) and
-                    not excluded(project.root, here / name, True, project.rules)]
-        target = destination / here.relative_to(project.root)
-        target.mkdir(exist_ok=True)
-        for name in filenames:
-            source = here / name
-            if is_link(source) or excluded(project.root, source, False, project.rules):
-                continue
-            files += 1
-            size += source.stat().st_size
-            if files > MAX_COPY_FILES or size > MAX_COPY_BYTES:
-                raise ValueError("project is too large for a task workspace")
-            shutil.copy2(source, target / name)
+    for relative, source in project.files():
+        files += 1
+        size += source.stat().st_size
+        if files > MAX_COPY_FILES or size > MAX_COPY_BYTES:
+            raise ValueError("project is too large for a task workspace")
+        target = destination / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)

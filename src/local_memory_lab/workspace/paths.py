@@ -123,6 +123,17 @@ class Workspace:
             raise ValueError("path is outside the project")
         return path
 
+    def files(self):
+        """Yield every project file that is not excluded or linked, as (relative path, path)."""
+        for folder, names, filenames in os.walk(self.root):
+            here = Path(folder)
+            names[:] = sorted(name for name in names if not is_link(here / name) and
+                              not excluded(self.root, here / name, True, self.rules))
+            for name in sorted(filenames):
+                path = here / name
+                if not is_link(path) and not excluded(self.root, path, False, self.rules):
+                    yield path.relative_to(self.root).as_posix(), path
+
     def list_project(self, relative: object = "") -> dict:
         folder = self.path(relative, allow_root=True)
         if not folder.is_dir():

@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from local_memory_lab.session import SharedSession  # noqa: E402
 from local_memory_lab.event_store import EventStore  # noqa: E402
+from team_fixtures import make_project, planner, wait_for  # noqa: E402
 
 
 class FakeEmbedder:
@@ -196,11 +197,13 @@ class ApprovalTests(unittest.TestCase):
                     chat_started.set()
                 return "done", []
 
-            with patch("local_memory_lab.session.run_turn", side_effect=fake_turn):
+            with patch("local_memory_lab.team.jobs.run_turn", side_effect=fake_turn), \
+                    patch("local_memory_lab.session.run_turn", side_effect=fake_turn), planner():
                 session = SharedSession(root / "events.sqlite", load_models=False,
                                         start_worker=True, knowledge_embedder=FakeEmbedder())
-                session.set_project_root(str(root))
-                session.submit_goal("goal", "USER")
+                session.set_project_root(str(make_project(root / "project")))
+                job_id = session.submit_goal("goal", "USER")
+                wait_for(session, job_id, "awaiting_plan_approval")
                 pending = session.state.approvals.pending()[0]
                 session.approve(pending.id, True)
                 self.assertTrue(goal_started.wait(2))

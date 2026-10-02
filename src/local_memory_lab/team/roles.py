@@ -12,8 +12,8 @@ from ..agent.ollama import ollama_json
 from ..locations import ROOT
 
 ROLES = ("planner", "builder", "debugger", "reviewer")
-REASONS = ("invalid_output", "cap_exhausted", "check_failed", "debug_exhausted",
-           "review_failed", "path_outside_task", "patch_too_large")
+REASONS = ("invalid_output", "cap_exhausted", "invalid_plan", "check_not_exercising", "check_failed",
+           "debug_exhausted", "review_failed", "path_outside_task", "patch_too_large")
 MAX_TASKS = 5
 EXCERPT = 2000
 
@@ -58,8 +58,8 @@ def _text(**extra) -> dict:
     return {"type": "string", **extra}
 
 
-def planner_schema(checks: list[str], paths: list[str] | None = None) -> dict:
-    target_path = _text(enum=paths) if paths else _text()
+def planner_schema(checks: list[str]) -> dict:
+    """Checks are limited by the schema; target paths are validated in code (team.plan)."""
     return {"type": "object", "required": ["tasks"], "additionalProperties": False, "properties": {
         "tasks": {"type": "array", "minItems": 1, "maxItems": MAX_TASKS, "items": {
             "type": "object", "required": ["title", "description", "target", "check"],
@@ -67,7 +67,7 @@ def planner_schema(checks: list[str], paths: list[str] | None = None) -> dict:
                 "title": _text(), "description": _text(),
                 "target": {"type": "object", "required": ["path", "symbol", "new"],
                            "additionalProperties": False, "properties": {
-                               "path": target_path, "symbol": _text(), "new": {"type": "boolean"}}},
+                               "path": _text(), "symbol": _text(), "new": {"type": "boolean"}}},
                 "check": _text(enum=list(checks))}}}}}
 
 

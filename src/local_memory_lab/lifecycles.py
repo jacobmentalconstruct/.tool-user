@@ -134,7 +134,12 @@ class Tasks:
             if not isinstance(spec, dict) or set(spec) != set(TASK_SPEC):
                 raise ValueError("A new task needs exactly its immutable specification.")
             target_spec = spec["target"]
-            if (not isinstance(target_spec, dict) or not isinstance(spec["files"], list) or
+            if (not isinstance(target_spec, dict) or set(target_spec) != {"path", "symbol", "new"} or
+                    not isinstance(target_spec["path"], str) or not isinstance(target_spec["symbol"], str) or
+                    not isinstance(target_spec["new"], bool) or
+                    (not target_spec["new"] and not target_spec["symbol"])):
+                raise ValueError("A task target names a path, a symbol and whether it is new.")
+            if (not isinstance(spec["files"], list) or
                     spec["files"] != [target_spec.get("path")] or not isinstance(spec["check"], str) or
                     not isinstance(spec["order"], int) or isinstance(spec["order"], bool)):
                 raise ValueError("A task names one target, its file, a check and an order.")

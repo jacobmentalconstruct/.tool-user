@@ -89,13 +89,13 @@ class RoleCallTests(unittest.TestCase):
                 self.assertEqual(content[:2000], caught.exception.record["answerExcerpt"])
 
     def test_planner_schema_limits_checks_paths_and_task_count(self):
-        schema = planner_schema(["tests"], ["pkg/budget.py"])
+        schema = planner_schema(["tests"])
         task = {"title": "t", "description": "d", "check": "tests",
                 "target": {"path": "pkg/budget.py", "symbol": "Budget.clamp", "new": False}}
         check_schema({"tasks": [task]}, schema)
         for bad in ({"tasks": []}, {"tasks": [task] * 6},
                     {"tasks": [{**task, "check": "deploy"}]},
-                    {"tasks": [{**task, "target": {**task["target"], "path": "other.py"}}]},
+                    {"tasks": [{**task, "target": {"path": "pkg/budget.py", "symbol": "x"}}]},
                     {"tasks": [{**task, "files": ["x.py"]}]}):
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 check_schema(bad, schema)

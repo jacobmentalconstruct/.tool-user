@@ -14,10 +14,11 @@ from .agent.tool_router import SharedTools
 from .event_store import EventStore
 from .approvals import request_data
 from .command_runner import CommandRunner
-from .lifecycles import JOB_TERMINAL
+from .lifecycles import JOB_TERMINAL, TASK_TERMINAL
 from .locations import CONTROL
 from .knowledge.service import KnowledgeService
 from .session_state import SessionState
+from .team.jobs import run_goal
 
 
 class SharedSession:
@@ -84,7 +85,14 @@ class SharedSession:
                 job_id, target, goal=goal, reason=reason, submitted_by=submitted_by)
             if target == "queued" and submitted_by:
                 data["display"] = {"speaker": submitted_by.upper(), "text": "New goal: " + goal.strip()}
-            return self._record("system", "job.state", data, job=job_id)
+            event = self._record("system", "job.state", data, job=job_id)
+            if target in JOB_TERMINAL:  # a finished job closes its unfinished tasks
+                closed = "cancelled" if target in {"cancelled", "rejected"} else "failed"
+                for task in self.state.tasks.for_job(job_id):
+                    if task.state not in TASK_TERMINAL:
+                        self._record("system", "task.state", self.state.tasks.transition_data(
+                            task.id, closed, reason=reason or target), job=job_id, task=task.id)
+            return event
 
     @staticmethod
     def _actor_label(actor: str) -> str:
@@ -132,11 +140,8 @@ class SharedSession:
             job_id = str(uuid4())
             self.transition_job(job_id, "queued", goal=goal, submitted_by=actor_label)
             self.transition_job(job_id, "planning")
-            self.transition_job(job_id, "awaiting_plan_approval")
-            approval_id = self.request_approval(
-                "plan", "Approve goal plan", goal.strip(), actor="system", job=job_id)
-            threading.Thread(target=self._run_goal, args=(job_id, approval_id),
-                             daemon=True, name="goal-" + job_id[:8]).start()
+            threading.Thread(target=run_goal, args=(self, job_id), daemon=True,
+                             name="goal-" + job_id[:8]).start()
             return job_id
 
     def snapshot(self, actor: str) -> dict:
@@ -290,66 +295,6 @@ class SharedSession:
             message += "\n" + result["output"]
         return {"status": "ok" if result["status"] == "ok" else result["status"],
                 "message": message, **result}
-
-    def _run_goal(self, job_id: str, approval_id: str) -> None:
-        entered_running = False
-        try:
-            approved = self.wait_for_approval(approval_id)
-            with self.lock:
-                if self.state.jobs.records[job_id].state in JOB_TERMINAL:
-                    return
-                if not approved:
-                    resolution = self.state.approvals.records[approval_id].state
-                    if resolution == "rejected":
-                        self.transition_job(job_id, "rejected")
-                    else:
-                        self.transition_job(job_id, "failed", reason="plan approval expired")
-                    return
-            self._turn_slot.acquire()
-            self._turn_local.owns_slot = True
-            with self.lock:
-                if self.state.jobs.records[job_id].state in JOB_TERMINAL:
-                    return
-                self.knowledge.begin_activity()
-                self.transition_job(job_id, "running")
-                self._active_turns += 1
-                self.busy = True
-                entered_running = True
-                model = self.model
-                notes = list(self.notes)
-                project_root = self.project_root
-                goal = self.state.jobs.records[job_id].goal
-            notes.extend([context] if (context := self.knowledge.context_for(goal)) else [])
-            answer, _ = run_turn(
-                goal, model, [], notes,
-                self._tools_for(project_root, job_id, job_id),
-                lambda result: self._record("system", "tool.result", {
-                    "display": {"speaker": "Tool", "text": result["message"]},
-                    "toolStatus": result["status"],
-                }, job=job_id),
-                cancelled=lambda: self.state.jobs.records[job_id].state == "cancelled",
-            )
-            with self.lock:
-                if self.state.jobs.records[job_id].state == "running":
-                    self._record("system", "chat.reply", {
-                        "display": {"speaker": "Assistant", "text": answer},
-                    }, job=job_id)
-                    self.transition_job(job_id, "done")
-        except Exception as exc:
-            with self.lock:
-                if self.state.jobs.records[job_id].state not in JOB_TERMINAL:
-                    self.transition_job(job_id, "failed", reason=str(exc))
-                    self._record("system", "error", {
-                        "display": {"speaker": "Error", "text": str(exc)},
-                    }, job=job_id)
-        finally:
-            if entered_running:
-                with self.lock:
-                    self._active_turns -= 1; self.busy = self._active_turns > 0
-                self.knowledge.end_activity()
-            if getattr(self._turn_local, "owns_slot", False):
-                self._turn_local.owns_slot = False
-                self._turn_slot.release()
 
     def _work(self):
         while True:

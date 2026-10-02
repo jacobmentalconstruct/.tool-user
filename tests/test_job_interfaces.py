@@ -22,6 +22,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from local_memory_lab.interfaces import client  # noqa: E402
 from local_memory_lab.interfaces.web import make_handler  # noqa: E402
 from local_memory_lab.session import SharedSession  # noqa: E402
+from team_fixtures import make_project, planner, wait_for  # noqa: E402
 
 
 class FakeEmbedder:
@@ -38,8 +39,10 @@ class JobInterfaceTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         root = Path(self.temporary.name)
-        project = root / "project"
-        project.mkdir()
+        project = make_project(root / "project")
+        self.planner = planner()
+        self.planner.start()
+        self.addCleanup(self.planner.stop)
         self.session = SharedSession(root / "events.sqlite", load_models=False, start_worker=False,
                                      knowledge_embedder=FakeEmbedder())
         self.session.set_project_root(str(project))
@@ -64,6 +67,10 @@ class JobInterfaceTests(unittest.TestCase):
         with urlopen(request, timeout=5) as response:
             return json.load(response)
 
+    def pending_plan(self, job_id):
+        wait_for(self.session, job_id, "awaiting_plan_approval")
+        return self.request("/api/state")["pendingApproval"]
+
     def wait_for(self, job_id, state):
         deadline = time.monotonic() + 2
         while time.monotonic() < deadline:
@@ -74,9 +81,10 @@ class JobInterfaceTests(unittest.TestCase):
         self.fail(f"Job {job_id} did not reach {state}.")
 
     def test_goal_from_agent_waits_for_user_plan_approval_then_runs(self):
-        with patch("local_memory_lab.session.run_turn", return_value=("finished", [])) as run:
+        with patch("local_memory_lab.team.jobs.run_turn", return_value=("finished", [])) as run:
             job_id = self.request("/api/goals", {"text": "repair project"},
                                   token="agent-token")["jobId"]
+            self.pending_plan(job_id)
             state = self.request("/api/state")
             self.assertEqual("awaiting_plan_approval", state["jobs"][0]["state"])
             self.assertEqual("plan", state["pendingApproval"]["kind"])
@@ -93,7 +101,7 @@ class JobInterfaceTests(unittest.TestCase):
 
     def test_user_rejection_and_user_only_cancellation(self):
         job_id = self.request("/api/goals", {"text": "first"})["jobId"]
-        approval_id = self.request("/api/state")["pendingApproval"]["id"]
+        approval_id = self.pending_plan(job_id)["id"]
         self.request("/api/approval", {"id": approval_id, "approved": False})
         self.wait_for(job_id, "rejected")
 
@@ -105,9 +113,9 @@ class JobInterfaceTests(unittest.TestCase):
         self.wait_for(job_id, "cancelled")
 
     def test_expired_plan_approval_fails_without_running(self):
-        with patch("local_memory_lab.session.run_turn") as run:
+        with patch("local_memory_lab.team.jobs.run_turn") as run:
             job_id = self.request("/api/goals", {"text": "waited goal"})["jobId"]
-            approval_id = self.request("/api/state")["pendingApproval"]["id"]
+            approval_id = self.pending_plan(job_id)["id"]
             self.session._resolve_approval(approval_id, "expired", "system")
             self.wait_for(job_id, "failed")
             self.assertEqual("plan approval expired", self.session.state.jobs.records[job_id].reason)
@@ -124,9 +132,9 @@ class JobInterfaceTests(unittest.TestCase):
                 raise RuntimeError("Job cancelled.")
             return "finished", []
 
-        with patch("local_memory_lab.session.run_turn", side_effect=fake_turn):
+        with patch("local_memory_lab.team.jobs.run_turn", side_effect=fake_turn):
             job_id = self.request("/api/goals", {"text": "running goal"})["jobId"]
-            approval_id = self.request("/api/state")["pendingApproval"]["id"]
+            approval_id = self.pending_plan(job_id)["id"]
             self.request("/api/approval", {"id": approval_id, "approved": True})
             self.assertTrue(entered.wait(2))
             self.request("/api/jobs/cancel", {"id": job_id})
@@ -142,6 +150,7 @@ class JobInterfaceTests(unittest.TestCase):
 
     def test_browser_and_cli_show_goal_entrance_and_stage(self):
         job_id = self.request("/api/goals", {"text": "visible goal"})["jobId"]
+        self.pending_plan(job_id)
         with urlopen(self.base + "/?token=user-token", timeout=5) as response:
             page = response.read().decode("utf-8")
         self.assertIn('id="goalForm"', page)
