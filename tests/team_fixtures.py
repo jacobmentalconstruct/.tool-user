@@ -31,13 +31,14 @@ def make_project(folder: Path) -> Path:
     return folder
 
 
-def planner(output: dict = ONE_TASK, error: Exception | None = None):
+def planner(output: dict = ONE_TASK, error: Exception | None = None,
+            target: str = "local_memory_lab.team.plan.call_role"):
     """Patch the planner's role call; every call returns `output` or raises `error`."""
     def fake(config, system, payload, schema, **kwargs):
         if error is not None:
             raise error
         return RoleReply(output, "", 10, 0.1, 100.0, 1.0)
-    return patch("local_memory_lab.team.plan.call_role", side_effect=fake)
+    return patch(target, side_effect=fake)
 
 
 def wait_for(session, job_id: str, state: str, timeout: float = 3.0) -> None:

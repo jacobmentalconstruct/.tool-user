@@ -94,14 +94,19 @@ def plan_detail(specs: list[dict], checks: dict[str, tuple[str, ...]]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def plan_goal(goal: str, project_root: Path, knowledge, config) -> tuple[list[dict], str]:
-    """Ask the planner for 1-5 tasks and validate them against the live project."""
+def planner_request(goal: str, project_root: Path, knowledge) -> tuple[Workspace, dict, dict]:
+    """The planner's input: the goal, the project's files, the live allowlist and a context pack."""
     project = Workspace(project_root)
     checks = CommandRunner(project_root).commands()  # the live allowlist, never a task copy
     files = [relative for relative, _path in project.files()][:MAX_LISTED_FILES]
     pack = knowledge.context_pack(goal, CONTEXT_BUDGET) if knowledge.store is not None else None
-    payload = {"goal": goal, "files": files, "checks": {name: list(argv) for name, argv in checks.items()},
-               "context_pack": pack}
+    return project, checks, {"goal": goal, "files": files, "context_pack": pack,
+                             "checks": {name: list(argv) for name, argv in checks.items()}}
+
+
+def plan_goal(goal: str, project_root: Path, knowledge, config) -> tuple[list[dict], str]:
+    """Ask the planner for 1-5 tasks and validate them against the live project."""
+    project, checks, payload = planner_request(goal, project_root, knowledge)
     reply = call_role(config, PLANNER_SYSTEM, payload, planner_schema(list(checks)))
     specs = validate_plan(reply.output, project, checks)
     return specs, plan_detail(specs, checks)
