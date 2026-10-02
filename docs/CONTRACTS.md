@@ -147,7 +147,7 @@ This is one SQLite file per project, kept on the hub side under `live_control/`,
 This is `roles.json` at the repo root, the only place models are assigned.
 
 ```json
-{"planner":  {"model": "qwen2.5-coder:14b", "think": false, "temperature": 0.2, "num_ctx": 16384,
+{"planner":  {"model": "qwen2.5-coder:14b", "think": false, "temperature": 0, "num_ctx": 16384,
               "num_predict": 4096, "timeout_s": 120, "keep_alive": "5m"},
  "builder":  {"model": "qwen3.5:9b",  "think": true, "temperature": 0,   "num_ctx": 16384,
               "num_predict": 8192, "timeout_s": 180, "keep_alive": "10m"},
@@ -158,7 +158,7 @@ This is `roles.json` at the repo root, the only place models are assigned.
  "embedder": {"model": "nomic-embed-text"}}
 ```
 
-Every role carries its output budget (`num_predict`), `timeout_s`, `think` and `keep_alive`, and every sampling setting: `temperature`, `top_p`, `top_k`, `presence_penalty`, `repeat_penalty` and `seed`. All are sent on every call, so a model's built-in defaults never apply silently; qwen3.5 models ship with `presence_penalty 1.5`. Callers hard-code none of them. Every role call records a trace: the settings sent, the model digest, a prompt fingerprint, the prompt token count and whether the prompt neared the context limit. The example above shows the core fields; `roles.json` holds the full set. The builder and debugger share a budget and use thinking, because T5's probe showed `think: false` breaks qwen3.5:9b's schema output. The opt-in probe `python lab.py bench roles --confirm-gpu-free` (`--reviewer-only` for the reviewer comparison) sets the budgets and chose the reviewer by measurement: qwen2.5-coder:14b with thinking off, which needs `OLLAMA_NUM_PARALLEL=1` to fit on the GPU (`PLAN.md` §1, D4). Its summaries are committed under `bench/probes/`.
+Every role carries its output budget (`num_predict`), `timeout_s`, `think` and `keep_alive`, and every sampling setting: `temperature`, `top_p`, `top_k`, `presence_penalty`, `repeat_penalty` and `seed`. All are sent on every call, so a model's built-in defaults never apply silently; qwen3.5 models ship with `presence_penalty 1.5`. Callers hard-code none of them. Every role call records a trace: the settings sent, the model digest, a prompt fingerprint, the prompt token count and whether the prompt neared the context limit. Ollama counts only prompt tokens it did not already have cached, so on a cache hit the count, and the near-limit flag, under-report. The example above shows the core fields; `roles.json` holds the full set. The builder and debugger share a budget and use thinking, because T5's probe showed `think: false` breaks qwen3.5:9b's schema output. The opt-in probe `python lab.py bench roles --confirm-gpu-free` (`--reviewer-only` for the reviewer comparison) sets the budgets and chose the reviewer by measurement: qwen2.5-coder:14b with thinking off, which needs `OLLAMA_NUM_PARALLEL=1` to fit on the GPU (`PLAN.md` §1, D4). Its summaries are committed under `bench/probes/`.
 
 ## 9. Bench task (T5)
 
