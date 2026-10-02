@@ -18,8 +18,11 @@ DEBUGGER_SYSTEM = BUILDER_SYSTEM + (
     "region so the check passes.")
 REVIEWER_SYSTEM = (
     "You review one change card. Answer two questions: does AFTER do what INTENT asks, and does "
-    "it change behaviour the task did not ask for? Respond with one JSON object matching the "
-    "schema. A fail must quote at least one exact line from the card in its reasons.")
+    "it change behaviour the task did not ask for? The CHECK line is already verified; do not "
+    "re-derive it. Respond with exactly this JSON and nothing else: "
+    '{"verdict": "pass" or "fail", "reasons": ["short reason", ...]}. Use "fail" only for a '
+    "concrete problem, and quote at least one exact line from AFTER in a fail reason. Decide "
+    "briefly; the format is fixed, so do not deliberate about it.")
 
 CITE_MIN = 6
 

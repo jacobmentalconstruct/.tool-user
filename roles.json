@@ -31,8 +31,8 @@
     "think": true,
     "temperature": 0,
     "num_ctx": 16384,
-    "num_predict": 2048,
-    "timeout_s": 240,
+    "num_predict": 6144,
+    "timeout_s": 900,
     "keep_alive": "5m"
   },
   "embedder": {

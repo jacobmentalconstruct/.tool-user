@@ -154,7 +154,7 @@ This is `roles.json` at the repo root, the only place models are assigned.
  "debugger": {"model": "qwen3.5:9b",  "think": true, "temperature": 0,   "num_ctx": 16384,
               "num_predict": 8192, "timeout_s": 180, "keep_alive": "10m"},
  "reviewer": {"model": "qwen3.5:35b", "think": true, "temperature": 0,   "num_ctx": 16384,
-              "num_predict": 2048, "timeout_s": 240, "keep_alive": "5m"},
+              "num_predict": 6144, "timeout_s": 900, "keep_alive": "5m"},
  "embedder": {"model": "nomic-embed-text"}}
 ```
 

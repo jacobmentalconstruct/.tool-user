@@ -24,7 +24,8 @@ from .harness import CONTEXT_BUDGET, build_context
 from .tasks import _run_check, archive_snapshot, load_tasks, prepare_punched_copy
 
 PROBE_TASKS = 5
-REVIEWER_MODELS = ("qwen3.5:9b", "qwen3.5:35b")
+# Timeouts follow the first probe: about 57 tokens/s for 9b and 11 for 35b at the reviewer budget.
+REVIEWER_MODELS = {"qwen3.5:9b": 180, "qwen3.5:35b": 900}
 EMBEDDER = lambda: OllamaEmbedder("nomic-embed-text", timeout=30)  # noqa: E731
 MAX_INVALID_WITH_CONTEXT = 1
 CHECK_TIMEOUT = 60
@@ -129,8 +130,8 @@ def probe_roles(roles: dict, tasks: list[dict], snapshot: Path, root: Path, *,
             _score_candidate(row, copy, task, punched, region)
             rows.append(row)
             on_progress(f"{role} {task['id']}: valid={row['valid']} passed={row.get('passed')}")
-    for model in REVIEWER_MODELS:
-        config = replace(roles["reviewer"], model=model)
+    for model, timeout in REVIEWER_MODELS.items():
+        config = replace(roles["reviewer"], model=model, timeout_s=float(timeout))
         for task, punched, region, _pack, _failing, cards in prepared:
             team_task = _team_task(task)
             for expected, after in cards:
