@@ -20,7 +20,7 @@ class BackupStore:
     def __init__(self, folder: Path):
         self.folder = Path(folder)
 
-    def create(self, kind: str, source: str, request_id: str, files: list[tuple[str, bytes]]) -> Generation:
+    def create(self, kind: str, source: str, request_id: str, files: list[tuple[str, bytes | None]]) -> Generation:
         generation_id = uuid4().hex
         stage = self.folder / ("." + generation_id + ".tmp")
         final = self.folder / generation_id
@@ -28,6 +28,9 @@ class BackupStore:
         manifest_files = []
         try:
             for relative, content in files:
+                if content is None:  # the file did not exist before; restoring it means removing it
+                    manifest_files.append({"path": relative, "absent": True})
+                    continue
                 target = stage / "files" / Path(relative)
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(content)

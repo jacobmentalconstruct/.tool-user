@@ -28,15 +28,18 @@ class TaskWorkspace:
             raise ValueError("a task workspace must be outside the selected project")
         if destination.exists():
             raise ValueError("task workspace already exists")
-        before = {}
         for relative in planned:
-            path = project.path(relative)
-            before[relative] = path.read_bytes() if path.is_file() else None
+            project.path(relative)  # validate every planned path before copying
         try:
             _copy_tree(project, destination)
         except BaseException:
             shutil.rmtree(destination, ignore_errors=True)
             raise
+        # before-bytes come from the copy itself, so the candidate's diff is always against its base;
+        # the drift check at apply still compares them with the live project (reviewer note L2)
+        copy = Workspace(destination)
+        before = {relative: copy.path(relative).read_bytes() if copy.path(relative).is_file() else None
+                  for relative in planned}
         return cls(project.root, destination, before)
 
     def path(self, relative: str) -> Path:

@@ -3,14 +3,18 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from local_memory_lab.workspace.backups import BackupStore  # noqa: E402
+from local_memory_lab.workspace.patching import staged_apply  # noqa: E402
 from local_memory_lab.workspace.scratch import TaskWorkspace  # noqa: E402
 
 
@@ -67,6 +71,52 @@ class TaskWorkspaceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             TaskWorkspace.create(self.project, self.project / "scratch", ["pkg/a.py"])
         self.assertFalse((self.project / "scratch").exists())
+
+
+class NewFileApplyTests(unittest.TestCase):
+    """staged_apply with a None before-state: create, drift check, backup record and rollback."""
+
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.root = Path(self.temporary.name)
+        (self.root / "pkg").mkdir()
+        self.existing = self.root / "pkg" / "a.py"
+        self.existing.write_bytes(b"x = 1\n")
+        self.backups = BackupStore(self.root / "backups")
+
+    def tearDown(self):
+        self.temporary.cleanup()
+
+    def test_creates_a_new_file_and_records_it_as_absent_in_the_backup(self):
+        new = self.root / "pkg" / "new.py"
+        applied, generation = staged_apply({"pkg/new.py": (new, None, b"y = 1\n")}, self.backups, "r-1")
+        self.assertEqual((["pkg/new.py"], b"y = 1\n"), (applied, new.read_bytes()))
+        self.assertEqual([{"path": "pkg/new.py", "absent": True}], self.backups.get(generation).files)
+
+    def test_rejects_a_new_file_whose_path_appeared_meanwhile(self):
+        new = self.root / "pkg" / "new.py"
+        new.write_bytes(b"someone else\n")
+        with self.assertRaises(ValueError):
+            staged_apply({"pkg/new.py": (new, None, b"y = 1\n")}, self.backups, "r-1")
+        self.assertEqual(b"someone else\n", new.read_bytes())
+
+    def test_rollback_removes_a_created_file_and_restores_edited_ones(self):
+        new = self.root / "pkg" / "new.py"
+        changes = {"pkg/new.py": (new, None, b"y = 1\n"), "pkg/a.py": (self.existing, b"x = 1\n", b"x = 2\n")}
+        real_replace = os.replace
+        calls = []
+
+        def fail_second(source, target):
+            calls.append(target)
+            if len(calls) == 2:
+                raise OSError("disk full")
+            return real_replace(source, target)
+
+        with patch("local_memory_lab.workspace.patching.os.replace", side_effect=fail_second):
+            with self.assertRaises(OSError):
+                staged_apply(changes, self.backups, "r-1")
+        self.assertFalse(new.exists())
+        self.assertEqual(b"x = 1\n", self.existing.read_bytes())
 
 
 if __name__ == "__main__":
