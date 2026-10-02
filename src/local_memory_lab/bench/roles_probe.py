@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import json
 import shutil
+import subprocess
 import tempfile
 from dataclasses import replace
 from datetime import datetime, timezone
@@ -76,70 +77,89 @@ def _score_candidate(row: dict, copy: Path, task: dict, punched: str, region: st
 
 
 def run_role_probe(repo_root: Path, task_dir: Path, *, output_dir: Path | None = None,
-                   context_budget: int = CONTEXT_BUDGET, record_dir: Path | None = None,
+                   context_budget: int = CONTEXT_BUDGET,
                    on_progress: Callable[[str], None] = print) -> tuple[Path, dict]:
-    """Probe with the configured budgets; raw replies stay outside the repo, a summary is committed."""
+    """Pin the corpus snapshot, probe with the configured budgets, and record the run."""
     roles = load_roles(repo_root / "roles.json")
     tasks = load_tasks(task_dir)[:PROBE_TASKS]
-    rows: list[dict] = []
+    git = lambda *args: subprocess.run(["git", *args], cwd=repo_root, capture_output=True,  # noqa: E731
+                                       text=True, check=True).stdout.strip()
+    source = {"source_commit": git("rev-parse", "HEAD"), "source_dirty": bool(git("status", "--porcelain"))}
     with tempfile.TemporaryDirectory(prefix="lab-role-probe-") as temporary:
         root = Path(temporary)
-        snapshot = root / "snapshot"
-        archive_snapshot(repo_root, tasks[0]["source"].split("@", 1)[1], snapshot)
-        prepared = []
-        for index, task in enumerate(tasks):
-            symbol, path = task["target"]["function"], task["target"]["path"]
-            punched, _ = prepare_punched_copy(snapshot, task, root / f"{task['id']}-indexed")
-            pack, _ = build_context(root / f"{task['id']}-indexed", task, root / "control" / task["id"],
-                                    embedder=EMBEDDER(), budget=context_budget)
-            original = (snapshot / path).read_text(encoding="utf-8")
-            failing = _run_check(task, root / f"{task['id']}-indexed", CHECK_TIMEOUT)
-            cards = [("pass", find_region(original, symbol))]
-            bad = seed_bad(original, symbol, SEEDS[index % len(SEEDS)])
-            seeded = root / f"{task['id']}-seeded"
-            shutil.copytree(snapshot, seeded)
-            (seeded / path).write_bytes(bad.encode("utf-8"))
-            if _run_check(task, seeded, CHECK_TIMEOUT).returncode == 0:
-                cards.append(("fail", find_region(bad, symbol)))
-            prepared.append((task, punched, find_region(punched, symbol), pack,
-                             (failing.stdout + failing.stderr)[-4000:], cards))
-        on_progress(f"Prepared {len(prepared)} tasks; probing builder and debugger.")
-        for role, system in (("builder", BUILDER_SYSTEM), ("debugger", DEBUGGER_SYSTEM)):
-            config = roles[role]
-            for task, punched, region, pack, failing, _cards in prepared:
-                feedback = {"check_output": failing, "previous_attempt": region} if role == "debugger" else None
-                inputs = candidate_input(_team_task(task), punched, region, pack, feedback)
-                row = _attempt(role, config, task, lambda: call_role(
-                    config, system, inputs, candidate_schema(False)))
-                copy = root / f"{task['id']}-{role}"
-                shutil.copytree(snapshot, copy)
-                _score_candidate(row, copy, task, punched, region)
+        archive_snapshot(repo_root, tasks[0]["source"].split("@", 1)[1], root / "snapshot")
+        rows = probe_roles(roles, tasks, root / "snapshot", root, context_budget=context_budget,
+                           on_progress=on_progress)
+    return record_probe(rows, roles, tasks, repo_root=repo_root, context_budget=context_budget,
+                        source=source, output_dir=output_dir)
+
+
+def probe_roles(roles: dict, tasks: list[dict], snapshot: Path, root: Path, *,
+                context_budget: int = CONTEXT_BUDGET,
+                on_progress: Callable[[str], None] = print) -> list[dict]:
+    """Run builder, debugger and both reviewer models over tasks from one prepared snapshot."""
+    rows: list[dict] = []
+    prepared = []
+    for index, task in enumerate(tasks):
+        symbol, path = task["target"]["function"], task["target"]["path"]
+        punched, _ = prepare_punched_copy(snapshot, task, root / f"{task['id']}-indexed")
+        pack, _ = build_context(root / f"{task['id']}-indexed", task, root / "control" / task["id"],
+                                embedder=EMBEDDER(), budget=context_budget)
+        original = (snapshot / path).read_text(encoding="utf-8")
+        failing = _run_check(task, root / f"{task['id']}-indexed", CHECK_TIMEOUT)
+        cards = [("pass", find_region(original, symbol))]
+        bad = seed_bad(original, symbol, SEEDS[index % len(SEEDS)])
+        seeded = root / f"{task['id']}-seeded"
+        shutil.copytree(snapshot, seeded)
+        (seeded / path).write_bytes(bad.encode("utf-8"))
+        if _run_check(task, seeded, CHECK_TIMEOUT).returncode == 0:
+            cards.append(("fail", find_region(bad, symbol)))
+        prepared.append((task, punched, find_region(punched, symbol), pack,
+                         (failing.stdout + failing.stderr)[-4000:], cards))
+    on_progress(f"Prepared {len(prepared)} tasks; probing builder and debugger.")
+    for role, system in (("builder", BUILDER_SYSTEM), ("debugger", DEBUGGER_SYSTEM)):
+        config = roles[role]
+        for task, punched, region, pack, failing, _cards in prepared:
+            feedback = {"check_output": failing, "previous_attempt": region} if role == "debugger" else None
+            inputs = candidate_input(_team_task(task), punched, region, pack, feedback)
+            row = _attempt(role, config, task, lambda: call_role(
+                config, system, inputs, candidate_schema(False)))
+            copy = root / f"{task['id']}-{role}"
+            shutil.copytree(snapshot, copy)
+            _score_candidate(row, copy, task, punched, region)
+            rows.append(row)
+            on_progress(f"{role} {task['id']}: valid={row['valid']} passed={row.get('passed')}")
+    for model in REVIEWER_MODELS:
+        config = replace(roles["reviewer"], model=model)
+        for task, punched, region, _pack, _failing, cards in prepared:
+            team_task = _team_task(task)
+            for expected, after in cards:
+                changes = {team_task["files"][0]: (Path(), region.encode(), after.encode())}
+                facts, _ = gate_facts(team_task, changes)
+                card = build_card(team_task, region, after,
+                                  {"name": "task check", "status": "ok", "exit_code": 0}, facts)
+                row = _attempt("reviewer", config, task, lambda: call_role(
+                    config, REVIEWER_SYSTEM, {"card": card}, REVIEWER_SCHEMA,
+                    validate=require_citation(card)))
+                row["expected"] = expected
+                row["correct"] = row["valid"] and row["output"]["verdict"] == expected
                 rows.append(row)
-                on_progress(f"{role} {task['id']}: valid={row['valid']} passed={row.get('passed')}")
-        for model in REVIEWER_MODELS:
-            config = replace(roles["reviewer"], model=model)
-            for task, punched, region, _pack, _failing, cards in prepared:
-                team_task = _team_task(task)
-                for expected, after in cards:
-                    changes = {team_task["files"][0]: (Path(), region.encode(), after.encode())}
-                    facts, _ = gate_facts(team_task, changes)
-                    card = build_card(team_task, region, after,
-                                      {"name": "task check", "status": "ok", "exit_code": 0}, facts)
-                    row = _attempt("reviewer", config, task, lambda: call_role(
-                        config, REVIEWER_SYSTEM, {"card": card}, REVIEWER_SCHEMA,
-                        validate=require_citation(card)))
-                    row["expected"] = expected
-                    row["correct"] = row["valid"] and row["output"]["verdict"] == expected
-                    rows.append(row)
-                    on_progress(f"reviewer {model} {task['id']} expected {expected}: "
-                                f"correct={row['correct']}")
+                on_progress(f"reviewer {model} {task['id']} expected {expected}: "
+                            f"correct={row['correct']}")
+    return rows
+
+
+def record_probe(rows: list[dict], roles: dict, tasks: list[dict], *, repo_root: Path,
+                 context_budget: int, source: dict, output_dir: Path | None = None,
+                 record_dir: Path | None = None) -> tuple[Path, dict]:
+    """Keep raw replies outside the repo and a trimmed summary under bench/probes."""
     summary = summarize(rows)
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid4().hex[:8]
     output_dir = (output_dir or Path(tempfile.gettempdir()) / "local-memory-lab-bench").resolve()
     if output_dir.is_relative_to(repo_root.resolve()):
         raise ValueError("raw probe replies must remain outside the repository")
     output_dir.mkdir(parents=True, exist_ok=True)
-    document = {"run_id": run_id, "context_budget": context_budget,
+    document = {"run_id": run_id, **source, "context_budget": context_budget,
                 "tasks": [task["id"] for task in tasks],
                 "roles": {name: vars(config) for name, config in roles.items()}, "summary": summary}
     raw = output_dir / f"roles-{run_id}.json"
