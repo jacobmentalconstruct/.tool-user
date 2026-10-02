@@ -240,7 +240,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Current:** T1–T5 are accepted on `main`; T5's bench, results and role configuration are merged from `t5-bench`. S2–S5 are complete. The builder part of S7 is complete; the remaining per-role evidence closes with T6's real-team run. §3 stop conditions and §4 non-goals remain frozen (D6). T6 was returned for amendment, is re-declared below for USER review, and has no implementation permission. Known live bug until task 4: Chat's `create_project_file` tool writes a new file without approval (`agent/tool_router.py:52`); avoid Chat on a real project until it is removed.
 
-**Branch:** `t6-team` after USER approval; no T6 branch exists yet.
+**Branch:** `t6-team`.
 
 **Expected outcome:** replace the free-running `run_turn` path with a durable planner → builder → debugger → reviewer team on the T3 job machine. A goal is planned into 1–5 bounded tasks before the USER approves the plan. Each task's candidate is built, checked, debugged and reviewed only in a disposable task workspace (D16); only a gated patch the USER approves reaches the selected project, through the transactional apply. Jobs end with visible success, failure or cancellation (S6; `docs/CONTRACTS.md` §§2–4 and 7–8).
 
@@ -274,7 +274,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [ ] 3. Candidate execution in the workspace with reason codes and thinking capture.
 - [ ] 4. Apply with new-file support, bypass closed, knowledge refresh, Chat replaced, `run_turn` removed, real-model proof.
 
-**Now:** T6 is re-declared for USER review. No product code changes are authorized until the USER approves this declaration.
+**Now:** USER approved T6 on 2026-10-01; task 1 (contracts and execution substrate) is in progress.
 
 **USER decision recorded:** D19 (T6-amend-1): plan approval covers each task's single named check in its task workspace only; commands against the selected project still need per-run approval.
 
@@ -372,7 +372,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO (T6 re-declared 2026-10-01 after amendment, pending USER approval).
+**Implementation permission:** YES for T6 (USER, 2026-10-01)
 
 ## 9. Parked Tranches
 
