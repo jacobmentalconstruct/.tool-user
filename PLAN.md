@@ -312,7 +312,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 3. Page.
 - [x] 4. Probe and park.
 
-**Now:** T8 is parked (§9), pending USER acceptance; after acceptance, `t8-goal-draft` merges into `main`. T9 (builder expectations) then goes to the reviewer. To resume: read this line, then `git log --oneline -10`.
+**Now:** T8 is accepted and merged into `main` (2026-10-03). Next: the USER restarts the hub and smoke-tests the page (L3); then T9 (builder expectations) goes to the reviewer for its declaration review.
 
 ---
 
@@ -484,7 +484,7 @@ So the baseline was not clean: the builder often already saw its visible test, r
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T8 is parked (2026-10-03), pending USER acceptance. T9 (builder expectations) waits behind it, unreviewed and unapproved.
+**Implementation permission:** NO. T8 was parked and accepted (USER, 2026-10-03). T9 (builder expectations) is declared in §7 and awaits the reviewer's declaration review and USER approval.
 **Standing authorization for T6 (USER, 2026-10-02; ended when T6 was parked on 2026-10-02):** within T6's declared scope, the implementing AGENT may change role settings and prompts, run experiments, fix bugs, adjust tests and refactor T6 modules without asking first. The condition: every change is recorded and reversible. Each experiment appends its settings, prompt fingerprint, model digest, Ollama version and per-goal outcomes to `bench/experiments/`, and each tuned change is its own commit linked to that record. Tuning uses about two-thirds of the bench goals; a change is kept only if it also holds on the held-back third. Still needing the USER: machine-wide settings, Ollama or other downloads, pushing, deleting anything not created by the AGENT, D-decisions and contract semantics, §3/§4, scope or non-goal changes, reviewer notes, and parking or accepting the tranche. This authorization ends when T6 is parked.
 
 ## 9. Parked Tranches
@@ -637,7 +637,7 @@ So the baseline was not clean: the builder often already saw its visible test, r
 - **Deferrals:** none beyond §4; §3 and §4 unchanged.
 - **Next step:** after USER acceptance, merge `t7-selfdev` into `main` (S8 met) and push. The prototype is then complete. Any further work starts from a new USER decision on the §4 Deferred list. The evidence above points first at the builder's missing information (for example giving it the check's expectations) and at recursive decomposition (§4).
 
-**T8, goal-draft bridge: PARKED 2026-10-03 on `t8-goal-draft`, pending USER acceptance.** Permission `b404241`; validator `2fa5e89`; session, endpoint and D22 `0eb6d2a`; page `376cb4a`; probe `e3c759c`, recorded `eab453e`.
+**T8, goal-draft bridge: PARKED and ACCEPTED 2026-10-03 on `t8-goal-draft` (reviewer recommended acceptance after T8-park-1); merged into `main`.** Permission `b404241`; validator `2fa5e89`; session, endpoint and D22 `0eb6d2a`; page `376cb4a`; probe `e3c759c`, recorded `eab453e`.
 - **Outcome met:** in the browser, "Draft goal" (from the conversation) and "Use as goal" (from one assistant reply) ask the planner model for one goal with its target. Code validates the draft, and only a valid draft fills the requesting browser's New goal box. A draft never submits and never creates a job or an approval; the USER edits it and presses New goal as before (D22).
 - **Evidence:**
   - `python -B -m unittest discover -s tests -v`: 162 tests pass, with no model calls. `tests/test_goal_draft.py` covers the validator (each shape, the G3 new-function-as-new-file confusion, wording, unsafe paths and the allowlist file, a goal naming two files, an ambiguous suffix, an over-long goal) and the session and endpoint (returned text equals the recorded goal; no job or approval event; no `turn`; a failed draft fills nothing; one reply as the source; the AGENT client refused; busy at once with no model call; no fill instruction in shared state). `tests/test_draft_probe.py` dry-runs the probe.
