@@ -312,7 +312,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 3. Page.
 - [ ] 4. Probe and park.
 
-**Now:** T8 approved by the USER (2026-10-03) after the reviewer's re-check of `c57d2ae`; tasks 1–3 done; task 4 (probe and park) next: the probe needs the USER to confirm the GPU is free. To resume: read this line, then `git log --oneline -10`.
+**Now:** T8 approved by the USER (2026-10-03) after the reviewer's re-check of `c57d2ae`; tasks 1–3 done; task 4: the probe (`python lab.py bench drafts --confirm-gpu-free`) is written and dry-run tested, and waits for the USER to confirm the GPU is free; then the park. To resume: read this line, then `git log --oneline -10`.
 
 ---
 

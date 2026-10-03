@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
+from .draft_probe import run_draft_probe
 from .harness import validate_context_packs
 from .planner_probe import run_planner_probe
 from .roles_probe import run_role_probe
@@ -42,6 +43,9 @@ def main(argv: list[str] | None = None) -> int:
     team = commands.add_parser("team", help="one real-model goal through the whole team on a throwaway project")
     team.add_argument("--confirm-gpu-free", action="store_true",
                       help="confirm the GPU is free and no local roles are working")
+    drafts = commands.add_parser("drafts", help="draft goals from short conversations, then plan the valid ones")
+    drafts.add_argument("--confirm-gpu-free", action="store_true",
+                        help="confirm the GPU is free and no local roles are working")
     record = commands.add_parser("record", help="validate and import a completed raw run")
     record.add_argument("result_file", type=Path)
     args = parser.parse_args(argv)
@@ -87,6 +91,13 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(summary, indent=2))
             print(f"Full record: {raw}")
             return 0 if summary.get("job") == "done" else 1
+        if args.command == "drafts":
+            if not args.confirm_gpu_free:
+                raise ValueError("confirm the GPU is free and no local roles are working before running")
+            output, summary = run_draft_probe(repo_root, on_progress=lambda message: print(message, flush=True))
+            print(json.dumps(summary, indent=2))
+            print(f"Recorded {output.relative_to(repo_root)}")
+            return 0
         if args.command == "record":
             output, selected = record_run(repo_root, args.result_file, task_dir)
             print(f"Recorded {output.relative_to(repo_root)}; selected builder: {selected}")
