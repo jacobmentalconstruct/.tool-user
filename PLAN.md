@@ -313,9 +313,9 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 2. Reviewer check.
 - [x] 3. Goal attempts.
 - [x] 4. Review and merge.
-- [ ] 5. End checks and park.
+- [x] 5. End checks and park.
 
-**Now:** tasks 1–4 are done; task 5 (end checks and park) is in progress. To resume: read this line, then `git log --oneline -10` on `t7-selfdev`.
+**Now:** T7 is parked (§9), pending USER acceptance. After acceptance, `t7-selfdev` merges into `main` (S8 met) and is pushed. To resume: read this line, then `git log --oneline -10` on `t7-selfdev`.
 
 
 **Task 1 evidence (2026-10-02):**
@@ -452,7 +452,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** YES for T7 (USER, 2026-10-02)
+**Implementation permission:** NO. T7 is parked (2026-10-03), pending USER acceptance; after acceptance and the merge, the prototype is complete (§3).
 **Standing authorization for T6 (USER, 2026-10-02; ended when T6 was parked on 2026-10-02):** within T6's declared scope, the implementing AGENT may change role settings and prompts, run experiments, fix bugs, adjust tests and refactor T6 modules without asking first. The condition: every change is recorded and reversible. Each experiment appends its settings, prompt fingerprint, model digest, Ollama version and per-goal outcomes to `bench/experiments/`, and each tuned change is its own commit linked to that record. Tuning uses about two-thirds of the bench goals; a change is kept only if it also holds on the held-back third. Still needing the USER: machine-wide settings, Ollama or other downloads, pushing, deleting anything not created by the AGENT, D-decisions and contract semantics, §3/§4, scope or non-goal changes, reviewer notes, and parking or accepting the tranche. This authorization ends when T6 is parked.
 
 ## 9. Parked Tranches
@@ -578,3 +578,29 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Runtime artifacts:** no background process is running. `live_control/work/` (throwaway experiment tools and logs, about 100 MB) and `live_control/tmp/` are git-ignored runtime folders; the 129 empty job folders that L1 now prevents were removed from `live_control/scratch/`.
 - **Deferrals:** the §7 "Carry to T7" list (L2 task-state sequence, L3 citation length, multi-task proof, cap losses, D20 option (c)); §4 is unchanged.
 - **Next step:** reorient against `main` and declare T7 from its draft in §5, with the "Carry to T7" list, for USER approval.
+
+**T7, self-development and park: PARKED 2026-10-03 on `t7-selfdev`, pending USER acceptance.** Permission `33de821`; selfdev setup `7cad250` (goal checks `dc61617`, amended before any attempt as `21d1e07`); G1 by the team `fa13752`, merged as `e9c305e`, check moved `177e7ff`; S9 pass `e09ecf4`; S10 README `28d0709`; reviewer probe `3006ace`; builder samples `8466898` and `ddb8e88`.
+- **Outcome met:** the local team turned a pre-registered goal from its own backlog into a tested change that the USER approved in the hub, with local models only (D8). G1, the stricter citation rule (carry item L3), passed on its first attempt: one task, check-first, builder, reviewer and gate, about 2 min 47 s including the USER's approvals. It passed the D8 normal review (`T7-g1-1`) and is merged into `t7-selfdev` with `selfdev` credited (`Actor: ROLE`). S8 is met when `t7-selfdev` merges into `main` after USER acceptance. G2 (stopped by the USER after 2 attempts) and G3 (planning failures) did not pass; both are recorded in §7.
+- **Evidence for each stop condition:**
+  - **S1:** `git clone --branch t7-selfdev . <temporary folder>`, then `python -m pip install -r requirements.txt` (already satisfied; nothing installed), then `python -B -m unittest discover -s tests`: 146 tests pass. `python lab.py hub-server` started in the clone and `python lab.py client status` answered with an empty session; the hub was then stopped. Outside-path and import isolation: `tests/test_architecture.py` passes.
+  - **S2–S5:** the T2, T3 and T4 records above; their tests are in the passing suite.
+  - **S6:** the T6 record above.
+  - **S7:** the T5 record above. Reviewer probe rerun after G1, run `20261003T110738Z-78034a35` (`bench/probes/`, a free GPU): the configured 14b reviewer gave no invalid reply in 20 cards, passed 9 of 10 clean cards and caught 10 of 10 seeded-bad cards (T6: 9 of 10 and 7 of 10). An offline re-score of the T6 probe replies found that none of the 9 valid fails turns invalid under the G1 rule. A first rerun shared the GPU with another program and was stopped, not recorded.
+  - **S8:** `git log --grep "^selfdev"` shows `fa13752`. The attempt records are in §7, and exports for all five jobs are in `bench/selfdev/`. Job events show `system` and `user` actors only.
+  - **S9:** `python -B -m unittest discover -s tests -p "test_architecture.py" -v`: 5 tests pass (no import cycles, core never imports interfaces, only `workspace/` writes project files, no outside locations). The largest module is 309 lines (`bench/runner.py`); `src` totals 4,828 lines (T1 met its 2,250-line limit at 1,104 lines; later tranches added the knowledge layer, bench and team). Dead-code pass with a standard-library `ast` scan: one unused constant was removed; the remaining hits are `ast.NodeVisitor` methods, which are called by name.
+  - **S10:** README intro and knowledge paragraph corrected (`28d0709`); the status lines in README, AGENTS.md and PLAN.md are updated in this park. `rg -n "in progress|not yet declared|awaits USER" README.md AGENTS.md PROJECT.md docs` finds only the T7 state line, which this park replaces. The vendor-name scan of `src`, `tests`, `docs`, `roles.json` and the top-level docs is clean, and `git diff --check main..t7-selfdev` is clean.
+- **Experiments (USER requests, measurement only, `roles.json` unchanged):**
+  - Builder at temperature 0.6 (`bench/experiments/2026-10-03-builder-temperature-sample.jsonl`): on three tasks that loop at temperature 0 at any budget, 5 of 6 runs stopped looping but 0 passed; two tasks that pass at temperature 0 still passed.
+  - Outline first, then build (`2026-10-03-builder-outline-sample.jsonl`): 2 of 3 looping tasks still hit the cap, the third finished but failed; the two passing tasks still passed. The capped thinking shows the model rewriting full code against details it cannot see, such as exact values a test expects. A plan does not supply that information.
+  - Together they say the cap marks tasks the builder cannot solve as posed, not answers it nearly found.
+- **Limitations:**
+  - Only G1 of three goals passed. G2's candidate relied on `fnmatch.fnmatch`, which ignores case only on Windows; the frozen G2 check passes on Windows for such a fix. The planner (14b) planned G3's new function as a new file on every run, so the multi-task proof carried from T6 is unproven.
+  - The event log holds 2 G3 jobs; reviewer note `T7-g1-1` reports 3. The USER closed the attempts with G3 not passed.
+  - A reviewer `review_failed` or `invalid_output` keeps reasons and quote but not the candidate, and an `invalid_plan` keeps only the validation error, not the planner's answer, so failed attempts cannot be fully inspected afterwards.
+  - The output cap remains the main builder loss; sampling and an outline step did not recover it (above).
+  - L2: the pre-build check is recorded as `building`, not `testing`.
+  - `lab.py hub-server` ignores extra arguments, so `hub-server --help` starts a second hub that overwrites `live_control/shared.json`. This happened once during T7; the extra hub was stopped and the real one restarted.
+  - D9 slip: 14 AGENT commits from `f8e5fb0` on ended with a co-author line that named an agent vendor. History was rewritten on USER instruction (see the rewrite note below).
+- **Runtime artifacts:** the selfdev worktree `C:/Jacob/_AppDesign/_SANDBOX/.tool-user-selfdev` (on `selfdev/base`, with the USER-written `.lab/` that is not tracked) stays as D8 infrastructure. `live_control/work/` holds the throwaway experiment tools and logs, git-ignored. No background process is running except the USER's hub.
+- **Deferrals:** none beyond §4; §3 and §4 unchanged.
+- **Next step:** after USER acceptance, merge `t7-selfdev` into `main` (S8 met) and push. The prototype is then complete. Any further work starts from a new USER decision on the §4 Deferred list. The evidence above points first at the builder's missing information (for example giving it the check's expectations) and at recursive decomposition (§4).
