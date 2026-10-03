@@ -73,7 +73,7 @@ def require_citation(card: str):
 
     def validate(output: dict) -> None:
         parts = [part.strip() for part in output["quote"].splitlines() if part.strip()]
-        if output["verdict"] == "fail" and (sum(map(len, parts)) < CITE_MIN or not all(
+        if output["verdict"] == "fail" and (sum(map(len, parts)) < CITE_MIN or any(len(part) < CITE_MIN for part in parts) or not all(
                 any(part in line for line in quotable) for part in parts)):
             raise ValueError("reviewer fail does not quote a line from the card")
     return validate
