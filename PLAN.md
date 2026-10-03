@@ -201,7 +201,8 @@ All recorded 2026-09-29.
 - Logic-mutant reviewer cards (flipped comparisons, swapped `and`/`or`, changed numbers, removed guards that survive the tests) in the role probe, for T7's bench rerun (USER, 2026-10-02).
 - Recursive decomposition on execution failure: when a task fails its check after debugging, split it and rerun until its parts pass (USER idea, 2026-10-02). It extends T6's non-goal of re-planning on failure; a T7 candidate. Pass or fail should come from the task's check, not a small-model judge.
 - Edit-task bench for the builder and debugger: real edits from history, each with a check that fails before the edit and passes after (USER, 2026-10-02; a candidate for T7's bench rerun). T6's role probe covers edits for the reviewer only.
-- Builder sees the check's expectations, guarded by a hidden check (USER decision, 2026-10-03, reviewer note T8-pre-1): declared as T8.
+- Builder sees the check's expectations, guarded by a hidden check (USER decision, 2026-10-03, reviewer note T8-pre-1): declared as T9 (renumbered with T8-pre-2).
+- Goal-draft bridge from Chat to the New goal box (USER decision, 2026-10-03, reviewer note T8-pre-2): declared as T8, before T9.
 
 ## 5. Tranches
 
@@ -246,11 +247,70 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T8 — Builder sees the check's expectations, guarded by a hidden check (declared 2026-10-03 after USER acceptance of T7; USER decision with reviewer note T8-pre-1).
+**ID:** T8 — Goal-draft bridge from Chat to the New goal box (declared 2026-10-03; USER decision with reviewer note T8-pre-2).
+
+**Current:** T1–T7 are accepted on `main`; the prototype is complete (§3). This tranche comes from the §4 Deferred list by USER decision. The builder-expectations tranche declared in `7202c99` is renumbered T9 and waits, unreviewed and unapproved, until T8 is parked and accepted. There is no implementation permission and no standing authorization (§8).
+
+**Branch:** `t8-goal-draft`.
+
+**Expected outcome:** in the browser, the USER can ask Chat to draft one goal from the recent conversation, or take one assistant reply as the draft source, and get a validated goal sentence placed in the New goal box of that browser only. A draft never submits anything and never creates a job or an approval. The USER edits or clears it and presses New goal as today; plan validation, plan approval and patch approval apply unchanged.
+
+**Proposed D22, Goal drafts (recorded in §2 with the code, on USER approval):** a goal draft is a validated suggestion for the New goal box, never a submission.
+- **Who:** only the USER browser can request a draft; the text is returned in that request's response, and nothing is broadcast to other clients.
+- **Model:** the draft is one schema-constrained call using the planner's role configuration in `roles.json` (`qwen2.5-coder:14b`, thinking off, temperature 0; JSON-format output is reliable there, and the 9b ignores the format with thinking off). It takes the one turn slot and pauses indexing like any role step. Settings are recorded, not tuned.
+- **Reply shape:** `{goal, target: {path, shape, symbol}}`, where `shape` is one of `existing_symbol`, `new_function`, `new_method` or `new_file`.
+- **Validation, one path.** Code checks the reply with the same rules as plan validation in `team/plan.py`. The path rules (normalized relative path, inside the project, not the allowlist file) move into one shared helper used by both, and `check_target` is reused unchanged. Plus:
+  - `goal` is one line of at most 400 characters;
+  - it names its target path and no other project file;
+  - `shape` must agree with `symbol`: `existing_symbol` resolves to exactly one definition; `new_function` is a plain name not yet defined in an existing Python file; `new_method` is `Class.name` for exactly one existing class; `new_file` has an empty symbol and names a missing path in an existing folder. This catches the G3 confusion of a new function planned as a new file.
+- **Check-first stays visible (D20).** For the three `new_*` shapes, the reply in Chat carries a note that a check failing before the change must exist, and lists the allowlisted check names. The hub does not claim to know which one fails.
+- **Failure fills nothing.** If the call or the validation fails, the box keeps its text, and the reasons are shown in Chat.
+- **Recorded verbatim.** Each draft is recorded as a `chat.reply` whose `data.goalDraft` holds `source`, `goal`, `target`, `valid`, `reasons` and the model settings. No new event kind. The text placed in the box is byte-identical to the recorded `goal`.
+
+**Scope (task list, in order):**
+1. **Validator.** In `team/plan.py`, extract the shared path helper and keep `validate_plan` behaviour identical. Add `validate_draft` (in a small `team/draft.py`, with the draft schema and prompt) on top of it and `check_target`. Tests, with no model calls, accept and reject each shape, including a new function declared as a new file, the allowlist file, a path outside the project, a goal naming two files, and an over-long goal.
+2. **Session and endpoint.** `SharedSession.draft_goal(source, actor)`, where `source` is `"conversation"` (the recent turns) or the event ID of one `chat.reply`. Plus `POST /api/goal-draft`, USER only, returning `{ok, goal}` only when valid. Tests:
+   - a draft creates no `job.state` and no `approval.requested` event;
+   - a failed validation returns no goal;
+   - the returned text equals the recorded `data.goalDraft.goal`;
+   - the AGENT client is refused;
+   - only the requesting request receives the text.
+3. **Page.** A "Draft goal" button by the Chat form, and "Use as goal" on assistant replies; both call the endpoint and fill `#goal` only from a successful response. No submit is triggered. The architecture test gains a check that the draft path never imports or calls job submission.
+4. **Probe and park.** An opt-in probe, `python lab.py bench drafts --confirm-gpu-free`, run only after the USER confirms the GPU is free. It drafts goals from short scripted conversations built around G1–G3 and five bench goals, then plans each valid draft on a throwaway copy, with no approval and no apply. It reports drafts valid, valid drafts that plan validly, and the rejection reasons. There is no threshold; the results go in the park record. D22 and the `docs/CONTRACTS.md` changes (§0 rights row, `chat.reply` `goalDraft` data, the endpoint) land in the same commit as the code they describe (S10).
+
+**Non-goals:** submitting goals automatically; drafting more than one goal or task; editing or picking checks; any change to plan validation behaviour, approvals or the pipeline; the builder-expectations work (T9); tuning the draft model's settings.
+
+**Acceptance criteria:**
+- `python -B -m unittest discover -s tests -v` passes, including the validator, session, endpoint and architecture tests above, with no model calls.
+- `rg -n "submit_goal" src/local_memory_lab/team/draft.py` finds nothing, and the architecture test proves the draft path cannot create a job.
+- The probe's record is in `bench/probes/` with the three numbers and the reasons.
+- `docs/CONTRACTS.md` and D22 match the code; `git diff --check` is clean.
+
+**Known risks:**
+- The planner model drafting goals may name the wrong file or shape. The validator catches what code can know; intent stays with the USER.
+- A draft takes the turn slot, so it waits behind a running job step.
+- Loading the 14b for a draft swaps out the chat model (a few seconds).
+- `session.py` is at 300 lines; the draft logic lives in `team/draft.py` so the session gains only a thin method.
+
+**USER gates:** the USER approves this declaration, confirms the GPU is free before the probe, and accepts the park.
+
+**Progress:**
+- [ ] 1. Validator.
+- [ ] 2. Session and endpoint.
+- [ ] 3. Page.
+- [ ] 4. Probe and park.
+
+**Now:** T8 (goal-draft bridge) is declared for USER review (reviewer note T8-pre-2). T9 (builder expectations) waits until T8 is parked and accepted. Nothing is implemented.
+
+---
+
+### Next declaration (waiting): T9 — Builder expectations
+
+**ID:** T9 — Builder sees the check's expectations, guarded by a hidden check (declared 2026-10-03 as T8 with reviewer note T8-pre-1; renumbered T9 by USER decision with T8-pre-2; waits until T8 is parked and accepted; not reviewed or approved).
 
 **Current:** T1–T7 are accepted on `main` (`aa48592`); the prototype is complete (§3). This tranche comes from the §4 Deferred list by USER decision. There is no implementation permission and no standing authorization: the USER approves this declaration, confirms the GPU is free before each GPU run, and accepts the park (§8).
 
-**Branch:** `t8-expectations`.
+**Branch:** `t9-expectations`.
 
 **Expected outcome:** a measured answer to one question: does giving the builder the visible check's test cut its output-cap losses and raise real passes, without teaching to the test? The answer is adopted only under the rule below; otherwise a negative result is recorded and nothing changes.
 
@@ -277,7 +337,7 @@ So the baseline was not clean: the builder often already saw its visible test, r
 1. **Measure before running.** Commit the pack audit above as a record. For each task, run default discovery on its punched copy and list every failing test besides the visible one (its hidden coverage); list the tasks with none. Confirm the pristine snapshot passes default discovery in a bench copy, or record which tests cannot run there (for example, tests needing git history) and exclude them from the hidden check for every arm alike. No GPU.
 2. **Bench support, tested.** In `bench/` only: a switch that drops `tests/` from the context pack; the `check_test` extraction; the hidden-check scorer; leak checks unchanged. Tests for each, with every model call blocked. No product change.
 3. **Runs (USER confirms the GPU is free first).** Arm A, then arm B, on all 22 goals, one run each, with every row recorded in `bench/experiments/` (settings, prompt hash, model digest, Ollama version, the per-goal metrics above).
-4. **Decide by the rule and park.** Apply the adoption rule as written. If B is adopted, wiring `check_test` into the team pipeline is a separate USER decision and a later tranche; T8 changes no product code. Park with the evidence.
+4. **Decide by the rule and park.** Apply the adoption rule as written. If B is adopted, wiring `check_test` into the team pipeline is a separate USER decision and a later tranche; T9 changes no product code. Park with the evidence.
 
 **Non-goals:** recursive decomposition; changes to the planner, reviewer, debugger or `roles.json`; prompt tuning beyond adding the one field; more runs per goal; new bench tasks; product pipeline changes.
 
@@ -299,7 +359,7 @@ So the baseline was not clean: the builder often already saw its visible test, r
 - [ ] 3. Runs.
 - [ ] 4. Decide and park.
 
-**Now:** T8 is declared for USER review (reviewer note T8-pre-1). Nothing is implemented.
+**Now:** waiting; T8 (goal-draft bridge) comes first.
 
 ---
 
@@ -412,7 +472,7 @@ So the baseline was not clean: the builder often already saw its visible test, r
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T7 was parked and accepted (USER, 2026-10-03); the prototype is complete (§3). T8 is declared in §7 for USER review.
+**Implementation permission:** NO. T7 was parked and accepted (USER, 2026-10-03); the prototype is complete (§3). T8 (goal-draft bridge) is declared in §7 for USER review; T9 (builder expectations) waits behind it.
 **Standing authorization for T6 (USER, 2026-10-02; ended when T6 was parked on 2026-10-02):** within T6's declared scope, the implementing AGENT may change role settings and prompts, run experiments, fix bugs, adjust tests and refactor T6 modules without asking first. The condition: every change is recorded and reversible. Each experiment appends its settings, prompt fingerprint, model digest, Ollama version and per-goal outcomes to `bench/experiments/`, and each tuned change is its own commit linked to that record. Tuning uses about two-thirds of the bench goals; a change is kept only if it also holds on the held-back third. Still needing the USER: machine-wide settings, Ollama or other downloads, pushing, deleting anything not created by the AGENT, D-decisions and contract semantics, §3/§4, scope or non-goal changes, reviewer notes, and parking or accepting the tranche. This authorization ends when T6 is parked.
 
 ## 9. Parked Tranches
