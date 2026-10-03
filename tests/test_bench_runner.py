@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -144,7 +145,15 @@ class BenchRunnerTests(unittest.TestCase):
                 destination.mkdir(parents=True)
                 return (f"    raise NotImplementedError('{task['id']}')\n", "removed body")
 
-            with (patch.object(runner, "_get_json", side_effect=[{"version": "test"},
+            real_run = subprocess.run
+
+            def no_git(args, *rest, **kwargs):  # the default suite must pass from an export with no .git
+                if list(args[:2]) == ["git", "rev-parse"]:
+                    return subprocess.CompletedProcess(args, 0, stdout="0" * 40 + "\n", stderr="")
+                return real_run(args, *rest, **kwargs)
+
+            with (patch.object(runner.subprocess, "run", side_effect=no_git),
+                  patch.object(runner, "_get_json", side_effect=[{"version": "test"},
                                                                    {"models": [{"name": model}]}]),
                   patch.object(runner, "archive_snapshot", side_effect=lambda repo, commit, dest:
                                dest.mkdir(parents=True)),

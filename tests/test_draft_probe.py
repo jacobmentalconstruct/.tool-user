@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -41,9 +43,16 @@ class DraftProbeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temporary, \
                 patch("local_memory_lab.team.draft.call_role", side_effect=fake_draft), \
                 patch("local_memory_lab.team.plan.call_role", side_effect=fake_plan):
-            output, summary = draft_probe.run_draft_probe(ROOT, on_progress=lambda message: None,
+            repo = Path(temporary) / "repo"  # its own history: the suite must pass from an export without .git
+            for part in ("src", "bench/tasks"):
+                shutil.copytree(ROOT / part, repo / part, ignore=shutil.ignore_patterns("__pycache__"))
+            shutil.copy2(ROOT / "roles.json", repo / "roles.json")
+            for args in (["init", "-q"], ["add", "-A"],
+                         ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "base"]):
+                subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True)
+            output, summary = draft_probe.run_draft_probe(repo, on_progress=lambda message: None,
                                                           embedder=team_fixtures._NoModelEmbedder(),
-                                                          probes_dir=Path(temporary))
+                                                          probes_dir=Path(temporary) / "probes")
             record = json.loads(output.read_text(encoding="utf-8"))
         self.assertEqual(8, summary["drafts"])
         self.assertEqual((1, 1, 1, 1), (summary["valid"], summary["planned_validly"], summary["plan_target_agrees"],

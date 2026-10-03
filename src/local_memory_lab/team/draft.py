@@ -119,7 +119,7 @@ def busy_record(project_root: Path) -> dict:
     except (OSError, ValueError):
         checks = []
     return {"valid": False, "goal": "", "target": None, "checks": checks,
-            "reasons": ["busy: a job step holds the model; draft again when it waits or ends"]}
+            "reasons": ["the model is busy (a job step or a chat reply holds it); draft again when it is free"]}
 
 
 def draft_text(record: dict) -> str:
