@@ -315,7 +315,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [ ] 4. Review and merge.
 - [ ] 5. End checks and park.
 
-**Now:** task 2 is in progress. The reviewer's check T7-checks-1 asked for one more G3 test, now added on `selfdev/base` (`21d1e07`); this awaits the reviewer's re-check. No attempt starts until the USER releases it. To resume: read this line, then `git log --oneline -10` on `t7-selfdev` and `git -C ../.tool-user-selfdev log --oneline -3`.
+**Now:** task 2: the reviewer's re-check at `selfdev/base@21d1e07` and `t7-selfdev@bd59d8c` passed. All four checks fail for their own goals in a real task workspace, the wrong G3 fix now fails `goal-g3-apply`, and no attempt has run. The reviewer recommends releasing the attempts. Waiting for the USER to release task 3 and to write G1's allowlist JSON. To resume: read this line, then `git log --oneline -10` on `t7-selfdev` and `git -C ../.tool-user-selfdev log --oneline -3`.
 
 
 **Task 1 evidence (2026-10-02):**
