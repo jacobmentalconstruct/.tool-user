@@ -244,7 +244,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T7 — Self-development and park (declared 2026-10-02 after USER acceptance of T6; the last tranche, §5).
+**ID:** T7 — Self-development and park (declared 2026-10-02 after USER acceptance of T6; amended the same day for reviewer note T7-decl-1; the last tranche, §5).
 
 **Current:** T1–T6 are accepted on `main` (pushed at `82edf33`). S1–S7 are met by their tranches; S8 (self-development), S9 (end-state size and cleanliness) and S10 (docs current) remain. There is no implementation permission until the USER approves this declaration (§8).
 
@@ -252,37 +252,69 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Expected outcome:** the local team turns at least one pre-registered goal from this plan's own backlog into a tested change that the USER approves in the hub and that merges into `main` with `selfdev` credited, with zero paid-model calls and no regression (S8, D8). Then every stop condition S1–S10 has recorded evidence, and the project ends.
 
-**Pre-registered goals (D8; fixed before any attempt, never swapped after one).** Each is entered through **New goal** exactly as written. Each has a check that fails before the change (D20): a named test written by the AGENT and committed on the selfdev base before any attempt, shown to the USER at approval, never edited afterwards.
-- **G1 Citation parts (carry item L3).** Goal: "In team/steps.py, make require_citation reject a reviewer fail when any quoted part is shorter than CITE_MIN characters, not only when the parts' total is." One task, an edit of `require_citation`. Check: `goal-g1`, one test method.
-- **G2 Case-insensitive ignore rules (T1 note).** Goal: "In workspace/paths.py, make excluded match .gitignore rules without regard to letter case, as git does on Windows." One task, an edit of `excluded`. Check: `goal-g2`, one test method.
-- **G3 Stale staged files, two tasks (T1 note; the multi-task proof carried from T6).** Goal: "In workspace/patching.py, add remove_stale_temps(folder) that deletes leftover .lab-stage- and .lab-recover- files in that folder and returns their paths, then make staged_apply call it for each target folder before writing." Two tasks: a new top-level function, then an edit of `staged_apply`. Checks: `goal-g3-new` (calls the new function) and `goal-g3-apply` (a planted leftover is gone after an apply); task 2 sees task 1's applied change.
+**Proposed D21, Self-development goal checks (recorded in §2 on USER approval):** each goal's check is one module per goal in `selfdev_checks/`, outside default discovery (`python -B -m unittest discover -s tests`), and runs only by name through the allowlist. The AGENT writes the modules and commits them on `selfdev/base` before any attempt; they are never edited afterwards. Each module imports its goal's target inside the test method, after putting the copy's `src` on `sys.path` the way the existing tests do, so a check fails by assertion for its own goal. The one exception is G3's new-function check, where the missing name is the failure. Only the USER writes `.lab/allowlist.json` (`docs/CONTRACTS.md` §0, §4), using the exact JSON given below for each goal.
+
+**Pre-registered goals (D8; fixed at the first attempt, never swapped after one).** Each is entered through **New goal** exactly as written.
+- **G1 Citation parts (carry item L3).** Goal: "In team/steps.py, make require_citation reject a reviewer fail when any quoted part is shorter than CITE_MIN characters, not only when the parts' total is." One task, an edit of `require_citation`. Check module `selfdev_checks/test_g1.py`. Allowlist:
+  `{"commands": {"goal-g1": ["python", "-B", "-m", "unittest", "selfdev_checks.test_g1"]}, "timeout_s": 120}`
+- **G2 Case-insensitive ignore rules (T1 note).** Goal: "In workspace/paths.py, make excluded match .gitignore rules without regard to letter case, as git does on Windows." One task, an edit of `excluded`. Check module `selfdev_checks/test_g2.py`. Allowlist:
+  `{"commands": {"goal-g2": ["python", "-B", "-m", "unittest", "selfdev_checks.test_g2"]}, "timeout_s": 120}`
+- **G3 Leftover staged files, two tasks (T1 note; the multi-task proof carried from T6).** Goal: "In workspace/patching.py, add stale_temps(folder) that returns the paths of leftover .lab-stage- and .lab-recover- files in that folder, then make staged_apply raise a ValueError naming them, before writing anything, when any target folder has such files." Two tasks: a new top-level function, then an edit of `staged_apply`. Task 2 sees task 1's applied change. Nothing is deleted, so every change stays inside the gated diff (D16, D18). Check module `selfdev_checks/test_g3.py`, with two test classes. `NewFunctionTests` calls `stale_temps`. `ApplyTests` plants a leftover file, then expects `staged_apply` to raise a `ValueError` naming it and the target to stay unchanged. Allowlist:
+  `{"commands": {"goal-g3-new": ["python", "-B", "-m", "unittest", "selfdev_checks.test_g3.NewFunctionTests"], "goal-g3-apply": ["python", "-B", "-m", "unittest", "selfdev_checks.test_g3.ApplyTests"]}, "timeout_s": 120}`
 
 **Scope (task list, in order):**
-1. **Selfdev setup.** Create the worktree from `main` on `selfdev/base`. Commit the goal tests there (`tests/test_selfdev_goals.py`). Show that each goal check fails and that every other test passes in the worktree. While a goal runs, the worktree's `.lab/allowlist.json` names only that goal's check or checks, so the planner cannot pick a whole-suite check that fails in a task copy for other reasons. Record the worktree commit, the allowlists and the before-results in §7.
-2. **Goal attempts.** For each goal in order: select the worktree in the hub, submit the goal, and let the USER approve or reject the plan and the patch in the browser; the AGENT only watches through the client and advises in chat (D8). At most 3 attempts per goal; each is recorded in §7 with its job ID, task states, reason code, role origin and time. A failed attempt leaves the worktree reset to `selfdev/base` before the next one.
-3. **Review and merge.** For each goal that passes: commit the applied change on `selfdev/<goal>` as `selfdev <goal>: …` with the trailer `Actor: ROLE`, unchanged from what the USER approved. Run the full suite and `tests/test_architecture.py` on that branch, review the diff, and merge it into `t7-selfdev`. A goal whose branch fails the suite is recorded as not passed, not fixed by hand.
-4. **End checks and park.** S1: a fresh clone into a temporary folder, `pip install -r requirements.txt`, then the test suite. S9: module sizes, import graph and a dead-code pass. S7 follow-up for L3: rerun the reviewer probe (`python lab.py bench roles --confirm-gpu-free`) only if G1 merged. S10: a docs pass. Then the §9 record with evidence for each stop condition, and the push after USER acceptance.
+1. **Selfdev setup.** Create the worktree from `main` on `selfdev/base`, and commit the three check modules there. Record in §7: the worktree commit; each check failing for its own goal's reason, not an import error from another goal; and default discovery passing in the worktree.
+2. **Reviewer check (pause).** The goal texts, check modules and allowlist JSON freeze at the first attempt, so the reviewer reviews them first. No attempt starts until the USER releases that review.
+3. **Goal attempts.** Goals run in order. Before each goal, the USER writes that goal's allowlist JSON into the worktree's `.lab/allowlist.json` by hand, selects the worktree in the hub and submits the goal. The USER approves or rejects the plan and the patch in the browser. The AGENT only watches through the client and advises in chat (D8).
+   - Each goal gets at most 3 attempts. A USER plan rejection counts as one, recorded as `rejected`.
+   - Each attempt is recorded in §7: job ID, task states, reason code, role origin and time.
+   - Each attempt's events are committed as an export, `bench/selfdev/<goal>-<job>.json`: the job's events, per-role models and approvals. The export is made by a read-only script over the git-ignored `events.sqlite`.
+   - A failed attempt leaves the worktree reset to `selfdev/base` before the next attempt.
+4. **Review and merge.** For each goal that passes, the AGENT commits the applied change on `selfdev/<goal>` as `selfdev <goal>: …`, unchanged from what the USER approved, with the trailer `Actor: ROLE`.
+   - On that branch, default discovery, `tests/test_architecture.py` and the goal's named check must all pass.
+   - The diff gets the D8 normal review (reviewer note, USER release).
+   - The hub is stopped before the branch merges into `t7-selfdev`, because the hub never changes its own running code (§4), and restarted after.
+   - Once merged, the goal's check module moves unchanged into `tests/` in a separate AGENT commit, so default discovery guards it from then on.
+   - A goal whose branch fails any of these is recorded as not passed, not fixed by hand.
+5. **End checks and park.**
+   - S1: a fresh clone into a temporary folder, `pip install -r requirements.txt`, then the test suite.
+   - S9: module sizes, the import graph, and a dead-code pass using a standard-library `ast` scan for top-level functions, classes and constants in `src` never referenced elsewhere in `src` or `tests`. Each find is reviewed and removed or justified; no new dependency.
+   - S7 follow-up for L3: rerun the reviewer probe (`python lab.py bench roles --confirm-gpu-free`) only if G1 merged.
+   - S10: a docs pass.
+   - Then the §9 record with evidence for each stop condition, and the push after USER acceptance.
 
 **Carry-to-T7 items:** L3 is G1, and the multi-task proof is G3. L2 (the pre-build check is recorded as `building`) stays a recorded limitation, because changing the task-state sequence is a contract change that the end of the project does not need. Cap losses stay a recorded limitation. Option (c) of D20 stays an idea.
 
-**Non-goals:** any §4 item, including the deferred T7 candidates (logic-mutant cards, recursive decomposition, edit-task bench); new roles, prompts or settings tuning; contract or event changes; rerunning the 132-attempt builder bench (the builder is unchanged since T5); renaming (D5); hand edits to the team's changes; any paid-model call during attempts.
+**Non-goals:** any §4 item, including the deferred T7 candidates (logic-mutant cards, recursive decomposition, edit-task bench); new roles, prompts or settings tuning; contract or event changes; rerunning the 132-attempt builder bench (see "Needs the USER" item 4); renaming (D5); hand edits to the team's changes; any paid-model call during attempts.
 
 **Acceptance criteria:**
-- **S8:** at least one goal's branch is merged into `t7-selfdev` with `selfdev` credited; its job events show local models only and USER approvals for the plan and patch: `git log --grep "^selfdev"` and the attempt records in §7.
-- **No regression:** `python -B -m unittest discover -s tests -v` and `-p "test_architecture.py"` pass on `t7-selfdev`.
+- **S8:** at least one goal's branch is merged into `t7-selfdev` with `selfdev` credited. Its job events show local models only and USER approvals for the plan and the patch. Evidence: `git log --grep "^selfdev"`, the attempt records in §7 and `bench/selfdev/`. S8 is met when `t7-selfdev` merges into `main` after USER acceptance (D8).
+- **No regression:** "full suite" means default discovery. `python -B -m unittest discover -s tests -v` and `-p "test_architecture.py"` pass on `t7-selfdev`.
 - **S1:** the fresh-clone test run passes (command and output recorded).
-- **S9:** no module over 400 lines; the architecture test passes; no dead code found by the pass (or each find removed).
+- **S9:** no module over 400 lines; the architecture test passes; each dead-code find is removed or justified.
 - **S10:** `rg -n "in progress|not yet declared|awaits USER" README.md AGENTS.md PROJECT.md docs` shows no stale status; `git diff --check` is clean.
 
-**Known risks:** the cap loses about a quarter of builder attempts, so a goal may need its 3 attempts. G3 needs the planner to give each task its own check, which no earlier run has tested. The worktree copy into each task workspace includes `bench/`, so copies take longer. The USER's attention is needed at every plan and patch approval.
+**Known risks:**
+- The cap loses about a quarter of builder attempts, so a goal may use all 3 attempts.
+- G3 needs the planner to give each task its own check, which no earlier run has tested.
+- The check modules are indexed like any Python file, so context packs may show the planner and builder the expected behaviour. That is intended: the checks are the specification.
+- The worktree copy into each task workspace includes `bench/`, so copies take longer.
+- The USER's attention is needed at every allowlist change, plan approval and patch approval.
 
-**Needs the USER at approval:** (1) the three goals as written; (2) goal checks as AGENT-written failing tests on the selfdev base, recorded as D21 on approval; (3) L2 and cap losses left as limitations.
+**Needs the USER at approval:**
+1. The three goals and their allowlist JSON, as written.
+2. D21 as proposed above.
+3. L2 and cap losses left as limitations.
+4. Dropping "run the full bench" from §5's T7 row. The builder is unchanged since T5. The planned line-level answer-leak check (a bench-hardening item that T6 deferred to T7) lapses with it.
 
 **Progress:**
 - [ ] 1. Selfdev setup.
-- [ ] 2. Goal attempts.
-- [ ] 3. Review and merge.
-- [ ] 4. End checks and park.
+- [ ] 2. Reviewer check.
+- [ ] 3. Goal attempts.
+- [ ] 4. Review and merge.
+- [ ] 5. End checks and park.
+
+**Now:** T7 is declared and amended for T7-decl-1, awaiting the reviewer's re-check and USER approval. Nothing is implemented, and no worktree exists yet.
 
 **Now:** T7 is declared for USER review. Nothing is implemented, and no worktree exists yet.
 
