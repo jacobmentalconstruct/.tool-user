@@ -311,7 +311,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [ ] 3. Page.
 - [ ] 4. Probe and park.
 
-**Now:** T8 (goal-draft bridge) is declared and amended for reviewer note T8-decl-1, awaiting the reviewer's re-check and USER approval. T9 (builder expectations) waits until T8 is parked and accepted. Nothing is implemented.
+**Now:** T8 approved by the USER (2026-10-03) after the reviewer's re-check of `c57d2ae`; task 1 (validator) in progress on `t8-goal-draft`. To resume: read this line, then `git log --oneline -10`.
 
 ---
 
@@ -483,7 +483,7 @@ So the baseline was not clean: the builder often already saw its visible test, r
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T7 was parked and accepted (USER, 2026-10-03); the prototype is complete (§3). T8 (goal-draft bridge) is declared in §7 for USER review; T9 (builder expectations) waits behind it.
+**Implementation permission:** YES for T8 (USER, 2026-10-03). No standing authorization: the USER confirms the GPU is free before the probe and accepts the park. T9 (builder expectations) waits behind T8.
 **Standing authorization for T6 (USER, 2026-10-02; ended when T6 was parked on 2026-10-02):** within T6's declared scope, the implementing AGENT may change role settings and prompts, run experiments, fix bugs, adjust tests and refactor T6 modules without asking first. The condition: every change is recorded and reversible. Each experiment appends its settings, prompt fingerprint, model digest, Ollama version and per-goal outcomes to `bench/experiments/`, and each tuned change is its own commit linked to that record. Tuning uses about two-thirds of the bench goals; a change is kept only if it also holds on the held-back third. Still needing the USER: machine-wide settings, Ollama or other downloads, pushing, deleting anything not created by the AGENT, D-decisions and contract semantics, §3/§4, scope or non-goal changes, reviewer notes, and parking or accepting the tranche. This authorization ends when T6 is parked.
 
 ## 9. Parked Tranches
