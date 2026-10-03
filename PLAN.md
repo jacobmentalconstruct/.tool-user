@@ -311,11 +311,11 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **Progress:**
 - [x] 1. Selfdev setup.
 - [x] 2. Reviewer check.
-- [ ] 3. Goal attempts.
-- [ ] 4. Review and merge.
+- [x] 3. Goal attempts.
+- [x] 4. Review and merge.
 - [ ] 5. End checks and park.
 
-**Now:** attempts recorded (below). G1 passed and passed the D8 normal review (reviewer note `T7-g1-1`); G2 was stopped by the USER after 2 attempts; G3 failed at planning on every recorded attempt. The event log holds 2 G3 jobs, but the note reports 3; awaiting USER confirmation before task 4 (stop the hub, merge `selfdev/g1` into `t7-selfdev`, move `selfdev_checks/test_g1.py` unchanged into `tests/`, restart), because G1 merges only after the last attempt.
+**Now:** tasks 1–4 are done; task 5 (end checks and park) is in progress. To resume: read this line, then `git log --oneline -10` on `t7-selfdev`.
 
 
 **Task 1 evidence (2026-10-02):**
@@ -334,7 +334,13 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **G2, attempt 1: not passed (`review_failed`).** Job `8b312139-cf0b-400e-9072-6f17816ca987`, 10:09:25–10:11:29 UTC. `goal-g2` failed first, then passed with the builder's candidate; the reviewer failed it, quoting `fnmatch.fnmatch(lower, ".*-bin")`. Export: `bench/selfdev/G2-8b312139-cf0b-400e-9072-6f17816ca987.json`.
 - **G2, attempt 2: not passed (`invalid_output`).** Job `9c59e3fa-9451-4221-91f0-7a5df52fb867`, 10:14:28–10:15:34 UTC. `goal-g2` failed first, then passed; the reviewer's fail quoted `if fnmatch.fnmatch(lower, ".*-bin")`, which is not a card line, and gave the `fnmatchcase` → `fnmatch` swap as its reason. Export: `bench/selfdev/G2-9c59e3fa-9451-4221-91f0-7a5df52fb867.json`.
 - **G2: not passed; stopped by the USER after 2 of 3 attempts; the third is unused.** The candidate relied on `fnmatch.fnmatch`, which ignores case only on Windows (through `os.path.normcase`), so it did not meet "without regard to letter case" everywhere; the USER chose not to risk approving a Windows-only fix.
-- **G3, attempts 1 and 2: not passed (`invalid_plan`).** Jobs `a395cc95-957c-4e9a-85c9-cf226a3f53a9` (10:24:28–10:24:52 UTC) and `67668e0b-24ef-4ef8-bd3e-61cbf24fe44f` (10:27:42–10:27:57 UTC). Both times plan validation rejected task 1 with "src/local_memory_lab/workspace/patching.py already exists": the planner marked the new function `stale_temps` as a new file (empty `symbol`). Nothing ran. Code-rejected plans count as attempts (USER decision). Exports: `bench/selfdev/G3-a395cc95-957c-4e9a-85c9-cf226a3f53a9.json`, `bench/selfdev/G3-67668e0b-24ef-4ef8-bd3e-61cbf24fe44f.json`. Reviewer note `T7-g1-1` reports a third G3 attempt with the same result; the event log (58 events, the last at 10:27:57 UTC) has no third G3 job, so it is not recorded here until the USER confirms.
+- **G3, attempts 1 and 2: not passed (`invalid_plan`).** Jobs `a395cc95-957c-4e9a-85c9-cf226a3f53a9` (10:24:28–10:24:52 UTC) and `67668e0b-24ef-4ef8-bd3e-61cbf24fe44f` (10:27:42–10:27:57 UTC). Both times plan validation rejected task 1 with "src/local_memory_lab/workspace/patching.py already exists": the planner marked the new function `stale_temps` as a new file (empty `symbol`). Nothing ran. Code-rejected plans count as attempts (USER decision). Exports: `bench/selfdev/G3-a395cc95-957c-4e9a-85c9-cf226a3f53a9.json`, `bench/selfdev/G3-67668e0b-24ef-4ef8-bd3e-61cbf24fe44f.json`. Reviewer note `T7-g1-1` reports a third G3 attempt with the same result; the event log (58 events, the last at 10:27:57 UTC) has no third G3 job, so it is not recorded here. The USER then closed the attempts and moved to task 4: G3 is not passed.
+
+**Task 4 evidence (2026-10-03):**
+- The hub (`pythonw lab.py hub-server`, idle) was stopped before the merge, as §4 requires.
+- `selfdev/g1` was merged into `t7-selfdev` with `--no-ff` (`e9c305e`; the team's commit `fa13752` is unchanged).
+- `selfdev_checks/test_g1.py` was moved unchanged into `tests/test_g1.py` (`177e7ff`, a pure rename). `python -B -m unittest discover -s tests`: 146 tests pass (144 plus G1's two).
+- The hub was restarted the same way; `python lab.py client status` answers and shows all five jobs.
 
 **Limitations to record at park (from `T7-g1-1`; not fixed in T7):**
 - A `review_failed` or `invalid_output` reviewer failure keeps the reasons and quote but not the candidate; the workspace is discarded, so a rejected candidate cannot be inspected afterwards.
