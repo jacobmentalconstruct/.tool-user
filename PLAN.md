@@ -310,12 +310,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Progress:**
 - [x] 1. Selfdev setup.
-- [ ] 2. Reviewer check.
+- [x] 2. Reviewer check.
 - [ ] 3. Goal attempts.
 - [ ] 4. Review and merge.
 - [ ] 5. End checks and park.
 
-**Now:** task 2: the reviewer's re-check at `selfdev/base@21d1e07` and `t7-selfdev@bd59d8c` passed. All four checks fail for their own goals in a real task workspace, the wrong G3 fix now fails `goal-g3-apply`, and no attempt has run. The reviewer recommends releasing the attempts. Waiting for the USER to release task 3 and to write G1's allowlist JSON. To resume: read this line, then `git log --oneline -10` on `t7-selfdev` and `git -C ../.tool-user-selfdev log --oneline -3`.
+**Now:** G1 passed on attempt 1 and is committed on `selfdev/g1` (`fa13752`); it awaits the D8 normal review before merging into `t7-selfdev`. G2 is next: the worktree goes back to `selfdev/base`, and the USER writes G2's allowlist JSON. To resume: read this line, then `git log --oneline -10` on `t7-selfdev` and `git -C ../.tool-user-selfdev log --oneline -3`.
 
 
 **Task 1 evidence (2026-10-02):**
@@ -324,6 +324,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - `python -B -m unittest discover -s tests` in the worktree: 144 tests pass.
 - Each goal can pass: in a throwaway copy (`live_control/tmp`, deleted afterwards; never the worktree), minimal reference fixes made all four checks pass and the 144-test suite still passed. These fixes are not committed and are not shown to the team.
 - The allowlist JSON for each goal is in the declaration above; the USER writes it before each goal (D21).
+
+**Task 2 evidence (2026-10-02):** reviewer note T7-checks-1 asked for one G3 positive-path test, added before any attempt (`21d1e07`); the reviewer's re-check passed and recommended release (`plan-monitor` export `checks-review-t7-dc61617.md`). The USER released the attempts and wrote G1's allowlist JSON exactly as in §7.
+
+**Attempts (task 3):**
+- **G1, attempt 1: passed.** Job `5cc7c9a7-0cb8-41f0-be30-276abc6b2b07`, 2026-10-03 04:40:18–04:43:05 UTC (about 2 min 47 s including USER approvals). The planner made one task, an edit of `src/local_memory_lab/team/steps.py` `require_citation`, with check `goal-g1`. `goal-g1` failed first (exit 1), then the builder's candidate passed (exit 0) with no debug round. The reviewer passed it, then the gate. The USER approved the plan and the patch (`originRole: role:builder`), and the change was applied. Event actors: `system` and `user` only. Export: `bench/selfdev/G1-5cc7c9a7-0cb8-41f0-be30-276abc6b2b07.json`.
+- **G1 on `selfdev/g1` (`fa13752`, `Actor: ROLE`, unchanged from the approved patch):** `goal-g1` passes; `python -B -m unittest discover -s tests`, 144 pass; the architecture test passes; `git diff --check` is clean.
 
 ---
 
