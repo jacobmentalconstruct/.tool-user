@@ -2,17 +2,26 @@
 
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
+import threading
+import time
 import unittest
+from http.server import ThreadingHTTPServer
 from pathlib import Path
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from local_memory_lab.interfaces.web import make_handler  # noqa: E402
+from local_memory_lab.session import SharedSession  # noqa: E402
 from local_memory_lab.team.draft import draft_text, validate_draft  # noqa: E402
 from local_memory_lab.workspace.paths import Workspace  # noqa: E402
 import team_fixtures  # noqa: E402,F401  (blocks every model call in the default suite)
+from team_fixtures import make_project, planner  # noqa: E402
 
 FILES = {"team/steps.py": "def require_citation(card):\n    return card\n",
          "pkg/box.py": "class Box:\n    def put(self, item):\n        return item\n\n\ndef helper():\n    return 1\n",
@@ -91,6 +100,97 @@ class DraftValidationTests(unittest.TestCase):
                        {"valid": False, "goal": "", "reasons": ["bad path"], "checks": []}):
             with self.subTest(valid=record["valid"]):
                 self.assertIn("a check that fails before this change must exist", draft_text(record))
+
+
+GOOD = {"goal": "In calc.py, make add return the sum of a and b.",
+        "target": {"path": "calc.py", "shape": "existing_symbol", "symbol": "add"}}
+BAD = {"goal": "Add a new function add in the new file calc.py.",  # the G3 confusion
+       "target": {"path": "calc.py", "shape": "new_file", "symbol": ""}}
+
+
+class DraftSessionTests(unittest.TestCase):
+    """The session and endpoint: a draft fills only the requesting browser and never creates a job."""
+
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
+        base = Path(self.temporary.name)
+        self.session = SharedSession(base / "events.sqlite", load_models=False, start_worker=False)
+        self.session.set_project_root(str(make_project(base / "project")))
+        self.session._record("system", "chat.reply", {"display": {"speaker": "Assistant", "text": "add is wrong"},
+                                                      "turn": [{"role": "user", "content": "why does add fail?"},
+                                                               {"role": "assistant", "content": "add is wrong"}]})
+        self.server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(self.session, "user-t", "agent-t"))
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        self.addCleanup(self.server.server_close)
+        self.addCleanup(self.server.shutdown)
+
+    def tearDown(self):
+        self.session.knowledge.close()
+        self.temporary.cleanup()
+
+    def request(self, path, body=None, token="user-t"):
+        data = None if body is None else json.dumps(body).encode("utf-8")
+        request = Request(f"http://127.0.0.1:{self.server.server_port}{path}", data=data, headers={
+            "Authorization": "Bearer " + token, **({"Content-Type": "application/json"} if data else {})})
+        with urlopen(request, timeout=10) as response:
+            return json.load(response)
+
+    def draft(self, reply, source="conversation", token="user-t"):
+        with planner(reply, target="local_memory_lab.team.draft.call_role") as call:
+            return self.request("/api/goal-draft", {"source": source}, token), call
+
+    def kinds(self):
+        return [event["kind"] for event in self.session.events_after(0)]
+
+    def test_a_valid_draft_returns_exactly_the_recorded_goal_and_creates_no_job_or_turn(self):
+        turns = len(self.session.turns)
+        response, call = self.draft(GOOD)
+        recorded = self.session.events_after(0)[-1]["data"]
+        self.assertEqual((True, GOOD["goal"]), (response["valid"], response["goal"]))
+        self.assertEqual(response["goal"], recorded["goalDraft"]["goal"])
+        self.assertNotIn("turn", recorded)
+        self.assertEqual(turns, len(self.session.turns))
+        self.assertFalse({"job.state", "approval.requested"} & set(self.kinds()))
+        self.assertIn("conversation", call.call_args.args[2])  # what the draft model saw
+        self.assertEqual(["tests"], list(call.call_args.args[2]["checks"]))
+
+    def test_a_failed_validation_returns_no_goal(self):
+        response, _call = self.draft(BAD)
+        self.assertFalse(response["valid"])
+        self.assertNotIn("goal", response)
+        self.assertIn("already exists", " ".join(response["reasons"]))
+        self.assertFalse(self.session.events_after(0)[-1]["data"]["goalDraft"]["valid"])
+
+    def test_one_assistant_reply_can_be_the_source(self):
+        reply_id = self.session.events_after(0)[-1]["id"]
+        response, call = self.draft(GOOD, source=reply_id)
+        self.assertTrue(response["valid"])
+        self.assertEqual("add is wrong", call.call_args.args[2]["conversation"])
+
+    def test_the_agent_client_is_refused(self):
+        with self.assertRaises(HTTPError) as error:
+            self.draft(GOOD, token="agent-t")
+        self.assertEqual(403, error.exception.code)
+        self.assertNotIn("goalDraft", json.dumps(self.session.events_after(0)))
+
+    def test_a_held_turn_slot_answers_busy_at_once_and_fills_nothing(self):
+        self.session._turn_slot.acquire()
+        try:
+            started = time.monotonic()
+            response, call = self.draft(GOOD)
+        finally:
+            self.session._turn_slot.release()
+        self.assertLess(time.monotonic() - started, 5)
+        self.assertEqual((False, False), (response["valid"], call.called))
+        self.assertNotIn("goal", response)
+        self.assertIn("busy", self.session.events_after(0)[-1]["data"]["goalDraft"]["reasons"][0])
+
+    def test_the_fill_reaches_only_the_requesting_browser(self):
+        response, _call = self.draft(GOOD)
+        self.assertEqual(GOOD["goal"], response["goal"])
+        for token in ("user-t", "agent-t"):  # shared state carries the record, never a fill instruction
+            with self.subTest(token=token):
+                self.assertNotIn("goal-draft", json.dumps(self.request("/api/state", token=token)).casefold())
 
 
 if __name__ == "__main__":

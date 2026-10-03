@@ -16,7 +16,9 @@ from .knowledge.service import KnowledgeService
 from .session_state import SessionState
 from .workspace.paths import choose_root
 from .workspace.scratch import discard_job_scratch
+from .team import draft as goal_draft
 from .team.jobs import run_goal
+from .team.roles import load_roles
 
 
 class SharedSession:
@@ -121,6 +123,44 @@ class SharedSession:
             })
             self.prompts.put_nowait(event["id"])
         return request_id
+
+    def draft_goal(self, source, actor: str) -> dict:
+        """A validated goal draft for the USER's New goal box (D22): never a job, an approval or a chat turn."""
+        self._require_user(actor)
+        with self.lock:
+            root, text = self.project_root, self._draft_source(source)
+        if root is None:
+            raise ValueError("Choose a project folder first.")
+        if self._turn_slot.acquire(blocking=False):  # never wait behind a running job step
+            try:
+                self.knowledge.begin_activity()
+                try:
+                    record = goal_draft.draft_goal(text, root, self.knowledge, load_roles()["planner"])
+                finally:
+                    self.knowledge.end_activity()
+            finally:
+                self._turn_slot.release()
+        else:
+            record = goal_draft.busy_record(root)
+        record["source"] = source
+        # no "turn": a draft never enters the chat history (session_state keeps only replies with one)
+        self._record("system", "chat.reply", {"display": {"speaker": "Assistant", "text": goal_draft.draft_text(record)},
+                                              "goalDraft": record})
+        return record
+
+    def _draft_source(self, source) -> str:
+        if source == "conversation":
+            text = "\n".join(f"{message['role'].upper()}: {message['content']}"
+                             for turn in self.turns for message in turn)
+        elif isinstance(source, int) and not isinstance(source, bool):
+            event = self.store.get(source)
+            reply = event and event["kind"] == "chat.reply" and "goalDraft" not in event["data"]
+            text = event["data"]["display"]["text"] if reply else ""
+        else:
+            raise ValueError("Draft from the conversation or from one assistant reply.")
+        if not text.strip():
+            raise ValueError("There is nothing to draft a goal from yet.")
+        return text[-16_000:]
 
     def submit_goal(self, goal: str, actor: str) -> str:
         if not isinstance(goal, str) or not goal.strip() or len(goal) > 8000:

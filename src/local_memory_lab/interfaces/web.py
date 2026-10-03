@@ -104,6 +104,14 @@ def make_handler(session: SharedSession, user_token: str, agent_token: str):
                     result["requestId"] = session.submit(payload.get("text"), actor)
                 elif self.path == "/api/goals":
                     result["jobId"] = session.submit_goal(payload.get("text"), actor)
+                elif self.path == "/api/goal-draft":  # fills only this browser's New goal box (D22)
+                    if actor != "USER":
+                        self._reject(HTTPStatus.FORBIDDEN, "Only the USER browser can draft a goal.")
+                        return
+                    draft = session.draft_goal(payload.get("source"), actor)
+                    result.update({"valid": draft["valid"], "reasons": draft["reasons"]})
+                    if draft["valid"]:
+                        result["goal"] = draft["goal"]
                 elif self.path == "/api/jobs/cancel":
                     if actor != "USER":
                         self._reject(HTTPStatus.FORBIDDEN, "Only the USER browser can cancel a job.")

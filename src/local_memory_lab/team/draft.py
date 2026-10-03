@@ -9,6 +9,7 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
+from ..command_runner import CommandRunner
 from ..workspace.paths import Workspace
 from .plan import PlanError, check_target, check_task_path, planner_request
 from .roles import RoleOutputError, call_role
@@ -109,6 +110,16 @@ def draft_goal(source: str, project_root: Path, knowledge, config, *, call=None)
     return {**record, "valid": not reasons, "goal": reply.output["goal"].strip(), "target": reply.output["target"],
             "reasons": reasons, "seconds": round(time.monotonic() - started, 1),
             "loadSeconds": (reply.trace or {}).get("loadSeconds")}
+
+
+def busy_record(project_root: Path) -> dict:
+    """The record for a draft refused because a job step holds the one turn slot (it never waits)."""
+    try:
+        checks = sorted(CommandRunner(project_root).commands())
+    except (OSError, ValueError):
+        checks = []
+    return {"valid": False, "goal": "", "target": None, "checks": checks,
+            "reasons": ["busy: a job step holds the model; draft again when it waits or ends"]}
 
 
 def draft_text(record: dict) -> str:
