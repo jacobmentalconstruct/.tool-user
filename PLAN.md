@@ -201,6 +201,7 @@ All recorded 2026-09-29.
 - Logic-mutant reviewer cards (flipped comparisons, swapped `and`/`or`, changed numbers, removed guards that survive the tests) in the role probe, for T7's bench rerun (USER, 2026-10-02).
 - Recursive decomposition on execution failure: when a task fails its check after debugging, split it and rerun until its parts pass (USER idea, 2026-10-02). It extends T6's non-goal of re-planning on failure; a T7 candidate. Pass or fail should come from the task's check, not a small-model judge.
 - Edit-task bench for the builder and debugger: real edits from history, each with a check that fails before the edit and passes after (USER, 2026-10-02; a candidate for T7's bench rerun). T6's role probe covers edits for the reviewer only.
+- Builder sees the check's expectations, guarded by a hidden check (USER decision, 2026-10-03, reviewer note T8-pre-1): declared as T8.
 
 ## 5. Tranches
 
@@ -245,7 +246,66 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T7 — Self-development and park (declared 2026-10-02 after USER acceptance of T6; amended the same day for reviewer note T7-decl-1; the last tranche, §5).
+**ID:** T8 — Builder sees the check's expectations, guarded by a hidden check (declared 2026-10-03 after USER acceptance of T7; USER decision with reviewer note T8-pre-1).
+
+**Current:** T1–T7 are accepted on `main` (`aa48592`); the prototype is complete (§3). This tranche comes from the §4 Deferred list by USER decision. There is no implementation permission and no standing authorization: the USER approves this declaration, confirms the GPU is free before each GPU run, and accepts the park (§8).
+
+**Branch:** `t8-expectations`.
+
+**Expected outcome:** a measured answer to one question: does giving the builder the visible check's test cut its output-cap losses and raise real passes, without teaching to the test? The answer is adopted only under the rule below; otherwise a negative result is recorded and nothing changes.
+
+**Baseline, stated exactly.** In the 12-of-22 full-pipeline bench (`bench/experiments/2026-10-02-pipeline-bench.jsonl`), the builder's input was the task goal, target path, symbol, placement, the punched region, the punched target file, and a 6,000-token context pack built by `bench/harness.py` `build_context` from the punched copy. That index covers every allowed `.py` and `.md` file, `tests/` included. An audit of the 22 cached packs, recorded in task 1, found:
+- every pack held items from `tests/` (7 to 44 per pack);
+- 20 of 22 packs held the task's own graded test method (all but self-006 and self-017), including all 6 tasks that kept capping (self-003, -007, -012, -014, -019, -020).
+
+So the baseline was not clean: the builder often already saw its visible test, ranked among other items. A clean baseline is rerun with `tests/` excluded from the builder's context pack.
+
+**One variable.** Arm A (clean baseline): the pipeline as in the 12-of-22 run, with `tests/` excluded from the context pack. Arm B: the same, plus one new builder input field, `check_test`, holding the visible test method's source, its class's `setUp`/`setUpClass` and the module-level helpers it calls, taken by `ast` from the pristine snapshot's test file. The planner, reviewer and debugger inputs, `roles.json` and the bench's answer-leak checks are identical in both arms.
+
+**Hidden check.** For each task, every other test in the snapshot's default discovery, never shown to the builder. Task 1 measures which tasks have hidden coverage: whether the punched copy fails any test besides the visible one. Tasks with no hidden coverage are listed and reported separately, because a hardcoded expected value cannot be detected on them.
+
+**Metrics (defined before any run):**
+- Primary: the builder's output-cap rate (share of builder calls that hit `num_predict`).
+- Passes on the visible check.
+- Passes on visible plus hidden (the candidate applied to a pristine copy; the visible test and the whole default discovery pass).
+- Visible-only passes, a suspected teaching-to-the-test signal: visible passes, hidden fails.
+- Time per task.
+
+**Adoption rule (set before any run).** The same split as T6 (`index % 3 == 2` is held back). Adopt B only if, on the held-back goals, visible-plus-hidden passes in B exceed A's, and B has at most 1 visible-only pass in total. Otherwise record a negative result and change nothing.
+
+**Scope (task list, in order):**
+1. **Measure before running.** Commit the pack audit above as a record. For each task, run default discovery on its punched copy and list every failing test besides the visible one (its hidden coverage); list the tasks with none. Confirm the pristine snapshot passes default discovery in a bench copy, or record which tests cannot run there (for example, tests needing git history) and exclude them from the hidden check for every arm alike. No GPU.
+2. **Bench support, tested.** In `bench/` only: a switch that drops `tests/` from the context pack; the `check_test` extraction; the hidden-check scorer; leak checks unchanged. Tests for each, with every model call blocked. No product change.
+3. **Runs (USER confirms the GPU is free first).** Arm A, then arm B, on all 22 goals, one run each, with every row recorded in `bench/experiments/` (settings, prompt hash, model digest, Ollama version, the per-goal metrics above).
+4. **Decide by the rule and park.** Apply the adoption rule as written. If B is adopted, wiring `check_test` into the team pipeline is a separate USER decision and a later tranche; T8 changes no product code. Park with the evidence.
+
+**Non-goals:** recursive decomposition; changes to the planner, reviewer, debugger or `roles.json`; prompt tuning beyond adding the one field; more runs per goal; new bench tasks; product pipeline changes.
+
+**Acceptance criteria:**
+- Task 1 records exist: `bench/experiments/` holds the pack audit and the hidden-coverage table, including the no-coverage list.
+- `python -B -m unittest discover -s tests -v` passes, with tests for the pack switch, the extraction and the hidden scorer.
+- Rows for both arms on all 22 goals, with every metric above.
+- The adoption decision is applied exactly as written and stated in §9, with its numbers.
+
+**Known risks:**
+- The baseline already showed the visible test in 20 of 22 packs, so the effect of B may be small. Arm A may even do worse than the 12-of-22 run, since it removes test text the builder had.
+- One run per goal makes small differences noisy. The rule judges held-back goals only, which are 7.
+- Hidden coverage may be thin (the reviewer found only 10 of 22 targets called by name in another test), so the visible-only signal is blind on some tasks.
+- `check_test` can make inputs longer; the cap rate is measured, not assumed.
+
+**Progress:**
+- [ ] 1. Measure before running.
+- [ ] 2. Bench support, tested.
+- [ ] 3. Runs.
+- [ ] 4. Decide and park.
+
+**Now:** T8 is declared for USER review (reviewer note T8-pre-1). Nothing is implemented.
+
+---
+
+### Previous declaration: T7 — Self-development and park
+
+**ID:** T7 — Self-development and park (accepted 2026-10-03; retained for implementation history).
 
 **Current:** T1–T6 are accepted on `main` (pushed at `cb13bbb`). S1–S7 are met by their tranches; S8 (self-development), S9 (end-state size and cleanliness) and S10 (docs current) remain. There is no implementation permission until the USER approves this declaration (§8).
 
@@ -348,111 +408,11 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - The frozen G2 check passes on Windows for a Windows-only fix (`fnmatch.fnmatch` folds case there).
 - The planner (qwen2.5-coder:14b) confused "new function in an existing file" with "new file" on every G3 run, so the multi-task proof carried from T6 remains unproven.
 
----
-
-### Previous declaration: T6 — Team
-
-**ID:** T6 — Team (accepted 2026-10-02; retained for implementation history).
-
-**Current:** T1–T6 are accepted on `main`; T6 was merged from `t6-team` (2026-10-02). S2–S7 are complete. §3 stop conditions and §4 non-goals remain frozen (D6). The `create_project_file` approval bypass was removed in task 4 (`c4d0637`). There is no implementation permission until the USER approves the T7 declaration (§8).
-
-**Branch:** `t6-team`.
-
-**Expected outcome:** replace the free-running `run_turn` path with a durable planner → builder → debugger → reviewer team on the T3 job machine. A goal is planned into 1–5 bounded tasks before the USER approves the plan. Each task's candidate is built, checked, debugged and reviewed only in a disposable task workspace (D16); only a gated patch the USER approves reaches the selected project, through the transactional apply. Jobs end with visible success, failure or cancellation (S6; `docs/CONTRACTS.md` §§2–4 and 7–8).
-
-**Central invariant (D16):** an unapproved candidate is created, tested, debugged and reviewed only in a disposable task workspace. Until the USER approves the final gated patch, the selected project is unchanged, byte for byte.
-
-**Scope (task list, in order):**
-1. **Contracts and execution substrate.**
-   - Disposable task workspace (in `workspace/`): copy the selected project through the workspace exclusion rules (no `.lab/`, no generated folders), not the bench's `git archive`; record each planned file's before-bytes (or absence) at copy time so `staged_apply`'s drift check rejects a stale candidate.
-   - Durable task records: a Tasks projection in `SessionState` from `task.state` events (D17); fail fast, so a failed, rejected or exhausted task fails the job and later tasks do not run.
-   - Approvals carry `task` in both projections; candidates are attributed to the role that produced them; SYSTEM requests the final patch approval after the gate, recording the originating role and candidate (D18).
-   - Gate path rule: every edited or created path must already be in the USER-approved task's `files`; a listed path that does not exist yet allows creation there (D16). "Or declared in `new_files`" is removed.
-   - Role config: `roles.json` carries `num_predict`, `timeout_s`, `think` and `keep_alive` per role; callers hard-code none of them. An opt-in probe (about 5 bench tasks with context, after USER GPU-free confirmation) sets the builder and debugger budget and timeout together and records per-role time, tokens/s and invalid rate, plus the reviewer comparison. The debugger uses `think: true` with the builder's budget unless the probe proves `false` works; `test_roles.py` asserts the result. If the builder is still invalid on more than 1 of 5 with-context tasks at the largest budget the timeout allows, trim the context budget and re-probe once; if it still fails, stop and report to the USER. The timeout is never raised silently.
-   - Narrow role forms: a task names one `target` (D17), one file plus one symbol or one new file; code extracts that symbol's source and pins it as `search_block`; the builder (and debugger) writes only the replacement, or one `content` for a new path the plan lists. `format` schemas restrict builder/debugger paths to the task's files, the planner's `check` to allowlisted names, and the planner's `target.path` to existing paths unless flagged `new`. The debugger's input is pre-filled with the failing check output and the previous attempt.
-   - One shared structured-call helper for Ollama; no fourth HTTP client.
-   - `docs/CONTRACTS.md` §§1–3 and 7–8 are updated for D16–D19 in the same commit that implements them (planner `target`, gate path rule, no `new_files` widening, role config fields), so docs never lag the code (S10).
-   - Reviewer, card-shaped: one card per task built from data the job already holds (before: the pinned `search_block`; after: the candidate's replacement; intent: the approved task description; facts: the check result and the gate's path and size results; optionally the task's T4 pack). Targeted questions: does the change do what the task says, and does it alter behaviour the task did not ask for? Output is the schema-constrained `{"verdict", "reasons"}` with a `num_predict` cap, and a `fail` must cite a line in the card. The reviewer model (qwen3.5:35b from D4 or qwen3.5:9b) is chosen by the role probe, which uses only cards whose check passed, as production does: clean candidates from T5 attempts that passed their check, plus a few seeded known-bad candidates that still pass their check (for example, a change that alters behaviour outside the task's request). It scores `pass` on clean cards and `fail` on seeded-bad ones; D4 is updated from that measurement. Evidence for this shape: the reviewer AGENT's 25 practice reviews of local reviewers (outside this repo; observation only), where one-shot 35b looped or truncated in 3 of 4 runs and per-function cards on 9b did best. Nothing here imports, calls or references that oversight tool; only the ideas are ported (D1).
-2. **Real planning before plan approval.** The job goes `queued → planning` (planner runs) → tasks persisted → `awaiting_plan_approval` (the USER sees the real tasks) → `running`. Code validates every task before approval: normalized relative paths only, no absolute paths, no `..`, no `.lab/`, no duplicate or case-colliding paths, a bounded file count, a real allowlisted `check` read from the live project's allowlist (D19), a check for every new-function task that exercises its new behaviour (the task 1 reviewer limitation), no task whose `files` include the allowlist file, and exactly one `target` per task with `target.path` in `files` and `symbol` resolving to exactly one definition (via the T4 AST graph) or `new` naming an absent path. The plan approval view shows each task's exact check command and arguments. Approved tasks are immutable. T3 tests that encode the goal-text placeholder are updated deliberately.
-3. **Candidate execution in the workspace.** Before building, the task's check runs in the task workspace; if it already passes, the check does not exercise the change and the task fails as `check_not_exercising` (USER, 2026-10-02). The builder edits the task workspace and the check runs there; a failing check goes to the debugger for at most 2 rounds; a passing check goes to the reviewer, then the gate. Distinct reason codes select the next step: `cap_exhausted` (one retry with a larger budget or trimmed context), `check_failed` (debugger), `debug_exhausted` / `review_failed` / `path_outside_task` (task fails; job fails fast); malformed output (`invalid_output`) is never counted with a gate refusal. Every unusable role reply records an answer excerpt (first ~2,000 characters), a thinking excerpt (last ~2,000), `eval_count` and whether the cap was hit. Task checks run under plan approval in the task workspace only (D19).
-4. **Application, retirement and proof.**
-   - Apply: the USER approves the gated diff; a drift check runs, then the existing transactional apply and backup.
-   - `staged_apply` accepts a "was absent" before-state: drift check (still absent), backup record, and rollback that deletes the created file.
-   - Close the approval bypass: remove `create_project_file`; afterwards the only mutation path is candidate → gate → USER patch approval → transactional apply.
-   - Knowledge: one full sync before planning; no indexing during a role call; after an approved patch, refresh only the changed paths and wait for it before building the next task's context. `end_activity` no longer schedules a full rescan at every idle boundary.
-   - Chat becomes a bounded conversational surface: history plus a T4 context pack, with no project tools, no mutation and no commands. New goal is the only entrance to the team. `run_turn`, `agent/engine.py` and the tool router are deleted, not renamed.
-   - Cancel and restart remove scratch workspaces and child processes. Update adapters, contracts and docs.
-   - Run the opt-in real-model job and park.
-
-**Progress:**
-- [x] 1. Contracts and execution substrate (workspace, task records, approvals, gate rule, role config and probe, narrow forms, one transport).
-- [x] 2. Real planning before plan approval, with code validation and immutable tasks.
-- [x] 3. Candidate execution in the workspace with reason codes and thinking capture.
-- [x] 4. Apply with new-file support, bypass closed, knowledge refresh, Chat replaced, `run_turn` removed, real-model proof.
-
-**Now:** T6 is parked and accepted by the USER (2026-10-02) and merged into `main`; the park record is in §9. Next: the team reorients and declares T7 from its draft (§5), taking the "Carry to T7" list below into account, and waits for USER approval before changing code. Experiments while the USER was away are recorded in `bench/experiments/2026-10-02-*.jsonl` (settings unchanged by them). To resume: read this line, then `git log --oneline -10`.
-
-**Carry to T7** (from park review T6-park-1; not implemented in T6, §4 unchanged):
-- L2: the pre-build check runs while the task is recorded as `building`; the contract lifecycle uses `testing` for checks. Changing the recorded sequence is a contract matter.
-- L3: `require_citation` accepts quote parts of any length once their total reaches the minimum (relaxed in `e5a8aa9`, after the reviewer probe ran at `644922a`). Set a minimum length per part and re-score the reviewer in T7's bench rerun. Gate safety is unaffected now, because an uncited fail still fails the task.
-- Multi-task proof: a real-model job where task 2 sees task 1's applied change. The current proof is a single task.
-- Cap losses: the output cap remains the main pipeline loss (6 of 10 bench failures).
-- Idea, check-first option (c) from D20: a code task and its test task run as one pair, with check-first applied to the pair.
-
-**Task 1 evidence (2026-10-02):**
-- Substrate: task workspace, D17 task records, D18 approvals, D16 gate, role config, narrow forms, card reviewer with a required `quote`, one Ollama transport, per-call model unloading and GPU-residency recording. `python -B -m unittest discover -s tests -v`: 119 tests pass. `test_role_steps.py`, `test_gate.py`, `test_task_workspace.py`, `test_role_probe.py` and `test_roles.py` cover them.
-- Builder and debugger (`bench/probes/roles-20261002T023003Z-fcc36f5a.json`, 9b, 8,192 budget, context on): builder 4 of 5 valid (1 cap hit), 1 passed; debugger 4 of 5 valid, 3 passed. Within the threshold of at most 1 invalid in 5.
-- Reviewer (`bench/probes/roles-20261002T104736Z-40904584.json`, 20 cards per model: 10 creation, 10 from real edits in `bench/review_edits.json`, all fully on the GPU): qwen2.5-coder:14b passed 9 of 10 clean cards and caught 7 of 10 plants at about 3 s per card; qwen3.5:9b with thinking passed 9 of 10 clean but caught 1 of 10 and hit its 6,144-token cap on 6 cards. qwen3.5:35b was dropped: it can never be fully GPU-resident here (§1). Decision: qwen2.5-coder:14b, thinking off (D4).
-- Transient comparisons on the 14b, run outside the repo and not adopted: with plain plants, the single pass caught 10 of 10 side-effect plants and passed 9 of 10 clean cards. Two narrow passes on a stripped card passed only 3 of 10 clean cards with 31 false claims. A progressive two-pass (full card each time, pass 1 feeding pass 2) passed 9 of 10 clean and caught 9 of 10 plants, but made 6 false intent claims. Code-computed effect facts on the card lowered catches (side effects 10 to 5, logic 7 to 3).
-- Logic mutants that still pass the tests (16 across 10 functions): the single-pass 14b caught 6 of 7 on edits but only 1 of 9 inside new functions, where BEFORE is a stub. Limitation carried into task 2: a new-function task needs a check that exercises its behaviour, because review cannot stand in for it.
-- Measurement note: Ollama's `eval_count` omits thinking tokens on completed replies but reports the full count when the cap is hit; tokens/s stays correct, and elapsed time is the true cost.
-
-**Task 4 evidence (2026-10-02, USER away, standing authorization):**
-- Knowledge: one full sync before planning; no indexing during a role call; applied files are re-indexed immediately so the next task's context sees them (`index_paths_now`); no full rescan at every idle point; the unused path-refresh queue is removed (`33ce073`, `cf03602`).
-- Chat is answer-only (`agent/chat.py`): no tools, no writes, no commands. `run_turn`, the tool router, the chat patch and project tools, `create_project_file` (the approval bypass) and the patch helpers only they used are deleted (`c4d0637`). Only the lifecycle requests approvals: plan, and patch after the gate (reviewer L1). Only `workspace/` writes project files (architecture test). Source names no location outside the repo and never changes `sys.path` (S1 test). A restart removes interrupted jobs' task workspaces (`803bea1`).
-- Real-model proof (`python lab.py bench team --confirm-gpu-free`): run `20261002T172029Z-22830cfd` (`bench/probes/`) planned one correct task; the check failed before building; the builder missed a rule held in unindexed test data; the debugger fixed it on its second round; the reviewer (14b) passed it correctly; the live project was byte-for-byte unchanged while the patch approval was pending; the applied change passes the live tests and is indexed. 49 s in total, every call fully on the GPU, with model loads of 0.1–5.4 s. Run `20261002T171904Z-89fe1a23` is the no-debugger path (34 s). The probe approved the plan and patch as stand-in USER on its own throwaway project.
-- Reviewer notes T6-task1-1: M1 (role_timeout, model_unavailable), L1 (lifecycle-only approvals), L2 (before-bytes from the copy) and L3 (task target validation) are all done; M2 was done in `e15b742`.
-- Checks: `python -B -m unittest discover -s tests` passes 142 tests; `test_role_steps`, `test_roles`, `test_team_plan`, `test_task_workspace`, `test_gate`, `test_team_pipeline` and `test_architecture` all pass; `rg -n "run_turn|agent\.engine|create_project_file" src tests` finds nothing; `git diff --check` is clean; the largest module is 309 lines and `session.py` fell from 400 to 300; the vendor-name scan of src, tests, docs and roles.json is clean.
-
-**Task 3 evidence (2026-10-02, USER away, standing authorization):**
-- `team/pipeline.py` runs one task in its workspace: the check first (`check_not_exercising` if it already passes), builder, check, up to 2 debugger rounds with the failing output and previous attempt, reviewer card, gate. A capped reply is retried once without the context pack. Timeouts and an unreachable model map to `role_timeout` and `model_unavailable` (reviewer M1). Every unusable reply keeps its failure record with answer and thinking excerpts.
-- `team/candidate.py` places replies: replace a pinned region, append a new function, insert a new method at the end of its class, or write a new file, restoring a missing final newline and keeping CRLF files CRLF.
-- The job runner (`team/jobs.py`) runs tasks in order and fails fast. After the gate, system requests the patch approval with the task, originating role and candidate (D18). An approved patch goes through `staged_apply`, which now creates files (absent before-state, backup record, rollback removal); an outside edit makes the candidate `stale_candidate`. A rejected patch is `patch_rejected` and an expired one `approval_expired`. `run_turn` no longer runs goals.
-- Tests: `test_team_pipeline.py` (9 tests: success; check_not_exercising; a debug round; debug_exhausted; review_failed, invalid_output, role_timeout, model_unavailable; the cap retry; cancel; workspace discard; patch rejection; stale candidate), `test_candidate.py`, the new-file apply tests in `test_task_workspace.py`, and the updated T3 goal tests, which now run the full pipeline against a project whose check fails until the fix. `python -B -m unittest discover -s tests`: 143 pass, with no model or embedding calls (the shared fixtures block both).
-
-**Task 2 evidence (2026-10-02):**
-- Planning before approval (`09e4d53`): the planner runs in `planning`, code validates its tasks (team/plan.py), tasks are recorded, then the plan approval shows each task with its exact check. Planner or plan failures fail the job with a reason; a finished job closes its tasks; restart fails unfinished tasks. `test_team_plan.py` covers validation (paths, allowlist file, case collisions, repeats, symbol resolution, new functions, methods and files), the live-allowlist rule, approval text, failures, rejection and restart. The default suite makes no model calls.
-- Targets (D17 amended by the USER): an existing symbol, a new top-level function, a new method of exactly one existing class, or a new file.
-- Planner choice (D4): qwen2.5-coder:14b, thinking off, temperature 0, with the fixed prompt (fewest tasks, no unrequested test tasks, use the only check). Planner probe (`bench/probes/planner-20261002T120743Z-555dc2ae.json`): with the old prompt the 14b got 4/22 and the 9b 7/22; the 35b spills onto the CPU and is dropped. Transient comparison: with the fixed prompt the 14b got 15/22 and 3/4 two-function goals, against the 9b's 10/22 and 1/4; a narrowed step-by-step planner was worse for both (0/4 on two-function goals). Recorded experiments (`bench/experiments/2026-10-02-planner-and-builder.jsonl`): temperature 0 gave 14/18 tune and 6/8 holdout; retry and best-of-3 brought no holdout gain.
-- Every role call sends all sampling settings and records a trace (`95a2853`). Ollama 0.18.3 appears to ignore `presence_penalty` for qwen3.5 (builder results and timings were identical at 1.5 and 0).
-
-**USER decision recorded:** D19 (T6-amend-1): plan approval covers each task's single named check in its task workspace only; commands against the selected project still need per-run approval.
-
-**Non-goals:** T7 self-development goals and the selfdev worktree; re-planning on failure (T7 candidate); parallel jobs or simultaneous role steps; the wider multi-file builder form (needs a benchmark first); new model providers or dependencies; changes to §3 or §4; event or contract schema changes without a §2 decision; automatic approval by a model; browser redesign; bench hardening (line-level leak check, bench thinking capture) before T7; and work beyond S6.
-
-**Acceptance criteria:**
-- Role schemas, config loading (`num_predict`, `timeout_s`, `think`, `keep_alive`), planner validation and thinking capture: `python -B -m unittest discover -s tests -p "test_role_steps.py" -v` and `-p "test_roles.py"`. A stubbed role returning empty content with thinking text and `eval_count == num_predict` is recorded as `cap_exhausted`, and the thinking excerpt survives replay.
-- **Plan and paths:** plan approval shows the planner's tasks, not the goal text; approved tasks cannot be changed by any role; validation rejects absolute paths, `..`, `.lab/`, duplicates, oversized task lists, unknown checks, a missing or unresolvable `target`, and any task whose `files` include the allowlist file; the allowlist is read from the live project, not the scratch copy: `-p "test_team_plan.py"`.
-- **Isolation and new files:** rejected, failed, cancelled, timed-out and still-pending tasks leave the selected project byte-for-byte unchanged; `staged_apply` creates a new file, rejects the patch if that path appeared meanwhile, and rollback deletes a file it created: `-p "test_task_workspace.py"`.
-- **Gate:** named check, reviewer pass, task-file limit (including paths the builder declared as new) and patch caps: `-p "test_gate.py"`.
-- **Pipeline and failure paths** with stubbed roles: planner invalid JSON, builder cap exhaustion, illegal path, check failure, debugger exhaustion, reviewer fail, USER patch rejection, cancel during a model call, cancel during a command, restart with a pending approval, an outside edit while approval is pending, and stale-candidate application. Approvals keep their job and task identity after replay and show the same in browser and CLI. A change applied by task 1 is retrievable in task 2's context, and no full rescan runs between role calls: `-p "test_team_pipeline.py"`.
-- **Bypass closed:** an architecture test proves no module outside `workspace/` writes under the selected project root, and Chat has no tools: `-p "test_architecture.py"`.
-- **Isolation, tightened (S1):** `test_architecture.py` rejects any import of, or path to, a location outside the repo, not only `.parts-bin` by name.
-- **Reviewer:** a stubbed reviewer `fail` that cites no line from the card is rejected as invalid output and is not counted as a verdict; the reviewer's input is limited to the task card and its optional context pack: `-p "test_role_steps.py"`.
-- **Old path gone:** `rg -n "run_turn|agent\.engine|create_project_file" src tests` returns no product references.
-- **Role probe (opt-in, GPU-free confirmation):** `python lab.py bench roles --confirm-gpu-free` records per-role time, tokens/s and invalid rate with the configured budgets, and each reviewer model's verdict accuracy on check-passing cards (clean and seeded-bad); the builder is invalid on at most 1 of 5 with-context tasks, and raw replies including thinking text are kept.
-- **Real-model proof (opt-in, GPU-free confirmation):** `python lab.py bench team --confirm-gpu-free` runs one deliberately boring job on a disposable project with one known failing check so the debugger runs; it passes reviewer and gate, waits at USER approval while the live project is shown unchanged, then is approved, applied and refreshed, and the job succeeds. Per-role timings, model load/unload times, and the reviewer's verdict, reasons and whether the verdict was correct are recorded.
-- Full suite, docs and size: `python -B -m unittest discover -s tests -v`; `git diff --check`; no module over 400 lines and `session.py` no larger than today.
-
-**Known risks:** the 35b planner/reviewer (~14.5 GB) and the 9b builder/debugger swap in 16 GB VRAM at every role change; `keep_alive` and per-role timeouts are set in task 1 and the real run records load times. Raising `num_predict` costs time (~8k tokens ≈ 150 s at ~55 tokens/s against a 180 s timeout), so the cap and timeout move together. Per-function review cards miss bugs from two functions interacting across files; the task's check must cover those. A false reviewer `fail` costs a rerun because the job fails fast; a false `pass` is still caught by the check and USER approval. Narrow one-region tasks may make some goals need several tasks; re-planning is deferred to T7 pending T6's reason codes. Copying large projects into a task workspace costs time; the exclusion rules keep it bounded. `session.py` is at 400 lines, so new ownership goes in a small `team` area (roles and config, task orchestration, workspace and gate). The Chat bypass bug stays live until task 4.
-
-**Declaration state:** T6 declared 2026-10-01 after USER acceptance of T5; returned for amendment by the reviewer the same day; re-declared with this amendment; reviewer note T6-amend-1 (accept after F1 target field and F2 reviewer probe) applied with D19; approved by the USER 2026-10-01; park review T6-park-1/T6-park-2 applied; parked and accepted 2026-10-02.
-
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T7 was parked and accepted (USER, 2026-10-03); the prototype is complete (§3). Further work starts from a new USER decision on the §4 Deferred list.
+**Implementation permission:** NO. T7 was parked and accepted (USER, 2026-10-03); the prototype is complete (§3). T8 is declared in §7 for USER review.
 **Standing authorization for T6 (USER, 2026-10-02; ended when T6 was parked on 2026-10-02):** within T6's declared scope, the implementing AGENT may change role settings and prompts, run experiments, fix bugs, adjust tests and refactor T6 modules without asking first. The condition: every change is recorded and reversible. Each experiment appends its settings, prompt fingerprint, model digest, Ollama version and per-goal outcomes to `bench/experiments/`, and each tuned change is its own commit linked to that record. Tuning uses about two-thirds of the bench goals; a change is kept only if it also holds on the held-back third. Still needing the USER: machine-wide settings, Ollama or other downloads, pushing, deleting anything not created by the AGENT, D-decisions and contract semantics, §3/§4, scope or non-goal changes, reviewer notes, and parking or accepting the tranche. This authorization ends when T6 is parked.
 
 ## 9. Parked Tranches
