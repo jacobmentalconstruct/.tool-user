@@ -73,6 +73,28 @@ class ArchitectureTests(unittest.TestCase):
         self.assertNotIn("tools", payload)
         self.assertEqual(["system", "user"], [message["role"] for message in payload["messages"]])
 
+    def test_the_goal_draft_path_cannot_create_a_job_or_an_approval(self):
+        """D22: team/draft.py, the session's draft methods and the endpoint branch never submit or approve."""
+        forbidden = {"submit_goal", "request_approval", "transition_job"}
+        package = SRC / "local_memory_lab"
+        scopes = [ast.parse((package / "team" / "draft.py").read_text(encoding="utf-8"))]
+        session = ast.parse((package / "session.py").read_text(encoding="utf-8"))
+        scopes += [node for node in ast.walk(session) if isinstance(node, ast.FunctionDef)
+                   and node.name in {"draft_goal", "_draft_source"}]
+        web = ast.parse((package / "interfaces" / "web.py").read_text(encoding="utf-8"))
+        scopes += [node for node in ast.walk(web) if isinstance(node, ast.If) and isinstance(node.test, ast.Compare)
+                   and any(isinstance(c, ast.Constant) and c.value == "/api/goal-draft" for c in node.test.comparators)]
+        self.assertEqual(4, len(scopes))
+        for scope in scopes:
+            body = scope.body if isinstance(scope, ast.If) else [scope]
+            called = {node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", "")
+                      for part in body for node in ast.walk(part) if isinstance(node, ast.Call)}
+            self.assertFalse(called & forbidden, f"the goal-draft path calls {called & forbidden}")
+        page = (package / "interfaces" / "shared_ui.html").read_text(encoding="utf-8")
+        draft = page[page.index("async function draftGoal"):page.index("function renderNotes")]
+        self.assertNotIn("/api/goals", draft)
+        self.assertNotIn("requestSubmit", draft)
+
     def test_source_names_no_location_outside_the_repo(self):
         outside = re.compile(r"^[A-Za-z]:[\\/]|^~|(\.\.[\\/]){2}|_SANDBOX")
         for path in SRC.rglob("*.py"):

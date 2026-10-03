@@ -44,6 +44,8 @@
     .note { display: flex; gap: 8px; align-items: flex-start; border: 1px solid #384454; padding: 9px; border-radius: 8px; margin-top: 8px; overflow-wrap: anywhere; }
     .note span { flex: 1; font-size: 13px; }
     .note button { padding: 2px 7px; background: #4c3a43; }
+    .message .use-goal, #draftGoal { background: #2f4a3a; }
+    .message .use-goal { display: block; margin-top: 8px; padding: 4px 9px; font-size: 12px; }
     #error { color: #ffafb5; font-size: 13px; min-height: 20px; padding: 0 20px; }
     .overlay { position: fixed; inset: 0; background: #000b; display: none; align-items: center; justify-content: center; padding: 20px; }
     .overlay.show { display: flex; }
@@ -63,7 +65,7 @@
     <section class="conversation">
       <div id="timeline" aria-live="polite"></div>
       <div id="error"></div>
-      <form id="promptForm"><textarea id="prompt" placeholder="Chat with the shared session…" aria-label="Chat message"></textarea><button type="submit">Chat</button></form>
+      <form id="promptForm"><textarea id="prompt" placeholder="Chat with the shared session…" aria-label="Chat message"></textarea><button type="submit">Chat</button><button id="draftGoal" type="button" title="Draft one goal from the conversation into the New goal box">Draft goal</button></form>
       <form id="goalForm"><textarea id="goal" placeholder="Describe a new goal for the selected project…" aria-label="New goal"></textarea><button type="submit">New goal</button></form>
     </section>
     <aside>
@@ -110,11 +112,22 @@
           const card = document.createElement('div'); card.className = 'message'; card.dataset.speaker = display.speaker;
           const label = document.createElement('div'); label.className = 'speaker'; label.textContent = display.speaker;
           const body = document.createElement('div'); body.textContent = display.text;
-          card.append(label, body); timeline.append(card);
+          card.append(label, body);
+          if (event.kind === 'chat.reply' && !event.data.goalDraft) {
+            const use = document.createElement('button'); use.type = 'button'; use.className = 'use-goal'; use.textContent = 'Use as goal';
+            use.onclick = () => draftGoal(event.id); card.append(use);
+          }
+          timeline.append(card);
         }
         lastEventId = event.id;
       }
       if (events.length && timeline.scrollHeight - timeline.scrollTop - timeline.clientHeight < 350) timeline.scrollTop = timeline.scrollHeight;
+    }
+    // A draft only fills this browser's New goal box, and only when code validated it (D22); it never submits.
+    async function draftGoal(source) {
+      try { const result = await api('/api/goal-draft', { source });
+        if (result.valid && typeof result.goal === 'string') document.querySelector('#goal').value = result.goal;
+        showError(''); await refresh(); } catch (e) { showError(e.message); }
     }
     function renderNotes(notes) {
       const box = document.querySelector('#notes'); box.replaceChildren();
@@ -182,6 +195,7 @@
       event.preventDefault(); const box = document.querySelector('#prompt'); const text = box.value.trim(); if (!text) return;
       try { await api('/api/messages', { text }); box.value = ''; showError(''); await refresh(); } catch (e) { showError(e.message); }
     };
+    document.querySelector('#draftGoal').onclick = () => draftGoal('conversation');
     document.querySelector('#goalForm').onsubmit = async event => {
       event.preventDefault(); const box = document.querySelector('#goal'); const text = box.value.trim(); if (!text) return;
       try { await api('/api/goals', { text }); box.value = ''; showError(''); await refresh(); } catch (e) { showError(e.message); }

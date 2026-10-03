@@ -309,10 +309,10 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **Progress:**
 - [x] 1. Validator.
 - [x] 2. Session and endpoint.
-- [ ] 3. Page.
+- [x] 3. Page.
 - [ ] 4. Probe and park.
 
-**Now:** T8 approved by the USER (2026-10-03) after the reviewer's re-check of `c57d2ae`; tasks 1–2 done; task 3 (page) in progress on `t8-goal-draft`. To resume: read this line, then `git log --oneline -10`.
+**Now:** T8 approved by the USER (2026-10-03) after the reviewer's re-check of `c57d2ae`; tasks 1–3 done; task 4 (probe and park) next: the probe needs the USER to confirm the GPU is free. To resume: read this line, then `git log --oneline -10`.
 
 ---
 
