@@ -1,0 +1,31 @@
+# History rewrite, 2026-10-03 (USER instruction, D9)
+# 14 AGENT commits from f8e5fb0 on ended with a co-author line naming an agent vendor; it was removed
+# from commit messages with git-filter-repo (file contents unchanged), which changed these hashes.
+# Recorded data files (bench/selfdev, bench/probes, bench/experiments) keep the old hashes; resolve them here.
+# old new subject
+0710a08 47d0631 Docs: declare T7 (self-development and park) for USER review
+177e7ff 0d2ff41 T7 wip: move G1's check unchanged into tests/ (D21)
+1d874ef efbd9fd T7 wip: record G2 and G3 attempts, G1 review; correct allowlist record
+21d1e07 05e0015 T7 wip: G3 check covers a clean multi-file apply (pre-attempt)
+28d0709 be525c7 T7 wip: S10 README matches the code
+3006ace 7cb37a1 T7 wip: record reviewer probe rerun after G1 (L3 follow-up)
+305ef0c 2328633 T7 wip: record reviewer re-check of goal checks (release recommended)
+33de821 87e61a8 T7 wip: record implementation permission and D21
+469f4ca 8fdb0e5 T6 wip: park review small fixes L1, L4-L7
+48b42b4 a244039 T7 wip: G1 passed on attempt 1; record and export
+5f1f825 c206d3d Docs: amend T7 declaration for reviewer note T7-decl-1
+6460b76 c5016b0 T6 wip: record D20 check-first rule and park-review docs pass
+65b1f97 f6a1dd9 T6 wip: list every task reason code in CONTRACTS.md
+663d504 6346aff T7: the local team makes its first approved change to its own code
+7cad250 39aff87 T7 wip: selfdev setup (task 1)
+82edf33 cb13bbb T6: team plans, builds, debugs and reviews each goal in disposable workspaces
+8466898 0543703 T7 wip: record builder temperature sample (Test A, USER request)
+a4d3668 f06837f T6 wip: record pipeline bench finding in the Now line
+bd59d8c a1c8e4f T7 wip: record G3 check amendment; drop stale Now line
+dc61617 14f2662 T7 wip: pre-register goal checks G1-G3 (D21)
+dd242b0 eee586d T7 wip: review and merge done (task 4)
+ddb8e88 1bf513f T7 wip: record builder outline-first sample (Test B, USER request)
+e09ecf4 ba331c8 T7 wip: S9 dead-code pass
+e9c305e e448284 T7 wip: merge selfdev G1 into t7-selfdev
+f8e5fb0 b57f2d3 T6 wip: record full-pipeline bench on all 22 goals
+fa13752 e1c673f selfdev G1: require_citation rejects short quote parts
