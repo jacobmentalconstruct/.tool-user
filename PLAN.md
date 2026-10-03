@@ -247,7 +247,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T8 — Goal-draft bridge from Chat to the New goal box (declared 2026-10-03; USER decision with reviewer note T8-pre-2).
+**ID:** T8 — Goal-draft bridge from Chat to the New goal box (declared 2026-10-03; USER decision with reviewer note T8-pre-2; amended the same day for reviewer note T8-decl-1).
 
 **Current:** T1–T7 are accepted on `main`; the prototype is complete (§3). This tranche comes from the §4 Deferred list by USER decision. The builder-expectations tranche declared in `7202c99` is renumbered T9 and waits, unreviewed and unapproved, until T8 is parked and accepted. There is no implementation permission and no standing authorization (§8).
 
@@ -256,39 +256,50 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **Expected outcome:** in the browser, the USER can ask Chat to draft one goal from the recent conversation, or take one assistant reply as the draft source, and get a validated goal sentence placed in the New goal box of that browser only. A draft never submits anything and never creates a job or an approval. The USER edits or clears it and presses New goal as today; plan validation, plan approval and patch approval apply unchanged.
 
 **Proposed D22, Goal drafts (recorded in §2 with the code, on USER approval):** a goal draft is a validated suggestion for the New goal box, never a submission.
-- **Who:** only the USER browser can request a draft; the text is returned in that request's response, and nothing is broadcast to other clients.
-- **Model:** the draft is one schema-constrained call using the planner's role configuration in `roles.json` (`qwen2.5-coder:14b`, thinking off, temperature 0; JSON-format output is reliable there, and the 9b ignores the format with thinking off). It takes the one turn slot and pauses indexing like any role step. Settings are recorded, not tuned.
+- **Who:** only the USER browser can request a draft. The fill goes only to the requesting browser, in that request's response. The draft's `chat.reply` record is in the shared event log, so every client shows it (S2).
+- **Model:** the draft is one schema-constrained call using the planner's role configuration in `roles.json` (`qwen2.5-coder:14b`, thinking off, temperature 0; JSON-format output is reliable there, and the 9b ignores the format with thinking off). Settings are recorded, not tuned.
+- **Input:** what the model needs to name a valid target, as `planner_request` gives the planner: the source text (the recent chat turns, or the one chosen reply), the project's file list (bounded like the planner's), the live allowlist's check names, and a context pack for the source text.
+- **Never blocks behind a job (M2).** A draft takes the one turn slot without waiting. A running job holds that slot for its whole `running` phase. If the slot is not free, the endpoint answers "busy" at once, fills nothing, and records a `goalDraft` with `valid: false` and reason `busy`. When the slot is free, the draft pauses indexing like any role step.
+- **Not conversation (M3).** A draft's `chat.reply` carries no `turn`, so `SessionState` never adds it to the chat history, and drafts never feed the chat model or later drafts as conversation.
 - **Reply shape:** `{goal, target: {path, shape, symbol}}`, where `shape` is one of `existing_symbol`, `new_function`, `new_method` or `new_file`.
+- **The validated target is advisory (S1).** Only the goal text reaches the box. The planner re-plans from that text and never sees the draft's `target`, so the goal sentence must state the shape in words, and the validator checks it:
+  - `new_function`: "new function `name`" and "existing file";
+  - `new_method`: "new method `name`" and the class name;
+  - `new_file`: "new file";
+  - `existing_symbol`: the symbol's name.
+  The G3 confusion can still happen after submission; the probe measures it.
 - **Validation, one path.** Code checks the reply with the same rules as plan validation in `team/plan.py`. The path rules (normalized relative path, inside the project, not the allowlist file) move into one shared helper used by both, and `check_target` is reused unchanged. Plus:
   - `goal` is one line of at most 400 characters;
-  - it names its target path and no other project file;
+  - it names its target and no other project file: either the full path, or a path suffix of whole components that resolves to the target alone (G1's working goal said `team/steps.py`). A suffix that also matches another project file is rejected;
   - `shape` must agree with `symbol`: `existing_symbol` resolves to exactly one definition; `new_function` is a plain name not yet defined in an existing Python file; `new_method` is `Class.name` for exactly one existing class; `new_file` has an empty symbol and names a missing path in an existing folder. This catches the G3 confusion of a new function planned as a new file.
-- **Check-first stays visible (D20).** For the three `new_*` shapes, the reply in Chat carries a note that a check failing before the change must exist, and lists the allowlisted check names. The hub does not claim to know which one fails.
+- **Check-first stays visible (D20).** For every shape, the reply in Chat carries a note that a check failing before the change must exist, and lists the allowlisted check names. D20 also stops an edit of an existing symbol whose check already passes, as G1 needed its own failing check. The hub does not claim to know which check fails.
 - **Failure fills nothing.** If the call or the validation fails, the box keeps its text, and the reasons are shown in Chat.
 - **Recorded verbatim.** Each draft is recorded as a `chat.reply` whose `data.goalDraft` holds `source`, `goal`, `target`, `valid`, `reasons` and the model settings. No new event kind. The text placed in the box is byte-identical to the recorded `goal`.
 
 **Scope (task list, in order):**
-1. **Validator.** In `team/plan.py`, extract the shared path helper and keep `validate_plan` behaviour identical. Add `validate_draft` (in a small `team/draft.py`, with the draft schema and prompt) on top of it and `check_target`. Tests, with no model calls, accept and reject each shape, including a new function declared as a new file, the allowlist file, a path outside the project, a goal naming two files, and an over-long goal.
+1. **Validator.** In `team/plan.py`, extract the shared path helper and keep `validate_plan` behaviour identical. Add `validate_draft` (in a small `team/draft.py`, with the draft schema and prompt) on top of it and `check_target`. Tests, with no model calls, accept and reject each shape, including a new function declared as a new file, a goal that does not state its shape in words, the allowlist file, a path outside the project, a goal naming two files, an ambiguous path suffix, and an over-long goal.
 2. **Session and endpoint.** `SharedSession.draft_goal(source, actor)`, where `source` is `"conversation"` (the recent turns) or the event ID of one `chat.reply`. Plus `POST /api/goal-draft`, USER only, returning `{ok, goal}` only when valid. Tests:
    - a draft creates no `job.state` and no `approval.requested` event;
    - a failed validation returns no goal;
    - the returned text equals the recorded `data.goalDraft.goal`;
    - the AGENT client is refused;
-   - only the requesting request receives the text.
-3. **Page.** A "Draft goal" button by the Chat form, and "Use as goal" on assistant replies; both call the endpoint and fill `#goal` only from a successful response. No submit is triggered. The architecture test gains a check that the draft path never imports or calls job submission.
-4. **Probe and park.** An opt-in probe, `python lab.py bench drafts --confirm-gpu-free`, run only after the USER confirms the GPU is free. It drafts goals from short scripted conversations built around G1–G3 and five bench goals, then plans each valid draft on a throwaway copy, with no approval and no apply. It reports drafts valid, valid drafts that plan validly, and the rejection reasons. There is no threshold; the results go in the park record. D22 and the `docs/CONTRACTS.md` changes (§0 rights row, `chat.reply` `goalDraft` data, the endpoint) land in the same commit as the code they describe (S10).
+   - only the requesting request receives the text;
+   - a draft's `chat.reply` carries no `turn` and does not enter the chat history;
+   - while the turn slot is held, the endpoint answers "busy" at once and fills nothing.
+3. **Page.** A "Draft goal" button by the Chat form, and "Use as goal" on assistant replies; both call the endpoint and fill `#goal` only from a successful response. No submit is triggered. The architecture test gains an AST scan of `team/draft.py` and the goal-draft endpoint handler: neither calls `submit_goal`, `request_approval` or `transition_job` (L2).
+4. **Probe and park.** An opt-in probe, `python lab.py bench drafts --confirm-gpu-free`, run only after the USER confirms the GPU is free. It drafts goals from short scripted conversations built around G1–G3 and five bench goals, then plans each valid draft on a throwaway copy, with no approval and no apply. It reports: drafts valid; valid drafts that plan validly; whether each plan's target agrees with the draft's validated target (S1); the rejection reasons; and time per draft with model load time (L1). There is no threshold; the results go in the park record. D22 and the `docs/CONTRACTS.md` changes (§0 rights row, `chat.reply` `goalDraft` data, the endpoint) land in the same commit as the code they describe (S10).
 
 **Non-goals:** submitting goals automatically; drafting more than one goal or task; editing or picking checks; any change to plan validation behaviour, approvals or the pipeline; the builder-expectations work (T9); tuning the draft model's settings.
 
 **Acceptance criteria:**
 - `python -B -m unittest discover -s tests -v` passes, including the validator, session, endpoint and architecture tests above, with no model calls.
-- `rg -n "submit_goal" src/local_memory_lab/team/draft.py` finds nothing, and the architecture test proves the draft path cannot create a job.
+- The architecture test's AST scan proves that neither `team/draft.py` nor the goal-draft endpoint handler calls `submit_goal`, `request_approval` or `transition_job`.
 - The probe's record is in `bench/probes/` with the three numbers and the reasons.
 - `docs/CONTRACTS.md` and D22 match the code; `git diff --check` is clean.
 
 **Known risks:**
 - The planner model drafting goals may name the wrong file or shape. The validator catches what code can know; intent stays with the USER.
-- A draft takes the turn slot, so it waits behind a running job step.
+- During a running job, drafts answer "busy" until the job waits for an approval or ends.
 - Loading the 14b for a draft swaps out the chat model (a few seconds).
 - `session.py` is at 300 lines; the draft logic lives in `team/draft.py` so the session gains only a thin method.
 
@@ -300,7 +311,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [ ] 3. Page.
 - [ ] 4. Probe and park.
 
-**Now:** T8 (goal-draft bridge) is declared for USER review (reviewer note T8-pre-2). T9 (builder expectations) waits until T8 is parked and accepted. Nothing is implemented.
+**Now:** T8 (goal-draft bridge) is declared and amended for reviewer note T8-decl-1, awaiting the reviewer's re-check and USER approval. T9 (builder expectations) waits until T8 is parked and accepted. Nothing is implemented.
 
 ---
 
