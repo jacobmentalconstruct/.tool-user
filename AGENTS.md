@@ -76,4 +76,4 @@ If a `_projectmapper/` folder exists locally, it is a stale, gitignored snapshot
 - **Agent client:** `python lab.py client status`, `python lab.py client watch`, `python lab.py client send "…" --wait`
 - **Models:** Ollama at `127.0.0.1:11434`. Role assignments are in `PLAN.md` D4.
 
-> **Current state:** T6 (Team) is approved and in progress on branch `t6-team`, under a standing authorization recorded in `PLAN.md` §8. Tasks 1–3 are done; task 4 (retirement and proof) is in progress. `PLAN.md` §7 "Now" says exactly where work stands.
+> **Current state:** T6 (Team) is implemented on branch `t6-team`, with all four tasks done, and awaits USER review and parking. The standing authorization in `PLAN.md` §8 still applies until T6 is parked. `PLAN.md` §7 "Now" says exactly where work stands.
