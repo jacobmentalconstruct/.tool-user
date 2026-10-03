@@ -76,4 +76,4 @@ If a `_projectmapper/` folder exists locally, it is a stale, gitignored snapshot
 - **Agent client:** `python lab.py client status`, `python lab.py client watch`, `python lab.py client send "…" --wait`
 - **Models:** Ollama at `127.0.0.1:11434`. Role assignments are in `PLAN.md` D4.
 
-> **Current state:** T6 (Team) is accepted and merged on `main`. T7 is not yet declared: do not change product code until the USER approves a T7 declaration (`PLAN.md` §8). `PLAN.md` §7 "Now" says exactly where work stands.
+> **Current state:** T6 (Team) is accepted and merged on `main`. T7 (Self-development and park) is declared in `PLAN.md` §7 for USER review: do not change product code until the USER approves it (`PLAN.md` §8). `PLAN.md` §7 "Now" says exactly where work stands.

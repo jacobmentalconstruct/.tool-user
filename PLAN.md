@@ -244,7 +244,53 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 ## 7. Current Tranche
 
-**ID:** T6 — Team (amended 2026-10-01 after the reviewer's return note on `4b2600c`).
+**ID:** T7 — Self-development and park (declared 2026-10-02 after USER acceptance of T6; the last tranche, §5).
+
+**Current:** T1–T6 are accepted on `main` (pushed at `82edf33`). S1–S7 are met by their tranches; S8 (self-development), S9 (end-state size and cleanliness) and S10 (docs current) remain. There is no implementation permission until the USER approves this declaration (§8).
+
+**Branch:** `t7-selfdev`. Goal attempts happen in a separate worktree, `_SANDBOX/.tool-user-selfdev`, on `selfdev/<goal>` branches (D8). The hub runs from this checkout; the worktree is only its selected project.
+
+**Expected outcome:** the local team turns at least one pre-registered goal from this plan's own backlog into a tested change that the USER approves in the hub and that merges into `main` with `selfdev` credited, with zero paid-model calls and no regression (S8, D8). Then every stop condition S1–S10 has recorded evidence, and the project ends.
+
+**Pre-registered goals (D8; fixed before any attempt, never swapped after one).** Each is entered through **New goal** exactly as written. Each has a check that fails before the change (D20): a named test written by the AGENT and committed on the selfdev base before any attempt, shown to the USER at approval, never edited afterwards.
+- **G1 Citation parts (carry item L3).** Goal: "In team/steps.py, make require_citation reject a reviewer fail when any quoted part is shorter than CITE_MIN characters, not only when the parts' total is." One task, an edit of `require_citation`. Check: `goal-g1`, one test method.
+- **G2 Case-insensitive ignore rules (T1 note).** Goal: "In workspace/paths.py, make excluded match .gitignore rules without regard to letter case, as git does on Windows." One task, an edit of `excluded`. Check: `goal-g2`, one test method.
+- **G3 Stale staged files, two tasks (T1 note; the multi-task proof carried from T6).** Goal: "In workspace/patching.py, add remove_stale_temps(folder) that deletes leftover .lab-stage- and .lab-recover- files in that folder and returns their paths, then make staged_apply call it for each target folder before writing." Two tasks: a new top-level function, then an edit of `staged_apply`. Checks: `goal-g3-new` (calls the new function) and `goal-g3-apply` (a planted leftover is gone after an apply); task 2 sees task 1's applied change.
+
+**Scope (task list, in order):**
+1. **Selfdev setup.** Create the worktree from `main` on `selfdev/base`. Commit the goal tests there (`tests/test_selfdev_goals.py`). Show that each goal check fails and that every other test passes in the worktree. While a goal runs, the worktree's `.lab/allowlist.json` names only that goal's check or checks, so the planner cannot pick a whole-suite check that fails in a task copy for other reasons. Record the worktree commit, the allowlists and the before-results in §7.
+2. **Goal attempts.** For each goal in order: select the worktree in the hub, submit the goal, and let the USER approve or reject the plan and the patch in the browser; the AGENT only watches through the client and advises in chat (D8). At most 3 attempts per goal; each is recorded in §7 with its job ID, task states, reason code, role origin and time. A failed attempt leaves the worktree reset to `selfdev/base` before the next one.
+3. **Review and merge.** For each goal that passes: commit the applied change on `selfdev/<goal>` as `selfdev <goal>: …` with the trailer `Actor: ROLE`, unchanged from what the USER approved. Run the full suite and `tests/test_architecture.py` on that branch, review the diff, and merge it into `t7-selfdev`. A goal whose branch fails the suite is recorded as not passed, not fixed by hand.
+4. **End checks and park.** S1: a fresh clone into a temporary folder, `pip install -r requirements.txt`, then the test suite. S9: module sizes, import graph and a dead-code pass. S7 follow-up for L3: rerun the reviewer probe (`python lab.py bench roles --confirm-gpu-free`) only if G1 merged. S10: a docs pass. Then the §9 record with evidence for each stop condition, and the push after USER acceptance.
+
+**Carry-to-T7 items:** L3 is G1, and the multi-task proof is G3. L2 (the pre-build check is recorded as `building`) stays a recorded limitation, because changing the task-state sequence is a contract change that the end of the project does not need. Cap losses stay a recorded limitation. Option (c) of D20 stays an idea.
+
+**Non-goals:** any §4 item, including the deferred T7 candidates (logic-mutant cards, recursive decomposition, edit-task bench); new roles, prompts or settings tuning; contract or event changes; rerunning the 132-attempt builder bench (the builder is unchanged since T5); renaming (D5); hand edits to the team's changes; any paid-model call during attempts.
+
+**Acceptance criteria:**
+- **S8:** at least one goal's branch is merged into `t7-selfdev` with `selfdev` credited; its job events show local models only and USER approvals for the plan and patch: `git log --grep "^selfdev"` and the attempt records in §7.
+- **No regression:** `python -B -m unittest discover -s tests -v` and `-p "test_architecture.py"` pass on `t7-selfdev`.
+- **S1:** the fresh-clone test run passes (command and output recorded).
+- **S9:** no module over 400 lines; the architecture test passes; no dead code found by the pass (or each find removed).
+- **S10:** `rg -n "in progress|not yet declared|awaits USER" README.md AGENTS.md PROJECT.md docs` shows no stale status; `git diff --check` is clean.
+
+**Known risks:** the cap loses about a quarter of builder attempts, so a goal may need its 3 attempts. G3 needs the planner to give each task its own check, which no earlier run has tested. The worktree copy into each task workspace includes `bench/`, so copies take longer. The USER's attention is needed at every plan and patch approval.
+
+**Needs the USER at approval:** (1) the three goals as written; (2) goal checks as AGENT-written failing tests on the selfdev base, recorded as D21 on approval; (3) L2 and cap losses left as limitations.
+
+**Progress:**
+- [ ] 1. Selfdev setup.
+- [ ] 2. Goal attempts.
+- [ ] 3. Review and merge.
+- [ ] 4. End checks and park.
+
+**Now:** T7 is declared for USER review. Nothing is implemented, and no worktree exists yet.
+
+---
+
+### Previous declaration: T6 — Team
+
+**ID:** T6 — Team (accepted 2026-10-02; retained for implementation history).
 
 **Current:** T1–T6 are accepted on `main`; T6 was merged from `t6-team` (2026-10-02). S2–S7 are complete. §3 stop conditions and §4 non-goals remain frozen (D6). The `create_project_file` approval bypass was removed in task 4 (`c4d0637`). There is no implementation permission until the USER approves the T7 declaration (§8).
 
@@ -340,81 +386,11 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Declaration state:** T6 declared 2026-10-01 after USER acceptance of T5; returned for amendment by the reviewer the same day; re-declared with this amendment; reviewer note T6-amend-1 (accept after F1 target field and F2 reviewer probe) applied with D19; approved by the USER 2026-10-01; park review T6-park-1/T6-park-2 applied; parked and accepted 2026-10-02.
 
----
-
-### Previous declaration: T5 — Bench
-
-**ID:** T5 — Bench (accepted; retained for implementation history).
-
-**Current:** T1–T4 are accepted on `main`; T4's code is merged at `c287f3f`, and the accepted state plus revised T5 declaration are pushed at `6f9c388`. Its full suite passed 71 tests. S3–S5 are complete; §3 stop conditions and §4 non-goals remain frozen (D6). T5 was approved by USER on 2026-09-30 and remains active during a USER-requested long pause; this is a progress checkpoint, not a tranche park or acceptance.
-
-**Branch:** `t5-bench`.
-
-**Expected outcome:** a reproducible, committed bench of at least 15 real-code hole-punch tasks from a pinned T1–T4 repository snapshot; measured top-five search quality and builder success with/without context; and a `roles.json` assignment supported by builder model results (D3, D4, S7, `docs/CONTRACTS.md` §§7–9).
-
-**Scope (task list, in order):**
-1. Pin the T5 source snapshot by commit. For each task, replace one covered function body with its original leading docstring (if any) followed by `raise NotImplementedError`, preserving its signature and decorators. Give the task a goal, target path, exact gold files and one test ID in the §9 task format. Require at least 15 valid tasks. Use only D3's trimmed fixture fallback if this repo yields fewer than 15; synthetic tasks need a specific `synthetic_reason`.
-2. Build task validation and an isolated harness. Verify each unmodified task passes its single test and each hole-punched task fails that test. Build that task's T4 knowledge index from its punched copy, never the pristine source, and test that the resulting context pack does not contain the removed body. For both conditions, give the builder the same goal, target path and punched target file; the with-context condition additionally receives a T4 pack with the §5 budget of 6,000 tokens. Validate the §7 JSON output, constrain edits to declared files, score search results against gold files, and leave the pinned snapshot and working tree unchanged.
-3. Run one attempt per model, task and condition at temperature 0, with a 180-second per-task timeout, using only these builder candidates: `qwen3.5:9b`, `qwen3.5:4b` and `qwen3.5:2b`. Do not silently substitute other models; record unavailable candidates. `qwen2.5-coder:14b` and `ms-ae:latest` stay excluded while `OLLAMA_NUM_PARALLEL=8` per D4. Record per-model pass rate, duration, tokens/s, invalid-output rate, top-five search quality, and builder success by context condition. Set `roles.json` from the measured evidence, retaining other role assignments from D4 for T6.
-4. Commit the task corpus, harness, results, role configuration and concise run/reproduction documentation; run focused checks and the full regression suite.
-
-**Progress:**
-- [x] 1. Pin the snapshot and create/validate at least 15 covered hole-punch tasks (D3 fallback only if needed).
-- [x] 2. Implement isolated task validation, builder runs, context comparisons and search scoring.
-- [x] 3. Run the named local model comparisons and record required metrics; set `roles.json` from results.
-- [x] 4. Document reproduction, verify the full suite and park with committed evidence.
-
-**Task 1 evidence:** 22 task records pin `self@c916053`; all 22 named tests passed on the pristine snapshot and failed after their target body was punched in a separate temporary copy. `python -B -m unittest discover -s tests -p "test_bench_tasks.py" -v` — 3 helper tests passed.
-
-**Task 2 evidence:** `python lab.py bench validate --baselines --contexts` — 22 original tests passed, 22 punched tests failed as intended, and all 22 packs built from punched copies excluded their removed bodies. Focused harness and scoring tests pass.
-
-**Task 3 evidence:** after USER confirmed the GPU free, `python lab.py bench run --confirm-gpu-free` completed 132/132 attempts and `python lab.py bench record <raw-result-file>` selected `qwen3.5:9b`. `python lab.py bench validate --results` reports 1 valid run. The run is `bench/results/20261001T124335Z-a0abb772.json`, source commit `fe109793e85c5e3c03619f5aa896268602329892`, protocol `target-stub-one-edit-json-think-enabled-v5`, `think:true`, temperature 0, 4,096 output tokens, and all three named candidates available. Results: 9b pass 36.4% (31.8% without context, 40.9% with), invalid output 29.5%; 4b pass 13.6% (4.5% without, 22.7% with), invalid 47.7%; 2b pass 4.5% in each condition, invalid 65.9%. Search top-five recall is 0.682. `roles.json` assigns the measured 9b builder with thinking on and retains T6 assignments.
-
-**Review handoff (2026-09-30, reviewer AGENT → builder AGENT).** Read this block first when resuming T5.
-
-- **USER approvals:** GPU availability reconfirmed by USER 2026-10-01; USER-approved model/prompt fixes completed. Task 3 implementation and protocol are committed as `fe10979` (`T5 wip: fix builder output protocol`).
-- **Exploratory runs v1–v4:** raw, uncommitted runs remain in `%TEMP%/local-memory-lab-bench/`; they are history only and do not select a role.
-
-- **T5 output-protocol probe (2026-10-01):** `self-001`, `qwen3.5:9b`, same punched target and input, temperature 0. `think:false` returned a whole-file `content` payload instead of the required one-edit schema (193 eval tokens); `think:true` returned schema-valid JSON (281 eval tokens) with a 4,096-token cap. The latter implementation did not pass the task check. Raw replies and token counts: `%TEMP%/local-memory-lab-bench/probe-20261001T123927Z-qwen35-9b-thinking.json`. The comparison selected `target-stub-one-edit-json-think-enabled-v5`; the full benchmark measures task success.
-
-  | Run | Prompt version | `think` | Invalid output |
-  |---|---|---|---|
-  | `20260930T153923Z` (full) | v1 | not set | 75/132; qwen3.5:9b passed 27% (32% with context, 23% without), 4b 7%, 2b 0%; top-five recall 0.68 |
-  | `20260930T170215Z` | v2 | not set | 1/4 |
-  | `20260930T170647Z` | v3 | false | 23/23 |
-  | `20260930T171151Z` (full) | v4 | false | **132/132**: 94 wrong keys, 38 not valid JSON, 16 hit the 2,048-token output cap |
-  | `20261001T124335Z-a0abb772` (full, recorded) | v5 | true | 63/132 invalid (corrected from 43 on 2026-10-01; committed metrics 13 + 21 + 29); 132/132 attempts recorded; qwen3.5:9b selected at 36.4% pass rate |
-
-- **Diagnosis (confirmed by the 2026-10-01 probe below):** with the same `self-001` input, `think:false` produced a whole-file payload without the required edit schema; `think:true` produced schema-valid structured output. The thinking-on implementation failed the task test, so the probe only selected the output protocol; builder quality was decided by the full run.
-- **Approved limited fix, in order; nothing beyond this:**
-  1. On invalid output, save a shortened copy of the model reply (about the first 2,000 characters) in the result row.
-  2. `choose_builder` raises an error when the best pass rate is 0, rather than choosing by list order.
-  3. Define the prompt version string once as a constant; `_run_identity` reads `task_source` from the tasks instead of hardcoding it.
-  4. **Completed 2026-10-01 after USER confirmed GPU availability:** the `self-001` probe saved both raw replies and `eval_count`. Thinking-on produced valid JSON while `think:false` did not. Freeze thinking-on v5 with the 4,096-token cap; D4 and `docs/CONTRACTS.md` §8 record the protocol. `roles.json` is set from the full benchmark.
-  5. **Completed:** commit `fe10979`; clean full run `20261001T124335Z-a0abb772` completed and was recorded. It is the only run that sets `roles.json`. Keep v1–v4 listed as history in the park record.
-- **Then:** Task 4 documentation and checks are complete, including the independent review fix. Re-park T5 on `t5-bench` for USER review; merge only after USER acceptance, then declare T6 from §5.
-
-**Now:** T5 was accepted and merged; this prior declaration is retained for implementation history.
-
-**Non-goals:** T6 planner, debugger, reviewer, deterministic gate, job-machine role orchestration or deletion of `run_turn`; T7 self-development goals; paid or remote models; changes to §3 or §4; new dependencies; benchmarking unrelated roles or changing the frozen event/job/approval contracts. Bench edits run only in disposable copies, never directly against the live repository.
-
-**Acceptance criteria:**
-- Fast task-unit tests cover task formats and the body-punch transformation without running the full corpus: `python -B -m unittest discover -s tests -p "test_bench_tasks.py" -v`.
-- Opt-in corpus validation confirms one pinned `self@<commit>` source, at least 15 tasks, each original single test passes, each punched single test fails, and no punched-copy context pack contains its removed body: `python lab.py bench validate --baselines --contexts`. It runs outside the default suite so the normal regression run stays fast.
-- Harness tests prove task copies are isolated, both conditions receive the goal/path/punched file, builder JSON is validated, edits outside declared gold files are rejected, and invalid outputs are counted: `python -B -m unittest discover -s tests -p "test_bench_harness.py" -v`.
-- Context/scoring tests prove the pack is built from a punched copy without its removed body; scoring tests show gold-file recall in top five and separate builder success with and without context: `python -B -m unittest discover -s tests -p "test_bench_scoring.py" -v`.
-- The committed run contains at least 15 tasks and per named candidate records pass rate, elapsed time, tokens/s, invalid-output rate, top-five search quality, and builder success under both context conditions: `python lab.py bench validate`.
-- `roles.json` parses and names the measured builder assignment while preserving planned T6 role assignments: `python -B -m unittest discover -s tests -p "test_roles.py" -v`.
-- The full suite and architecture check pass: `python -B -m unittest discover -s tests -v`; `python -B -m unittest discover -s tests -p "test_architecture.py" -v`; `git diff --check`.
-
-**Known risks:** T1–T4 may yield fewer than 15 independently hole-punchable functions; only then use D3's fixture fallback, copied and exercised inside this repo in isolation. The named models may be unavailable; do not silently add candidates, and stop to tell the USER if none can run. The 90+ bounded calls may take hours on 16 GB GPU hardware and results can vary; record model tags, Ollama version, hardware, settings, timeouts and unavailable candidates. Run the full bench only after the USER confirms the GPU is free, and never while local roles are working. A task can be invalid if its single test does not pass pristine code and fail the punched copy; validate both before model runs. Keep all model inference local and all generated patches inside disposable task copies. Bench code goes in new modules only; `session.py` is at the 400-line cap and must not grow. Do not change the event or contract schema without a decision in §2.
-
-**Declaration state:** T5 was declared from §5 after USER acceptance of T4 on 2026-09-30, approved by USER on 2026-09-30, returned from review for one in-scope fix, and re-PARKED 2026-10-01 pending USER acceptance.
 
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T6 was parked and accepted (USER, 2026-10-02); T7 is not yet declared.
+**Implementation permission:** NO. T6 was parked and accepted (USER, 2026-10-02); T7 is declared in §7 for USER review.
 **Standing authorization for T6 (USER, 2026-10-02; ended when T6 was parked on 2026-10-02):** within T6's declared scope, the implementing AGENT may change role settings and prompts, run experiments, fix bugs, adjust tests and refactor T6 modules without asking first. The condition: every change is recorded and reversible. Each experiment appends its settings, prompt fingerprint, model digest, Ollama version and per-goal outcomes to `bench/experiments/`, and each tuned change is its own commit linked to that record. Tuning uses about two-thirds of the bench goals; a change is kept only if it also holds on the held-back third. Still needing the USER: machine-wide settings, Ollama or other downloads, pushing, deleting anything not created by the AGENT, D-decisions and contract semantics, §3/§4, scope or non-goal changes, reviewer notes, and parking or accepting the tranche. This authorization ends when T6 is parked.
 
 ## 9. Parked Tranches
