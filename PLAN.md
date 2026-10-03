@@ -309,15 +309,22 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 4. Dropping "run the full bench" from §5's T7 row. The builder is unchanged since T5. The planned line-level answer-leak check (a bench-hardening item that T6 deferred to T7) lapses with it.
 
 **Progress:**
-- [ ] 1. Selfdev setup.
+- [x] 1. Selfdev setup.
 - [ ] 2. Reviewer check.
 - [ ] 3. Goal attempts.
 - [ ] 4. Review and merge.
 - [ ] 5. End checks and park.
 
-**Now:** T7 approved by the USER (2026-10-02); task 1 (selfdev setup) in progress. To resume: read this line, then `git log --oneline -10` on `t7-selfdev` and `git -C ../.tool-user-selfdev log --oneline -3`.
+**Now:** task 1 is done (evidence below); task 2, the reviewer check of the frozen goal checks and allowlist JSON, is next. No attempt starts until the USER releases that review. To resume: read this line, then `git log --oneline -10` on `t7-selfdev` and `git -C ../.tool-user-selfdev log --oneline -3`.
 
 **Now:** T7 is declared for USER review. Nothing is implemented, and no worktree exists yet.
+
+**Task 1 evidence (2026-10-02):**
+- Worktree `C:/Jacob/_AppDesign/_SANDBOX/.tool-user-selfdev` on `selfdev/base`, created from `t7-selfdev` at `33de821`; the check modules are committed there as `dc61617` (`selfdev_checks/test_g1.py`, `test_g2.py`, `test_g3.py`).
+- Before-results, each run from the worktree root exactly as its allowlist entry: `selfdev_checks.test_g1` fails (`ValueError not raised`; its second test, whole-line quotes still count, passes); `selfdev_checks.test_g2` fails (the three case variants are not excluded; the unmatched-paths test passes); `selfdev_checks.test_g3.NewFunctionTests` errors on the missing `stale_temps` (the allowed name failure); `selfdev_checks.test_g3.ApplyTests` fails (`ValueError not raised`). No check fails because of another goal.
+- `python -B -m unittest discover -s tests` in the worktree: 144 tests pass.
+- Each goal can pass: in a throwaway copy (`live_control/tmp`, deleted afterwards; never the worktree), minimal reference fixes made all four checks pass and the 144-test suite still passed. These fixes are not committed and are not shown to the team.
+- The allowlist JSON for each goal is in the declaration above; the USER writes it before each goal (D21).
 
 ---
 
