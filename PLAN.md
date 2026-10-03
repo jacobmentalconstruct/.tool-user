@@ -130,6 +130,7 @@ All recorded 2026-09-29.
 - **D18 Approval task identity and provenance (2026-10-01, with the T6 amendment; effective on USER approval of T6):** approvals record `task` when they belong to one. Candidates are attributed to the ROLE that produced them (builder or debugger). SYSTEM, as lifecycle owner, requests the final patch approval after the gate and records `data.originRole` and `data.candidate`; ROLEs still propose only through an approval (`docs/CONTRACTS.md` §0). No new event kind or top-level field is added.
 - **D19 Task check approval (2026-10-01, USER decision with the T6 amendment; effective on USER approval of T6):** approving the plan covers each task's single named check, run only in that task's scratch workspace. Every command against the selected project still needs USER approval each time it runs. For task checks only, the scratch workspace counts as "the project folder" in S4. The check's allowlist is read from the live selected project when the plan is made, never from the scratch copy, and plan validation rejects any task whose `files` include the allowlist file. The plan approval view shows the exact check command and arguments for each task.
 - **D20 Check-first rule (2026-10-02, USER decision with T6-park-1):** before building, a task's check runs in its task workspace. If it already passes, the check does not exercise the change, and the task fails as `check_not_exercising`. A goal that adds new behaviour therefore needs a check that fails before the change, such as an existing failing test the USER provides. Option (b), a warning shown on the card and the approval, was rejected: the reviewer caught 1 of 9 logic mutants inside new functions (T6 task 1), so review cannot stand in for the check. Option (c), a code task and its test task run as one pair with check-first applied to the pair, is carried to T7 as an idea only (§7 "Carry to T7"); §4 is unchanged.
+- **D21 Self-development goal checks (2026-10-02, USER decision with T7 approval; reviewer note T7-decl-1):** each pre-registered goal's check is one module per goal in `selfdev_checks/`, outside default discovery (`python -B -m unittest discover -s tests`), run only by name through the allowlist. The AGENT writes and commits the modules on `selfdev/base` before any attempt, and they are never edited afterwards. Each imports its goal's target inside the test method with the copy's `src` on `sys.path`, so it fails by assertion for its own goal (G3's new-function check excepted: the missing name is its failure). Only the USER writes `.lab/allowlist.json`, using the exact JSON in §7. A merged goal's check moves unchanged into `tests/`. With T7's approval the USER also approved the three goals and their allowlist JSON as written, L2 and cap losses as recorded limitations, and dropping the full bench rerun from T7 (its planned line-level answer-leak check lapses with it).
 
 ## 3. Target end state and stop conditions
 
@@ -214,7 +215,7 @@ Each tranche follows `docs/WORKFLOW.md`: declare, get approval, implement, conso
 | T4 | **Knowledge layer:** chunking, FTS5 plus embedding index, `ast` code graph, summaries without a model, context assembler, re-indexing after a change. A fake Ollama server for tests. | Context packs | S5 |
 | T5 | **Bench:** snapshot this repo and hole-punch tasks from it (D3, with the fallback if needed), a harness, and a single builder step. Measure search quality and builder success per model, with and without context. Set the final `roles.json`. | Committed numbers, and a role config | S7 |
 | T6 | **Team:** planner, debugger and reviewer added around the builder on the job machine. The gate plus the USER's approval. Role config. `run_turn` deleted. | Goal in, approved changes out | S6 |
-| T7 | **Self-development and park:** set up the selfdev worktree and its allowlist, run the three pre-registered goals (D8), merge the ones that pass, run the full bench, size and import-graph checks, docs, push. **End.** | Evidence for every stop condition | S8, S9, S10 |
+| T7 | **Self-development and park:** set up the selfdev worktree and its allowlist, run the three pre-registered goals (D8), merge the ones that pass, size and import-graph checks (the full bench rerun was dropped by the USER, D21), docs, push. **End.** | Evidence for every stop condition | S8, S9, S10 |
 
 T4 and T5 can overlap: the search-quality part of the bench needs only T4. T6 needs T3 and T5. The three D8 goals are registered at the end of T6.
 
@@ -314,7 +315,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [ ] 4. Review and merge.
 - [ ] 5. End checks and park.
 
-**Now:** T7 is declared and amended for T7-decl-1, awaiting the reviewer's re-check and USER approval. Nothing is implemented, and no worktree exists yet.
+**Now:** T7 approved by the USER (2026-10-02); task 1 (selfdev setup) in progress. To resume: read this line, then `git log --oneline -10` on `t7-selfdev` and `git -C ../.tool-user-selfdev log --oneline -3`.
 
 **Now:** T7 is declared for USER review. Nothing is implemented, and no worktree exists yet.
 
@@ -422,7 +423,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T6 was parked and accepted (USER, 2026-10-02); T7 is declared in §7 for USER review.
+**Implementation permission:** YES for T7 (USER, 2026-10-02)
 **Standing authorization for T6 (USER, 2026-10-02; ended when T6 was parked on 2026-10-02):** within T6's declared scope, the implementing AGENT may change role settings and prompts, run experiments, fix bugs, adjust tests and refactor T6 modules without asking first. The condition: every change is recorded and reversible. Each experiment appends its settings, prompt fingerprint, model digest, Ollama version and per-goal outcomes to `bench/experiments/`, and each tuned change is its own commit linked to that record. Tuning uses about two-thirds of the bench goals; a change is kept only if it also holds on the held-back third. Still needing the USER: machine-wide settings, Ollama or other downloads, pushing, deleting anything not created by the AGENT, D-decisions and contract semantics, §3/§4, scope or non-goal changes, reviewer notes, and parking or accepting the tranche. This authorization ends when T6 is parked.
 
 ## 9. Parked Tranches
