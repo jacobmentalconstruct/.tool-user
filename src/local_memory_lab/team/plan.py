@@ -34,14 +34,7 @@ def validate_plan(output: dict, project: Workspace, checks: dict[str, tuple[str,
         path, symbol, new = target["path"], target["symbol"].strip(), target["new"]
         if not item["title"].strip() or not item["description"].strip():
             raise PlanError(f"{where} needs a title and a description")
-        if "\\" in path or path.startswith("./") or PurePosixPath(path).as_posix() != path:
-            raise PlanError(f"{where}: {path!r} is not a normalized relative path")
-        if path.casefold() == ALLOWLIST:
-            raise PlanError(f"{where}: the allowlist file cannot be a task file")
-        try:
-            file = project.path(path)
-        except ValueError as exc:
-            raise PlanError(f"{where}: {path}: {exc}") from exc
+        file = check_task_path(where, path, project)
         if spellings.setdefault(path.casefold(), path) != path:
             raise PlanError(f"{where}: {path} collides by case with {spellings[path.casefold()]}")
         if (path.casefold(), symbol) in targets:
@@ -54,6 +47,18 @@ def validate_plan(output: dict, project: Workspace, checks: dict[str, tuple[str,
                       "target": {"path": path, "symbol": symbol, "new": new}, "files": [path],
                       "check": item["check"], "order": order})
     return specs
+
+
+def check_task_path(where: str, path: str, project: Workspace) -> Path:
+    """A task or draft path: normalized, relative, inside the project, never the allowlist file."""
+    if "\\" in path or path.startswith("./") or PurePosixPath(path).as_posix() != path:
+        raise PlanError(f"{where}: {path!r} is not a normalized relative path")
+    if path.casefold() == ALLOWLIST:
+        raise PlanError(f"{where}: the allowlist file cannot be a task file")
+    try:
+        return project.path(path)
+    except ValueError as exc:
+        raise PlanError(f"{where}: {path}: {exc}") from exc
 
 
 def check_target(where: str, file: Path, path: str, symbol: str, new: bool) -> None:

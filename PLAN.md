@@ -306,12 +306,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 **USER gates:** the USER approves this declaration, confirms the GPU is free before the probe, and accepts the park.
 
 **Progress:**
-- [ ] 1. Validator.
+- [x] 1. Validator.
 - [ ] 2. Session and endpoint.
 - [ ] 3. Page.
 - [ ] 4. Probe and park.
 
-**Now:** T8 approved by the USER (2026-10-03) after the reviewer's re-check of `c57d2ae`; task 1 (validator) in progress on `t8-goal-draft`. To resume: read this line, then `git log --oneline -10`.
+**Now:** T8 approved by the USER (2026-10-03) after the reviewer's re-check of `c57d2ae`; task 1 (validator) done; task 2 (session and endpoint) in progress on `t8-goal-draft`. To resume: read this line, then `git log --oneline -10`.
 
 ---
 
