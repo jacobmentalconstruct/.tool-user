@@ -6,7 +6,7 @@ The point is to move the expensive inference onto free local models, so that an 
 
 ## Status
 
-**T5 (Bench) is accepted. T6 (Team) is complete on branch `t6-team`, awaiting USER acceptance: a New goal is planned into tasks before you approve the plan; each task is built, checked, debugged and reviewed in a disposable copy, and only a patch you approve reaches your project. Chat answers questions but cannot change files.** The committed T5 run compares 22 tasks across three local builder models, with and without context. qwen3.5:9b is selected at a 36.4% pass rate. See [the recorded results](bench/results/20261001T124335Z-a0abb772.json) and [PLAN.md](PLAN.md) for details. Session history persists in `live_control/events.sqlite`. To reset it, stop the hub and delete that file before restarting.
+**T5 (Bench) and T6 (Team) are accepted. With T6, a New goal is planned into tasks before you approve the plan; each task is built, checked, debugged and reviewed in a disposable copy, and only a patch you approve reaches your project. Chat answers questions but cannot change files.** The committed T5 run compares 22 tasks across three local builder models, with and without context. qwen3.5:9b is selected at a 36.4% pass rate. See [the recorded results](bench/results/20261001T124335Z-a0abb772.json) and [PLAN.md](PLAN.md) for details. Session history persists in `live_control/events.sqlite`. To reset it, stop the hub and delete that file before restarting.
 
 The prototype is finished when the agent can make progress on its own development in a sandboxed copy of this repo. The route there, and where we are on it, is in [PLAN.md](PLAN.md).
 

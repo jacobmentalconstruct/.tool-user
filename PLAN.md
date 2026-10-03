@@ -246,7 +246,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **ID:** T6 — Team (amended 2026-10-01 after the reviewer's return note on `4b2600c`).
 
-**Current:** T1–T5 are accepted on `main`; T5's bench, results and role configuration are merged from `t5-bench`. S2–S5 are complete. The builder part of S7 is complete, and the per-role evidence now exists (role probes and the real team run); S7 closes when the USER accepts T6. §3 stop conditions and §4 non-goals remain frozen (D6). T6 is approved (2026-10-01) and implemented on `t6-team`; all four tasks are done and it awaits USER review and parking (§7 "Now"). The `create_project_file` approval bypass was removed in task 4 (`c4d0637`).
+**Current:** T1–T6 are accepted on `main`; T6 was merged from `t6-team` (2026-10-02). S2–S7 are complete. §3 stop conditions and §4 non-goals remain frozen (D6). The `create_project_file` approval bypass was removed in task 4 (`c4d0637`). There is no implementation permission until the USER approves the T7 declaration (§8).
 
 **Branch:** `t6-team`.
 
@@ -282,7 +282,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 3. Candidate execution in the workspace with reason codes and thinking capture.
 - [x] 4. Apply with new-file support, bypass closed, knowledge refresh, Chat replaced, `run_turn` removed, real-model proof.
 
-**Now:** all four T6 tasks are done (evidence below); T6 is ready for the USER to review and park. Parking and acceptance need the USER (standing authorization, §8). Recorded experiments: builder sweep (`bench/experiments/2026-10-02-builder-sweep.jsonl`; settings unchanged); planner experiments (`2026-10-02-planner-and-builder.jsonl`). The check-first rule is decided as D20 (USER, 2026-10-02). Park review T6-park-1: small fixes L1 and L4–L7 are done (`469f4ca`). Tuning done while the USER was away (settings unchanged): the cap retry without context gave 7 of 7 valid replies but 0 passes (`2026-10-02-builder-cap-retry.jsonl`); the whole task pipeline passed 12 of 22 bench goals (tune 7/15, holdout 5/7) against 9 of 22 for the builder alone, with 5 debugger rescues; the token cap is still the main loss (6 of 10 failures; `2026-10-02-pipeline-bench.jsonl`). Every file stays inside the project: throwaway tools are in the git-ignored `live_control/work/`, and runs set TMP/TEMP to `live_control/tmp`. To resume: read this line, then `git log --oneline -10`.
+**Now:** T6 is parked and accepted by the USER (2026-10-02) and merged into `main`; the park record is in §9. Next: the team reorients and declares T7 from its draft (§5), taking the "Carry to T7" list below into account, and waits for USER approval before changing code. Experiments while the USER was away are recorded in `bench/experiments/2026-10-02-*.jsonl` (settings unchanged by them). To resume: read this line, then `git log --oneline -10`.
 
 **Carry to T7** (from park review T6-park-1; not implemented in T6, §4 unchanged):
 - L2: the pre-build check runs while the task is recorded as `building`; the contract lifecycle uses `testing` for checks. Changing the recorded sequence is a contract matter.
@@ -338,7 +338,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 
 **Known risks:** the 35b planner/reviewer (~14.5 GB) and the 9b builder/debugger swap in 16 GB VRAM at every role change; `keep_alive` and per-role timeouts are set in task 1 and the real run records load times. Raising `num_predict` costs time (~8k tokens ≈ 150 s at ~55 tokens/s against a 180 s timeout), so the cap and timeout move together. Per-function review cards miss bugs from two functions interacting across files; the task's check must cover those. A false reviewer `fail` costs a rerun because the job fails fast; a false `pass` is still caught by the check and USER approval. Narrow one-region tasks may make some goals need several tasks; re-planning is deferred to T7 pending T6's reason codes. Copying large projects into a task workspace costs time; the exclusion rules keep it bounded. `session.py` is at 400 lines, so new ownership goes in a small `team` area (roles and config, task orchestration, workspace and gate). The Chat bypass bug stays live until task 4.
 
-**Declaration state:** T6 declared 2026-10-01 after USER acceptance of T5; returned for amendment by the reviewer the same day; re-declared with this amendment; reviewer note T6-amend-1 (accept after F1 target field and F2 reviewer probe) applied with D19, pending USER approval.
+**Declaration state:** T6 declared 2026-10-01 after USER acceptance of T5; returned for amendment by the reviewer the same day; re-declared with this amendment; reviewer note T6-amend-1 (accept after F1 target field and F2 reviewer probe) applied with D19; approved by the USER 2026-10-01; park review T6-park-1/T6-park-2 applied; parked and accepted 2026-10-02.
 
 ---
 
@@ -414,8 +414,8 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** YES for T6 (USER, 2026-10-01)
-**Standing authorization for T6 (USER, 2026-10-02):** within T6's declared scope, the implementing AGENT may change role settings and prompts, run experiments, fix bugs, adjust tests and refactor T6 modules without asking first. The condition: every change is recorded and reversible. Each experiment appends its settings, prompt fingerprint, model digest, Ollama version and per-goal outcomes to `bench/experiments/`, and each tuned change is its own commit linked to that record. Tuning uses about two-thirds of the bench goals; a change is kept only if it also holds on the held-back third. Still needing the USER: machine-wide settings, Ollama or other downloads, pushing, deleting anything not created by the AGENT, D-decisions and contract semantics, §3/§4, scope or non-goal changes, reviewer notes, and parking or accepting the tranche. This authorization ends when T6 is parked.
+**Implementation permission:** NO. T6 was parked and accepted (USER, 2026-10-02); T7 is not yet declared.
+**Standing authorization for T6 (USER, 2026-10-02; ended when T6 was parked on 2026-10-02):** within T6's declared scope, the implementing AGENT may change role settings and prompts, run experiments, fix bugs, adjust tests and refactor T6 modules without asking first. The condition: every change is recorded and reversible. Each experiment appends its settings, prompt fingerprint, model digest, Ollama version and per-goal outcomes to `bench/experiments/`, and each tuned change is its own commit linked to that record. Tuning uses about two-thirds of the bench goals; a change is kept only if it also holds on the held-back third. Still needing the USER: machine-wide settings, Ollama or other downloads, pushing, deleting anything not created by the AGENT, D-decisions and contract semantics, §3/§4, scope or non-goal changes, reviewer notes, and parking or accepting the tranche. This authorization ends when T6 is parked.
 
 ## 9. Parked Tranches
 
@@ -524,3 +524,19 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
   - Set the builder's output limit or thinking budget as part of T6's builder setup, and check it there.
   - Save the model's thinking text as well as its answer on invalid replies; the answer-only excerpt was empty in 62 of 63 rows.
   - `roles.json` sets the debugger to `think: false`, which the T5 probe showed breaks the required output format on qwen3.5:9b. Do not use that setting in T6 unless it is shown to work.
+
+**T6, team: PARKED and ACCEPTED 2026-10-02 on `t6-team`; merged into `main` after USER acceptance.** Task commits: `9c7e6c5` (task 1 substrate), `a40580f` (task 2 planner), `10a0259`/`9248147` (task 3 pipeline), `c4d0637` and `94e6614` (task 4 retirement and proof); park-review fixes `469f4ca`, D20 and docs `6460b76`, reason codes `65b1f97`.
+- **Outcome met:** a New goal is planned by the planner into 1–5 validated tasks with one `target` each before the USER approves the plan. Each task runs check-first (D20), then builder, check, up to two debugger rounds, reviewer and gate, only inside a disposable task workspace (D16). Only a gated patch the USER approves reaches the project, through the transactional apply with new-file support, drift check, backup and re-index. Every task and job ends with a recorded reason code (D17). Chat is answer-only; `run_turn`, the tool router and the `create_project_file` bypass are deleted. Roles (D4): qwen3.5:9b builder and debugger with thinking on; qwen2.5-coder:14b planner (temperature 0) and reviewer with thinking off; every sampling option is sent explicitly.
+- **Evidence:**
+  - `python -B -m unittest discover -s tests -v` — 144 tests pass.
+  - `python -B -m unittest discover -s tests -p "test_architecture.py" -v` — passes: only `workspace/` writes project files, Chat sends no tools, source names no location outside the repo, no import cycles.
+  - `git diff --check main..t6-team` — clean. `rg -n "run_turn|agent\.engine|create_project_file" src tests` — no matches. Vendor-name scan of `src`, `tests`, `docs` and `roles.json` — no matches.
+  - Size: largest module 309 lines (`bench/runner.py`); `session.py` 300 lines (400 at the start of T6); `src` 4,831 lines; T6 diff against `main` is 5,719 insertions and 1,079 deletions across 70 files, most of it bench records and tests.
+  - `python lab.py bench team --confirm-gpu-free` — run `20261002T172029Z-22830cfd`: planned one correct task, the check failed first, the debugger fixed it on round 2, the reviewer passed it correctly, the live project was unchanged while the patch approval was pending, and the applied change passes the live tests and is indexed (49 s, all calls fully on the GPU). Run `20261002T171904Z-89fe1a23` is the no-debugger path (34 s).
+  - Role and planner probes: `bench/probes/roles-*.json` and `planner-*.json` (task 1 and 2 evidence in §7).
+  - Full-pipeline bench (`bench/experiments/2026-10-02-pipeline-bench.jsonl`): 12 of 22 goals pass (tune 7/15, held-back 5/7) against 9 of 22 for the builder alone; 5 debugger rescues.
+  - Reviewer park review T6-park-1 verified the cancel, approval and indexing paths with every model call blocked; its fixes and the USER's D20 decision are acknowledged in `469f4ca` and `6460b76`.
+- **Limitations:** the real-model proof is a single-task job. The output cap remains the main pipeline loss (6 of 10 bench failures), and neither a larger budget nor a retry without context recovered it. The reviewer catches few logic mutants inside new functions (1 of 9), so D20 requires a check that fails before the change; a goal adding new behaviour together with its test needs an existing failing test. Bench results are one run per goal.
+- **Runtime artifacts:** no background process is running. `live_control/work/` (throwaway experiment tools and logs, about 100 MB) and `live_control/tmp/` are git-ignored runtime folders; the 129 empty job folders that L1 now prevents were removed from `live_control/scratch/`.
+- **Deferrals:** the §7 "Carry to T7" list (L2 task-state sequence, L3 citation length, multi-task proof, cap losses, D20 option (c)); §4 is unchanged.
+- **Next step:** reorient against `main` and declare T7 from its draft in §5, with the "Carry to T7" list, for USER approval.
