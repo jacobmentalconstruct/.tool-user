@@ -315,13 +315,12 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [ ] 4. Review and merge.
 - [ ] 5. End checks and park.
 
-**Now:** task 1 is done (evidence below); task 2, the reviewer check of the frozen goal checks and allowlist JSON, is next. No attempt starts until the USER releases that review. To resume: read this line, then `git log --oneline -10` on `t7-selfdev` and `git -C ../.tool-user-selfdev log --oneline -3`.
+**Now:** task 2 is in progress. The reviewer's check T7-checks-1 asked for one more G3 test, now added on `selfdev/base` (`21d1e07`); this awaits the reviewer's re-check. No attempt starts until the USER releases it. To resume: read this line, then `git log --oneline -10` on `t7-selfdev` and `git -C ../.tool-user-selfdev log --oneline -3`.
 
-**Now:** T7 is declared for USER review. Nothing is implemented, and no worktree exists yet.
 
 **Task 1 evidence (2026-10-02):**
-- Worktree `C:/Jacob/_AppDesign/_SANDBOX/.tool-user-selfdev` on `selfdev/base`, created from `t7-selfdev` at `33de821`; the check modules are committed there as `dc61617` (`selfdev_checks/test_g1.py`, `test_g2.py`, `test_g3.py`).
-- Before-results, each run from the worktree root exactly as its allowlist entry: `selfdev_checks.test_g1` fails (`ValueError not raised`; its second test, whole-line quotes still count, passes); `selfdev_checks.test_g2` fails (the three case variants are not excluded; the unmatched-paths test passes); `selfdev_checks.test_g3.NewFunctionTests` errors on the missing `stale_temps` (the allowed name failure); `selfdev_checks.test_g3.ApplyTests` fails (`ValueError not raised`). No check fails because of another goal.
+- Worktree `C:/Jacob/_AppDesign/_SANDBOX/.tool-user-selfdev` on `selfdev/base`, created from `t7-selfdev` at `33de821`; the check modules are committed there as `dc61617` (`selfdev_checks/test_g1.py`, `test_g2.py`, `test_g3.py`), amended before any attempt as `21d1e07` (T7-checks-1 R1: `ApplyTests.test_a_clean_folder_still_applies_several_files`).
+- Before-results, each run from the worktree root exactly as its allowlist entry: `selfdev_checks.test_g1` fails (`ValueError not raised`; its second test, whole-line quotes still count, passes); `selfdev_checks.test_g2` fails (the three case variants are not excluded; the unmatched-paths test passes); `selfdev_checks.test_g3.NewFunctionTests` errors on the missing `stale_temps` (the allowed name failure); `selfdev_checks.test_g3.ApplyTests` fails only on its refusal test (`ValueError not raised`); its clean multi-file apply test passes on the base. No check fails because of another goal.
 - `python -B -m unittest discover -s tests` in the worktree: 144 tests pass.
 - Each goal can pass: in a throwaway copy (`live_control/tmp`, deleted afterwards; never the worktree), minimal reference fixes made all four checks pass and the 144-test suite still passed. These fixes are not committed and are not shown to the team.
 - The allowlist JSON for each goal is in the declaration above; the USER writes it before each goal (D21).
