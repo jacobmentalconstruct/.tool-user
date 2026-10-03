@@ -315,7 +315,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [ ] 4. Review and merge.
 - [ ] 5. End checks and park.
 
-**Now:** G1 passed on attempt 1 and is committed on `selfdev/g1` (`fa13752`); it awaits the D8 normal review before merging into `t7-selfdev`. G2 is next: the worktree goes back to `selfdev/base`, and the USER writes G2's allowlist JSON. To resume: read this line, then `git log --oneline -10` on `t7-selfdev` and `git -C ../.tool-user-selfdev log --oneline -3`.
+**Now:** attempts recorded (below). G1 passed and passed the D8 normal review (reviewer note `T7-g1-1`); G2 was stopped by the USER after 2 attempts; G3 failed at planning on every recorded attempt. The event log holds 2 G3 jobs, but the note reports 3; awaiting USER confirmation before task 4 (stop the hub, merge `selfdev/g1` into `t7-selfdev`, move `selfdev_checks/test_g1.py` unchanged into `tests/`, restart), because G1 merges only after the last attempt.
 
 
 **Task 1 evidence (2026-10-02):**
@@ -325,11 +325,22 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - Each goal can pass: in a throwaway copy (`live_control/tmp`, deleted afterwards; never the worktree), minimal reference fixes made all four checks pass and the 144-test suite still passed. These fixes are not committed and are not shown to the team.
 - The allowlist JSON for each goal is in the declaration above; the USER writes it before each goal (D21).
 
-**Task 2 evidence (2026-10-02):** reviewer note T7-checks-1 asked for one G3 positive-path test, added before any attempt (`21d1e07`); the reviewer's re-check passed and recommended release (`plan-monitor` export `checks-review-t7-dc61617.md`). The USER released the attempts and wrote G1's allowlist JSON exactly as in §7.
+**Task 2 evidence (2026-10-02):** reviewer note T7-checks-1 asked for one G3 positive-path test, added before any attempt (`21d1e07`); the reviewer's re-check passed and recommended release (reviewer note `T7-checks-1`). The USER released the attempts. Allowlists: G1's and G3's were written by the reviewer agent at the USER's explicit direction, verbatim from §7 (the hub read exactly `goal-g1`, and `goal-g3-new` with `goal-g3-apply`, timeout 120); G2's was written by the USER by hand.
 
 **Attempts (task 3):**
 - **G1, attempt 1: passed.** Job `5cc7c9a7-0cb8-41f0-be30-276abc6b2b07`, 2026-10-03 04:40:18–04:43:05 UTC (about 2 min 47 s including USER approvals). The planner made one task, an edit of `src/local_memory_lab/team/steps.py` `require_citation`, with check `goal-g1`. `goal-g1` failed first (exit 1), then the builder's candidate passed (exit 0) with no debug round. The reviewer passed it, then the gate. The USER approved the plan and the patch (`originRole: role:builder`), and the change was applied. Event actors: `system` and `user` only. Export: `bench/selfdev/G1-5cc7c9a7-0cb8-41f0-be30-276abc6b2b07.json`.
 - **G1 on `selfdev/g1` (`fa13752`, `Actor: ROLE`, unchanged from the approved patch):** `goal-g1` passes; `python -B -m unittest discover -s tests`, 144 pass; the architecture test passes; `git diff --check` is clean.
+- **G1 D8 normal review (reviewer note `T7-g1-1`): passed.** `fa13752` matches the approved patch line for line; the export matches the hub log; all roles were local models; approvals were by `user` only. G1 merges at task 4.
+- **G2, attempt 1: not passed (`review_failed`).** Job `8b312139-cf0b-400e-9072-6f17816ca987`, 10:09:25–10:11:29 UTC. `goal-g2` failed first, then passed with the builder's candidate; the reviewer failed it, quoting `fnmatch.fnmatch(lower, ".*-bin")`. Export: `bench/selfdev/G2-8b312139-cf0b-400e-9072-6f17816ca987.json`.
+- **G2, attempt 2: not passed (`invalid_output`).** Job `9c59e3fa-9451-4221-91f0-7a5df52fb867`, 10:14:28–10:15:34 UTC. `goal-g2` failed first, then passed; the reviewer's fail quoted `if fnmatch.fnmatch(lower, ".*-bin")`, which is not a card line, and gave the `fnmatchcase` → `fnmatch` swap as its reason. Export: `bench/selfdev/G2-9c59e3fa-9451-4221-91f0-7a5df52fb867.json`.
+- **G2: not passed; stopped by the USER after 2 of 3 attempts; the third is unused.** The candidate relied on `fnmatch.fnmatch`, which ignores case only on Windows (through `os.path.normcase`), so it did not meet "without regard to letter case" everywhere; the USER chose not to risk approving a Windows-only fix.
+- **G3, attempts 1 and 2: not passed (`invalid_plan`).** Jobs `a395cc95-957c-4e9a-85c9-cf226a3f53a9` (10:24:28–10:24:52 UTC) and `67668e0b-24ef-4ef8-bd3e-61cbf24fe44f` (10:27:42–10:27:57 UTC). Both times plan validation rejected task 1 with "src/local_memory_lab/workspace/patching.py already exists": the planner marked the new function `stale_temps` as a new file (empty `symbol`). Nothing ran. Code-rejected plans count as attempts (USER decision). Exports: `bench/selfdev/G3-a395cc95-957c-4e9a-85c9-cf226a3f53a9.json`, `bench/selfdev/G3-67668e0b-24ef-4ef8-bd3e-61cbf24fe44f.json`. Reviewer note `T7-g1-1` reports a third G3 attempt with the same result; the event log (58 events, the last at 10:27:57 UTC) has no third G3 job, so it is not recorded here until the USER confirms.
+
+**Limitations to record at park (from `T7-g1-1`; not fixed in T7):**
+- A `review_failed` or `invalid_output` reviewer failure keeps the reasons and quote but not the candidate; the workspace is discarded, so a rejected candidate cannot be inspected afterwards.
+- An `invalid_plan` failure keeps only the validation error, not the planner's answer.
+- The frozen G2 check passes on Windows for a Windows-only fix (`fnmatch.fnmatch` folds case there).
+- The planner (qwen2.5-coder:14b) confused "new function in an existing file" with "new file" on every G3 run, so the multi-task proof carried from T6 remains unproven.
 
 ---
 

@@ -1,0 +1,140 @@
+{
+  "goal": "G3",
+  "job": "a395cc95-957c-4e9a-85c9-cf226a3f53a9",
+  "first_ts": "2026-10-03T10:24:28.383805Z",
+  "last_ts": "2026-10-03T10:24:52.665289Z",
+  "hub_commit": "48b42b47261227cef2d8150019318f23b7a161f1",
+  "worktree_commit": "21d1e074a0f618fda8b90f15f8a8c8500e1d8ea7",
+  "worktree_status": "?? .lab/",
+  "ollama": "0.18.3",
+  "roles": {
+    "planner": {
+      "model": "qwen2.5-coder:14b",
+      "think": false,
+      "temperature": 0,
+      "num_ctx": 16384,
+      "num_predict": 4096,
+      "timeout_s": 120,
+      "keep_alive": "5m",
+      "top_p": 0.9,
+      "top_k": 40,
+      "presence_penalty": 0.0,
+      "repeat_penalty": 1.1,
+      "seed": 42
+    },
+    "builder": {
+      "model": "qwen3.5:9b",
+      "think": true,
+      "temperature": 0,
+      "num_ctx": 16384,
+      "num_predict": 8192,
+      "timeout_s": 180,
+      "keep_alive": "10m",
+      "top_p": 0.95,
+      "top_k": 20,
+      "presence_penalty": 1.5,
+      "repeat_penalty": 1.1,
+      "seed": 42
+    },
+    "debugger": {
+      "model": "qwen3.5:9b",
+      "think": true,
+      "temperature": 0,
+      "num_ctx": 16384,
+      "num_predict": 8192,
+      "timeout_s": 180,
+      "keep_alive": "10m",
+      "top_p": 0.95,
+      "top_k": 20,
+      "presence_penalty": 1.5,
+      "repeat_penalty": 1.1,
+      "seed": 42
+    },
+    "reviewer": {
+      "model": "qwen2.5-coder:14b",
+      "think": false,
+      "temperature": 0,
+      "num_ctx": 16384,
+      "num_predict": 1024,
+      "timeout_s": 120,
+      "keep_alive": "5m",
+      "top_p": 0.9,
+      "top_k": 40,
+      "presence_penalty": 0.0,
+      "repeat_penalty": 1.1,
+      "seed": 42
+    },
+    "embedder": {
+      "model": "nomic-embed-text"
+    }
+  },
+  "job_states": [
+    "queued",
+    "planning",
+    "failed"
+  ],
+  "task_states": [],
+  "approvals": [],
+  "actors": [
+    "system"
+  ],
+  "events": [
+    {
+      "id": 51,
+      "ts": "2026-10-03T10:24:28.383805Z",
+      "actor": "system",
+      "kind": "job.state",
+      "job": "a395cc95-957c-4e9a-85c9-cf226a3f53a9",
+      "task": null,
+      "data": {
+        "state": "queued",
+        "goal": "In workspace/patching.py, add stale_temps(folder) that returns the paths of leftover .lab-stage- and .lab-recover- files in that folder, then make staged_apply raise a ValueError naming them, before writing anything, when any target folder has such files.",
+        "submittedBy": "user",
+        "display": {
+          "speaker": "USER",
+          "text": "New goal: In workspace/patching.py, add stale_temps(folder) that returns the paths of leftover .lab-stage- and .lab-recover- files in that folder, then make staged_apply raise a ValueError naming them, before writing anything, when any target folder has such files."
+        }
+      }
+    },
+    {
+      "id": 52,
+      "ts": "2026-10-03T10:24:28.387446Z",
+      "actor": "system",
+      "kind": "job.state",
+      "job": "a395cc95-957c-4e9a-85c9-cf226a3f53a9",
+      "task": null,
+      "data": {
+        "state": "planning"
+      }
+    },
+    {
+      "id": 53,
+      "ts": "2026-10-03T10:24:52.657239Z",
+      "actor": "system",
+      "kind": "error",
+      "job": "a395cc95-957c-4e9a-85c9-cf226a3f53a9",
+      "task": null,
+      "data": {
+        "display": {
+          "speaker": "Error",
+          "text": "Planning failed: task 1: src/local_memory_lab/workspace/patching.py already exists"
+        },
+        "failure": {
+          "reason": "invalid_plan"
+        }
+      }
+    },
+    {
+      "id": 54,
+      "ts": "2026-10-03T10:24:52.665289Z",
+      "actor": "system",
+      "kind": "job.state",
+      "job": "a395cc95-957c-4e9a-85c9-cf226a3f53a9",
+      "task": null,
+      "data": {
+        "state": "failed",
+        "reason": "invalid_plan: task 1: src/local_memory_lab/workspace/patching.py already exists"
+      }
+    }
+  ]
+}
