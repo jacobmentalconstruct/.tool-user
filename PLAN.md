@@ -315,7 +315,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - [x] 4. Review and merge.
 - [x] 5. End checks and park.
 
-**Now:** T7 is parked (§9), pending USER acceptance. After acceptance, `t7-selfdev` merges into `main` (S8 met) and is pushed. To resume: read this line, then `git log --oneline -10` on `t7-selfdev`.
+**Now:** T7 is parked and accepted (2026-10-03) and merged into `main`; S1–S10 have recorded evidence (§9), so the prototype is complete. Further work needs a new USER decision on the §4 Deferred list. To resume: read this line, then `git log --oneline -10` on `t7-selfdev`.
 
 
 **Task 1 evidence (2026-10-02):**
@@ -452,7 +452,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 ## 8. Current Decision
 
 **Project definition:** DEFINED. **Plan status:** APPROVED (2026-09-29). §3 and §4 are frozen (D6).
-**Implementation permission:** NO. T7 is parked (2026-10-03), pending USER acceptance; after acceptance and the merge, the prototype is complete (§3).
+**Implementation permission:** NO. T7 was parked and accepted (USER, 2026-10-03); the prototype is complete (§3). Further work starts from a new USER decision on the §4 Deferred list.
 **Standing authorization for T6 (USER, 2026-10-02; ended when T6 was parked on 2026-10-02):** within T6's declared scope, the implementing AGENT may change role settings and prompts, run experiments, fix bugs, adjust tests and refactor T6 modules without asking first. The condition: every change is recorded and reversible. Each experiment appends its settings, prompt fingerprint, model digest, Ollama version and per-goal outcomes to `bench/experiments/`, and each tuned change is its own commit linked to that record. Tuning uses about two-thirds of the bench goals; a change is kept only if it also holds on the held-back third. Still needing the USER: machine-wide settings, Ollama or other downloads, pushing, deleting anything not created by the AGENT, D-decisions and contract semantics, §3/§4, scope or non-goal changes, reviewer notes, and parking or accepting the tranche. This authorization ends when T6 is parked.
 
 ## 9. Parked Tranches
@@ -579,7 +579,7 @@ Surveyed and found not needed: AgenticToolbox's app factory, catalog, stamper an
 - **Deferrals:** the §7 "Carry to T7" list (L2 task-state sequence, L3 citation length, multi-task proof, cap losses, D20 option (c)); §4 is unchanged.
 - **Next step:** reorient against `main` and declare T7 from its draft in §5, with the "Carry to T7" list, for USER approval.
 
-**T7, self-development and park: PARKED 2026-10-03 on `t7-selfdev`, pending USER acceptance.** Permission `87e61a8`; selfdev setup `39aff87` (goal checks `14f2662`, amended before any attempt as `05e0015`); G1 by the team `e1c673f`, merged as `e448284`, check moved `0d2ff41`; S9 pass `ba331c8`; S10 README `be525c7`; reviewer probe `7cb37a1`; builder samples `0543703` and `1bf513f`.
+**T7, self-development and park: PARKED and ACCEPTED 2026-10-03 on `t7-selfdev`; merged into `main` after USER acceptance, which meets S8. The prototype is complete (§3).** Permission `87e61a8`; selfdev setup `39aff87` (goal checks `14f2662`, amended before any attempt as `05e0015`); G1 by the team `e1c673f`, merged as `e448284`, check moved `0d2ff41`; S9 pass `ba331c8`; S10 README `be525c7`; reviewer probe `7cb37a1`; builder samples `0543703` and `1bf513f`.
 - **Outcome met:** the local team turned a pre-registered goal from its own backlog into a tested change that the USER approved in the hub, with local models only (D8). G1, the stricter citation rule (carry item L3), passed on its first attempt: one task, check-first, builder, reviewer and gate, about 2 min 47 s including the USER's approvals. It passed the D8 normal review (`T7-g1-1`) and is merged into `t7-selfdev` with `selfdev` credited (`Actor: ROLE`). S8 is met when `t7-selfdev` merges into `main` after USER acceptance. G2 (stopped by the USER after 2 attempts) and G3 (planning failures) did not pass; both are recorded in §7.
 - **Evidence for each stop condition:**
   - **S1:** `git clone --branch t7-selfdev . <temporary folder>`, then `python -m pip install -r requirements.txt` (already satisfied; nothing installed), then `python -B -m unittest discover -s tests`: 146 tests pass. `python lab.py hub-server` started in the clone and `python lab.py client status` answered with an empty session; the hub was then stopped. Outside-path and import isolation: `tests/test_architecture.py` passes.
