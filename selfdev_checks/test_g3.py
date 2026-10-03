@@ -41,6 +41,20 @@ class ApplyTests(unittest.TestCase):
             self.assertEqual(b"x = 1\n", target.read_bytes())
             self.assertTrue(leftover.exists())
 
+    def test_a_clean_folder_still_applies_several_files(self):
+        from local_memory_lab.workspace.backups import BackupStore
+        from local_memory_lab.workspace.patching import staged_apply
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "pkg").mkdir()
+            a, b = root / "pkg" / "a.py", root / "pkg" / "b.py"
+            a.write_bytes(b"x = 1\n")
+            b.write_bytes(b"y = 1\n")
+            staged_apply({"pkg/a.py": (a, b"x = 1\n", b"x = 2\n"), "pkg/b.py": (b, b"y = 1\n", b"y = 2\n")},
+                         BackupStore(root / "backups"), "r-2")
+            self.assertEqual((b"x = 2\n", b"y = 2\n"), (a.read_bytes(), b.read_bytes()))
+            self.assertEqual([], [path.name for path in (root / "pkg").iterdir() if path.name.startswith(".lab-")])
+
 
 if __name__ == "__main__":
     unittest.main()
