@@ -1,0 +1,254 @@
+{
+  "run_id": "20261003T135419Z-2de170e7",
+  "source_commit": "e3c759c44663d0dc115e740eaec09a4177d5be1b",
+  "source_dirty": false,
+  "model": "qwen2.5-coder:14b",
+  "settings": {
+    "temperature": 0.0,
+    "top_p": 0.9,
+    "top_k": 40,
+    "presence_penalty": 0.0,
+    "repeat_penalty": 1.1,
+    "seed": 42,
+    "num_ctx": 16384,
+    "num_predict": 4096,
+    "think": false
+  },
+  "summary": {
+    "drafts": 8,
+    "valid": 7,
+    "planned_validly": 7,
+    "plan_target_agrees": 7,
+    "draft_target_as_expected": 7,
+    "rejection_reasons": [
+      "the goal must say 'existing file' for a new_function target"
+    ],
+    "mean_seconds": 12.7
+  },
+  "rows": [
+    {
+      "case": "G1",
+      "valid": true,
+      "goal": "Modify the existing function require_citation in team/steps.py to ensure every part of the quote meets CITE_MIN.",
+      "target": {
+        "path": "src/local_memory_lab/team/steps.py",
+        "shape": "existing_symbol",
+        "symbol": "require_citation"
+      },
+      "reasons": [],
+      "seconds": 19.0,
+      "loadSeconds": 7.38,
+      "expected": {
+        "path": "src/local_memory_lab/team/steps.py",
+        "shape": "existing_symbol",
+        "symbol": "require_citation"
+      },
+      "asExpected": true,
+      "planValid": true,
+      "planTargets": [
+        {
+          "path": "src/local_memory_lab/team/steps.py",
+          "symbol": "require_citation",
+          "new": false
+        }
+      ],
+      "targetAgrees": true,
+      "planSeconds": 17.5
+    },
+    {
+      "case": "G2",
+      "valid": true,
+      "goal": "Make excluded ignore letter case in src/local_memory_lab/workspace/paths.py",
+      "target": {
+        "path": "src/local_memory_lab/workspace/paths.py",
+        "shape": "existing_symbol",
+        "symbol": "excluded"
+      },
+      "reasons": [],
+      "seconds": 11.5,
+      "loadSeconds": 0.11,
+      "expected": {
+        "path": "src/local_memory_lab/workspace/paths.py",
+        "shape": "existing_symbol",
+        "symbol": "excluded"
+      },
+      "asExpected": true,
+      "planValid": true,
+      "planTargets": [
+        {
+          "path": "src/local_memory_lab/workspace/paths.py",
+          "symbol": "excluded",
+          "new": false
+        }
+      ],
+      "targetAgrees": true,
+      "planSeconds": 14.0
+    },
+    {
+      "case": "G3",
+      "valid": false,
+      "goal": "Add a new function stale_temps(folder) to src/local_memory_lab/workspace/patching.py that returns their paths.",
+      "target": {
+        "path": "src/local_memory_lab/workspace/patching.py",
+        "shape": "new_function",
+        "symbol": "stale_temps"
+      },
+      "reasons": [
+        "the goal must say 'existing file' for a new_function target"
+      ],
+      "seconds": 11.6,
+      "loadSeconds": 0.11,
+      "expected": {
+        "path": "src/local_memory_lab/workspace/patching.py",
+        "shape": "new_function",
+        "symbol": "stale_temps"
+      },
+      "asExpected": true
+    },
+    {
+      "case": "self-001",
+      "valid": true,
+      "goal": "Change the assemble_context_pack function in knowledge/context_pack.py to include additional logging for debugging purposes.",
+      "target": {
+        "path": "src/local_memory_lab/knowledge/context_pack.py",
+        "shape": "existing_symbol",
+        "symbol": "assemble_context_pack"
+      },
+      "reasons": [],
+      "seconds": 11.7,
+      "loadSeconds": 0.12,
+      "expected": {
+        "path": "src/local_memory_lab/knowledge/context_pack.py",
+        "shape": "existing_symbol",
+        "symbol": "assemble_context_pack"
+      },
+      "asExpected": true,
+      "planValid": true,
+      "planTargets": [
+        {
+          "path": "src/local_memory_lab/knowledge/context_pack.py",
+          "symbol": "assemble_context_pack",
+          "new": false
+        }
+      ],
+      "targetAgrees": true,
+      "planSeconds": 14.4
+    },
+    {
+      "case": "self-006",
+      "valid": true,
+      "goal": "Change the existing function build_graph in knowledge/code_graph.py to improve its performance.",
+      "target": {
+        "path": "src/local_memory_lab/knowledge/code_graph.py",
+        "shape": "existing_symbol",
+        "symbol": "build_graph"
+      },
+      "reasons": [],
+      "seconds": 11.8,
+      "loadSeconds": 0.1,
+      "expected": {
+        "path": "src/local_memory_lab/knowledge/code_graph.py",
+        "shape": "existing_symbol",
+        "symbol": "build_graph"
+      },
+      "asExpected": true,
+      "planValid": true,
+      "planTargets": [
+        {
+          "path": "src/local_memory_lab/knowledge/code_graph.py",
+          "symbol": "build_graph",
+          "new": false
+        }
+      ],
+      "targetAgrees": true,
+      "planSeconds": 13.6
+    },
+    {
+      "case": "self-010",
+      "valid": true,
+      "goal": "Combine keyword and vector result rankings with reciprocal-rank fusion in HybridRetriever.search in knowledge/retrieval.py.",
+      "target": {
+        "path": "src/local_memory_lab/knowledge/retrieval.py",
+        "shape": "existing_symbol",
+        "symbol": "HybridRetriever.search"
+      },
+      "reasons": [],
+      "seconds": 13.2,
+      "loadSeconds": 0.11,
+      "expected": {
+        "path": "src/local_memory_lab/knowledge/retrieval.py",
+        "shape": "existing_symbol",
+        "symbol": "HybridRetriever.search"
+      },
+      "asExpected": true,
+      "planValid": true,
+      "planTargets": [
+        {
+          "path": "src/local_memory_lab/knowledge/retrieval.py",
+          "symbol": "HybridRetriever.search",
+          "new": false
+        }
+      ],
+      "targetAgrees": true,
+      "planSeconds": 19.0
+    },
+    {
+      "case": "self-020",
+      "valid": true,
+      "goal": "Change the validate_task_transition function in local_memory_lab/lifecycles.py to stop debugging after two rounds.",
+      "target": {
+        "path": "src/local_memory_lab/lifecycles.py",
+        "shape": "existing_symbol",
+        "symbol": "validate_task_transition"
+      },
+      "reasons": [],
+      "seconds": 10.7,
+      "loadSeconds": 0.1,
+      "expected": {
+        "path": "src/local_memory_lab/lifecycles.py",
+        "shape": "existing_symbol",
+        "symbol": "validate_task_transition"
+      },
+      "asExpected": true,
+      "planValid": true,
+      "planTargets": [
+        {
+          "path": "src/local_memory_lab/lifecycles.py",
+          "symbol": "validate_task_transition",
+          "new": false
+        }
+      ],
+      "targetAgrees": true,
+      "planSeconds": 14.0
+    },
+    {
+      "case": "self-021",
+      "valid": true,
+      "goal": "Change the function EventStore.read_after in local_memory_lab/event_store.py to read events strictly after the requested cursor and return them in increasing order.",
+      "target": {
+        "path": "src/local_memory_lab/event_store.py",
+        "shape": "existing_symbol",
+        "symbol": "EventStore.read_after"
+      },
+      "reasons": [],
+      "seconds": 11.8,
+      "loadSeconds": 0.11,
+      "expected": {
+        "path": "src/local_memory_lab/event_store.py",
+        "shape": "existing_symbol",
+        "symbol": "EventStore.read_after"
+      },
+      "asExpected": true,
+      "planValid": true,
+      "planTargets": [
+        {
+          "path": "src/local_memory_lab/event_store.py",
+          "symbol": "EventStore.read_after",
+          "new": false
+        }
+      ],
+      "targetAgrees": true,
+      "planSeconds": 16.0
+    }
+  ]
+}
