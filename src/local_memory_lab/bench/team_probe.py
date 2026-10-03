@@ -93,7 +93,10 @@ def run_team_probe(repo_root: Path, *, on_progress: Callable[[str], None] = prin
     original_plan, original_pipeline = plan.call_role, pipeline.call_role
     plan.call_role, pipeline.call_role = timed(), timed()
     session = SharedSession(base / "events.sqlite", load_models=False, start_worker=True)
-    result = {"run_id": run_id, "goal": GOAL, "approvals_by": "probe, standing in for the USER on a throwaway project"}
+    git = lambda *args: subprocess.run(["git", *args], cwd=repo_root, capture_output=True,  # noqa: E731
+                                       text=True, check=True).stdout.strip()
+    result = {"run_id": run_id, "source_commit": git("rev-parse", "HEAD"),
+              "source_dirty": bool(git("status", "--porcelain")), "goal": GOAL, "approvals_by": "probe, standing in for the USER on a throwaway project"}
     try:
         session.set_project_root(str(project))
         job_id = session.submit_goal(GOAL, "AGENT")
@@ -150,7 +153,7 @@ def run_team_probe(repo_root: Path, *, on_progress: Callable[[str], None] = prin
         "correct": reviewer["output"]["verdict"] == "pass" and result.get("live_tests_pass", False)}
     raw = base / "result.json"
     raw.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    summary = {key: result.get(key) for key in ("run_id", "job", "error", "debugger_ran", "origin_role",
+    summary = {key: result.get(key) for key in ("run_id", "source_commit", "source_dirty", "job", "error", "debugger_ran", "origin_role",
                                                  "project_unchanged_while_pending", "live_tests_pass",
                                                  "indexed_after_apply", "reviewer", "total_seconds")}
     summary["per_role"] = [{key: row.get(key) for key in ("role", "model", "ok", "seconds")} |

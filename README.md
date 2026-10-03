@@ -13,7 +13,7 @@ The prototype is finished when the agent can make progress on its own developmen
 ## Requirements
 
 - Python 3.10 or newer, plus numpy
-- Ollama running locally, with the models listed in `PLAN.md` (decision D4)
+- Ollama running locally, with the models listed in `PLAN.md` (decision D4). The 14b planner and reviewer stay fully on a 16 GB GPU only with `OLLAMA_NUM_PARALLEL=1` set for the Ollama server (see `PLAN.md` §1)
 - Developed on Windows 10 with a 16 GB GPU
 
 ## Running it

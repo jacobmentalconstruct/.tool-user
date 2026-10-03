@@ -22,7 +22,7 @@ def request_data(approval_id: str, kind: str, summary: str, detail: str, *, acto
     # Nothing requests a command approval: task checks run under plan approval in their workspace (D19).
     allowed = {"plan": {"system"}, "patch": {"system"}, "command": set()}[kind]
     if actor not in allowed:
-        raise ValueError("Only the lifecycle or a ROLE may request this approval.")
+        raise ValueError("Only the lifecycle may request this approval.")
     data = {"id": approval_id, "kind": kind, "summary": summary, "detail": detail,
             "state": "pending", "requestId": request_id,
             "display": {"speaker": "Approval", "text": f"Review {summary.lower()} in the browser."}}

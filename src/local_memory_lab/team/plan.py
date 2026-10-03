@@ -49,14 +49,14 @@ def validate_plan(output: dict, project: Workspace, checks: dict[str, tuple[str,
         targets.add((path.casefold(), symbol))
         if item["check"] not in checks:
             raise PlanError(f"{where}: {item['check']!r} is not an allowlisted check")
-        _check_target(where, file, path, symbol, new)
+        check_target(where, file, path, symbol, new)
         specs.append({"title": item["title"].strip(), "description": item["description"].strip(),
                       "target": {"path": path, "symbol": symbol, "new": new}, "files": [path],
                       "check": item["check"], "order": order})
     return specs
 
 
-def _check_target(where: str, file: Path, path: str, symbol: str, new: bool) -> None:
+def check_target(where: str, file: Path, path: str, symbol: str, new: bool) -> None:
     if new and not symbol:  # a new file
         if file.exists():
             raise PlanError(f"{where}: {path} already exists")

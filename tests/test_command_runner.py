@@ -69,7 +69,7 @@ class CommandRunnerTests(unittest.TestCase):
 
     def test_direct_browser_and_agent_command_requests_are_refused(self):
         session = SharedSession(self.root / "events.sqlite", load_models=False, start_worker=False)
-        with self.assertRaisesRegex(ValueError, "Only the lifecycle or a ROLE"):
+        with self.assertRaisesRegex(ValueError, "Only the lifecycle may"):
             session.request_approval("command", "Run tests", "tests", actor="agent")
         server = ThreadingHTTPServer(("127.0.0.1", 0),
                                      make_handler(session, "user-token", "agent-token"))

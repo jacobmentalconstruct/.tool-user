@@ -11,6 +11,7 @@ from ..command_runner import CommandRunner
 from ..workspace.scratch import TaskWorkspace
 from .candidate import region_of, updated_source
 from .gate import GateResult, gate, gate_facts
+from .plan import PlanError, check_target
 from .roles import REVIEWER_SCHEMA, RoleOutputError, call_role, candidate_schema
 from .steps import BUILDER_SYSTEM, DEBUGGER_SYSTEM, REVIEWER_SYSTEM, build_card, candidate_input, require_citation
 
@@ -76,6 +77,10 @@ def run_task(task, project_root: Path, scratch: Path, roles: dict, knowledge, *,
                 raise TaskCancelled()
             return result
 
+        try:  # an earlier task's applied change may have moved or removed this target (reviewer L4)
+            check_target(f"task {spec['order']}", workspace.path(path), path, target["symbol"], target["new"])
+        except PlanError as exc:
+            raise TaskFailed("invalid_plan", f"the plan no longer fits the project: {exc}") from exc
         step("building")
         if check()["status"] == "ok":
             raise TaskFailed("check_not_exercising",

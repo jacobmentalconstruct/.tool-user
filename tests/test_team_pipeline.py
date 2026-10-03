@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -87,6 +89,15 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual([], team.calls)
         self.assertFalse(self.scratch.exists())  # the workspace is discarded on every failure
 
+    def test_a_target_an_earlier_task_removed_fails_as_invalid_plan(self):
+        (self.project / "calc.py").write_text(BROKEN_ADD.replace("def add", "def plus"), encoding="utf-8")
+        team = Team()
+        with self.assertRaises(TaskFailed) as caught:
+            self.run_team(team)
+        self.assertEqual("invalid_plan", caught.exception.reason)
+        self.assertEqual(([], [], []), (team.calls, self.states, self.commands))
+        self.assertFalse(self.scratch.exists())
+
     def test_a_failing_check_goes_to_the_debugger_with_the_output_and_previous_attempt(self):
         team = Team(texts=[BROKEN_ADD, FIXED_ADD])
         result = self.run_team(team)
@@ -147,7 +158,8 @@ class JobOutcomeTests(unittest.TestCase):
         self.project = make_project(base / "project")
         self.session = SharedSession(base / "events.sqlite", load_models=False, start_worker=False)
         self.session.set_project_root(str(self.project))
-        for stub in (planner(), team_roles()):
+        self.scratch = base / "control" / "scratch"
+        for stub in (planner(), team_roles(), patch("local_memory_lab.team.jobs.CONTROL", base / "control")):
             stub.start()
             self.addCleanup(stub.stop)
 
@@ -159,6 +171,23 @@ class JobOutcomeTests(unittest.TestCase):
         wait_for(self.session, job_id, "awaiting_plan_approval")
         self.session.approve(self.session.state.approvals.pending()[0].id, True)
         return job_id, pending_patch(self.session, job_id)
+
+    def assert_scratch_removed(self, job_id):
+        deadline = time.monotonic() + 5
+        while (self.scratch / job_id).exists() and time.monotonic() < deadline:
+            time.sleep(0.05)
+        self.assertFalse((self.scratch / job_id).exists())
+
+    def test_a_done_or_cancelled_job_leaves_no_scratch_folder(self):
+        job_id, approval = self.reach_patch_approval()
+        self.assertTrue((self.scratch / job_id).is_dir())
+        self.session.approve(approval.id, True)
+        wait_for(self.session, job_id, "done", timeout=10)
+        self.assert_scratch_removed(job_id)
+        (self.project / "calc.py").write_text(BROKEN_ADD, encoding="utf-8")  # so the next check fails first
+        job_id, _approval = self.reach_patch_approval()
+        self.session.cancel_job(job_id)
+        self.assert_scratch_removed(job_id)
 
     def test_user_rejection_of_the_patch_fails_the_job_and_changes_nothing(self):
         job_id, approval = self.reach_patch_approval()

@@ -6,6 +6,7 @@ from ..lifecycles import JOB_TERMINAL
 from ..locations import CONTROL
 from ..workspace.backups import BackupStore
 from ..workspace.patching import staged_apply
+from ..workspace.scratch import discard_job_scratch
 from .pipeline import TaskCancelled, TaskFailed, run_task
 from .plan import plan_job
 from .roles import load_roles
@@ -58,6 +59,7 @@ def run_goal(session, job_id: str, roles: dict | None = None) -> None:
                 session.transition_job(job_id, "failed", reason=str(exc))
                 session._record("system", "error", {"display": {"speaker": "Error", "text": str(exc)}}, job=job_id)
     finally:
+        discard_job_scratch(CONTROL / "scratch", job_id)  # its task workspaces are gone; drop the folder (L1)
         if entered_running:
             with session.lock:
                 session._active_turns -= 1

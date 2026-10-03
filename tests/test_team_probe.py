@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -44,9 +45,13 @@ class TeamProbeTests(unittest.TestCase):
                     patch("local_memory_lab.session.CONTROL", base / "control"), \
                     patch("local_memory_lab.team.jobs.CONTROL", base / "control"):
                 (base / "repo" / "bench").mkdir(parents=True)
+                for args in (["init", "-q"], ["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q",
+                                              "--allow-empty", "-m", "base"]):
+                    subprocess.run(["git", *args], cwd=base / "repo", check=True, capture_output=True)
                 raw, summary = team_probe.run_team_probe(base / "repo", on_progress=lambda message: None,
                                                          timeout=60)
             self.assertEqual("done", summary["job"], summary.get("error"))
+            self.assertEqual((40, False), (len(summary["source_commit"]), summary["source_dirty"]))
             self.assertTrue(summary["debugger_ran"])
             self.assertEqual("role:debugger", summary["origin_role"])
             self.assertTrue(summary["project_unchanged_while_pending"])
